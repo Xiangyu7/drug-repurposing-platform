@@ -1,0 +1,37 @@
+# Prometheus configuration for LLM+RAG证据工程 monitoring
+
+global:
+  scrape_interval: 15s  # Scrape targets every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  
+  external_labels:
+    monitor: 'dr-pipeline'
+    environment: 'development'
+
+# Scrape configuration
+scrape_configs:
+  # LLM+RAG证据工程 metrics
+  - job_name: 'dr-pipeline'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # Metrics server
+        labels:
+          service: 'dr-pipeline'
+          instance: 'local'
+    
+    # Metrics path
+    metrics_path: '/metrics'
+    
+    # Scrape interval for this job
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+# Alerting configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - alertmanager:9093
+
+# Rule files (optional)
+rule_files:
+  # - "alerts/*.yml"

@@ -1,0 +1,309 @@
+[
+  {
+    "drug_id": "D413D3EC269",
+    "canonical_name": "medi6570",
+    "gate_decision": "NO-GO",
+    "gate_reasons": [
+      "pmids<3"
+    ],
+    "scores": {
+      "evidence_strength_0_30": 8.1,
+      "mechanism_plausibility_0_20": 14.0,
+      "translatability_0_20": 6.0,
+      "safety_fit_0_20": 20.0,
+      "practicality_0_10": 1.0,
+      "total_score_0_100": 49.1
+    },
+    "evidence_summary": {
+      "benefit": 2,
+      "harm": 0,
+      "neutral": 0,
+      "unknown": 0,
+      "total_pmids": 2
+    },
+    "key_pmids": [
+      "36688371",
+      "40999229"
+    ],
+    "mechanism_hypothesis": "Medi6570 may reduce atherosclerosis through anti-inflammatory effects. Based on 2 supporting publications, the drug shows potential benefit in preclinical and/or clinical studies.",
+    "next_steps": [
+      "❌ Do not advance to validation at this time",
+      "Limited literature - may indicate insufficient research interest",
+      "Archive dossier for future reference"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/D413D3EC269__medi6570.json"
+  },
+  {
+    "drug_id": "D4BE4598792",
+    "canonical_name": "apolipoprotein a-i human apoa-i",
+    "gate_decision": "NO-GO",
+    "gate_reasons": [
+      "safety_concern"
+    ],
+    "scores": {
+      "evidence_strength_0_30": 26.7,
+      "mechanism_plausibility_0_20": 17.3,
+      "translatability_0_20": 20.0,
+      "safety_fit_0_20": 12.0,
+      "practicality_0_10": 8.0,
+      "total_score_0_100": 84.0
+    },
+    "evidence_summary": {
+      "benefit": 12,
+      "harm": 6,
+      "neutral": 0,
+      "unknown": 2,
+      "total_pmids": 80
+    },
+    "key_pmids": [
+      "31567014",
+      "18287885",
+      "28069582",
+      "28939717",
+      "40263360",
+      "17430166",
+      "35120132",
+      "16285990",
+      "40371638",
+      "26681753"
+    ],
+    "mechanism_hypothesis": "Apolipoprotein A-I Human Apoa-I may reduce atherosclerosis through anti-inflammatory effects, plaque stabilization/regression. Based on 12 supporting publications, the drug shows potential benefit in preclinical and/or clinical studies.",
+    "next_steps": [
+      "❌ Do not advance to validation at this time",
+      "Archive dossier for future reference"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/D4BE4598792__apolipoprotein_a-i_human_apoa-i.json"
+  },
+  {
+    "drug_id": "D4BE4598792",
+    "canonical_name": "apolipoprotein a-i human apoa-i",
+    "gate_decision": "NO-GO",
+    "gate_reasons": [
+      "safety_concern"
+    ],
+    "scores": {
+      "evidence_strength_0_30": 23.7,
+      "mechanism_plausibility_0_20": 14.7,
+      "translatability_0_20": 18.0,
+      "safety_fit_0_20": 12.0,
+      "practicality_0_10": 6.0,
+      "total_score_0_100": 74.4
+    },
+    "evidence_summary": {
+      "benefit": 10,
+      "harm": 7,
+      "neutral": 0,
+      "unknown": 3,
+      "total_pmids": 20
+    },
+    "key_pmids": [
+      "35120132",
+      "33861588",
+      "28069582",
+      "24407029",
+      "29437574",
+      "39643078",
+      "40371638",
+      "40263360",
+      "20425244",
+      "18287885"
+    ],
+    "mechanism_hypothesis": "Apolipoprotein A-I Human Apoa-I may reduce atherosclerosis through anti-inflammatory effects, antioxidant activity, lipid modulation. Based on 10 supporting publications, the drug shows potential benefit in preclinical and/or clinical studies.",
+    "next_steps": [
+      "❌ Do not advance to validation at this time",
+      "Archive dossier for future reference"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/D4BE4598792__apolipoprotein_a-i_human_apoa-i_embed.json"
+  },
+  {
+    "drug_id": "D81B744A593",
+    "canonical_name": "resveratrol",
+    "gate_decision": "GO",
+    "gate_reasons": [],
+    "scores": {
+      "evidence_strength_0_30": 30.0,
+      "mechanism_plausibility_0_20": 20.0,
+      "translatability_0_20": 20.0,
+      "safety_fit_0_20": 20.0,
+      "practicality_0_10": 8.0,
+      "total_score_0_100": 98.0
+    },
+    "evidence_summary": {
+      "benefit": 17,
+      "harm": 0,
+      "neutral": 0,
+      "unknown": 3,
+      "total_pmids": 80
+    },
+    "key_pmids": [
+      "40043912",
+      "24895526",
+      "27156686",
+      "30885430",
+      "26306466",
+      "40634132",
+      "37030661",
+      "23450206",
+      "23337345",
+      "36932392"
+    ],
+    "mechanism_hypothesis": "Resveratrol may reduce atherosclerosis through anti-inflammatory effects, lipid modulation, macrophage modulation. Based on 17 supporting publications, the drug shows potential benefit in preclinical and/or clinical studies.",
+    "next_steps": [
+      "✅ Proceed to detailed validation planning",
+      "Review full evidence dossier and identify key mechanistic papers",
+      "Design preclinical validation experiments (if mechanism unclear)",
+      "Evaluate clinical trial feasibility and endpoints",
+      "Assess drug availability and regulatory pathway"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/D81B744A593__resveratrol.json"
+  },
+  {
+    "drug_id": "D8291C5A5C4",
+    "canonical_name": "nicotinamide riboside",
+    "gate_decision": "MAYBE",
+    "gate_reasons": [
+      "score<60.0"
+    ],
+    "scores": {
+      "evidence_strength_0_30": 13.4,
+      "mechanism_plausibility_0_20": 13.7,
+      "translatability_0_20": 12.0,
+      "safety_fit_0_20": 16.0,
+      "practicality_0_10": 4.0,
+      "total_score_0_100": 59.1
+    },
+    "evidence_summary": {
+      "benefit": 5,
+      "harm": 2,
+      "neutral": 0,
+      "unknown": 4,
+      "total_pmids": 11
+    },
+    "key_pmids": [
+      "38871717",
+      "39034866",
+      "35196876",
+      "40257024",
+      "32758058"
+    ],
+    "mechanism_hypothesis": "Nicotinamide Riboside shows evidence of benefit in 5 publications. Specific mechanism requires further investigation of literature.",
+    "next_steps": [
+      "⚠️ Borderline candidate - requires additional evidence review",
+      "Manual review of top 20 papers to confirm benefit/harm classification",
+      "Search for additional evidence (expanded PubMed queries)",
+      "Gather more evidence - current coverage may be insufficient",
+      "Re-score after evidence review to determine GO/NO-GO"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/D8291C5A5C4__nicotinamide_riboside.json"
+  },
+  {
+    "drug_id": "D9F9BB8C160",
+    "canonical_name": "creatine monohydrate",
+    "gate_decision": "NO-GO",
+    "gate_reasons": [
+      "benefit<2",
+      "pmids<3"
+    ],
+    "scores": {
+      "evidence_strength_0_30": 0.1,
+      "mechanism_plausibility_0_20": 6.0,
+      "translatability_0_20": 4.0,
+      "safety_fit_0_20": 20.0,
+      "practicality_0_10": 1.0,
+      "total_score_0_100": 31.1
+    },
+    "evidence_summary": {
+      "benefit": 0,
+      "harm": 0,
+      "neutral": 0,
+      "unknown": 2,
+      "total_pmids": 2
+    },
+    "key_pmids": [],
+    "mechanism_hypothesis": "Limited evidence available for creatine monohydrate in atherosclerosis. Mechanism unclear.",
+    "next_steps": [
+      "❌ Do not advance to validation at this time",
+      "Insufficient benefit evidence - consider removing from pipeline",
+      "Limited literature - may indicate insufficient research interest",
+      "Archive dossier for future reference"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/D9F9BB8C160__creatine_monohydrate.json"
+  },
+  {
+    "drug_id": "DD76A1941B2",
+    "canonical_name": "dexamethasone",
+    "gate_decision": "GO",
+    "gate_reasons": [],
+    "scores": {
+      "evidence_strength_0_30": 30.0,
+      "mechanism_plausibility_0_20": 20.0,
+      "translatability_0_20": 20.0,
+      "safety_fit_0_20": 16.0,
+      "practicality_0_10": 8.0,
+      "total_score_0_100": 94.0
+    },
+    "evidence_summary": {
+      "benefit": 18,
+      "harm": 0,
+      "neutral": 0,
+      "unknown": 2,
+      "total_pmids": 80
+    },
+    "key_pmids": [
+      "8499410",
+      "40239267",
+      "16815711",
+      "30478968",
+      "34784501",
+      "25735629",
+      "1453236",
+      "25874855",
+      "24899497",
+      "33187578"
+    ],
+    "mechanism_hypothesis": "Dexamethasone may reduce atherosclerosis through anti-inflammatory effects, lipid modulation, macrophage modulation, plaque stabilization/regression. Based on 18 supporting publications, the drug shows potential benefit in preclinical and/or clinical studies.",
+    "next_steps": [
+      "✅ Proceed to detailed validation planning",
+      "Review full evidence dossier and identify key mechanistic papers",
+      "Design preclinical validation experiments (if mechanism unclear)",
+      "Evaluate clinical trial feasibility and endpoints",
+      "Assess drug availability and regulatory pathway"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/DD76A1941B2__dexamethasone.json"
+  },
+  {
+    "drug_id": "DF09C894FE9",
+    "canonical_name": "vm202",
+    "gate_decision": "NO-GO",
+    "gate_reasons": [
+      "benefit<2",
+      "pmids<3"
+    ],
+    "scores": {
+      "evidence_strength_0_30": 4.1,
+      "mechanism_plausibility_0_20": 14.0,
+      "translatability_0_20": 4.0,
+      "safety_fit_0_20": 20.0,
+      "practicality_0_10": 1.0,
+      "total_score_0_100": 43.1
+    },
+    "evidence_summary": {
+      "benefit": 1,
+      "harm": 0,
+      "neutral": 0,
+      "unknown": 1,
+      "total_pmids": 2
+    },
+    "key_pmids": [
+      "21430785"
+    ],
+    "mechanism_hypothesis": "Vm202 shows evidence of benefit in 1 publications. Specific mechanism requires further investigation of literature.",
+    "next_steps": [
+      "❌ Do not advance to validation at this time",
+      "Insufficient benefit evidence - consider removing from pipeline",
+      "Limited literature - may indicate insufficient research interest",
+      "Archive dossier for future reference"
+    ],
+    "dossier_path": "output/step6_simple/dossiers/DF09C894FE9__vm202.json"
+  }
+]

@@ -1,0 +1,54 @@
+# === Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# === Virtual environments ===
+.venv/
+venv/
+env/
+
+# === Secrets ===
+.env
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === IDE ===
+.cursor/
+.claude/
+
+# === Coverage / test artifacts ===
+.coverage
+htmlcov/
+*.sqlite
+logs/
+
+# === Caches (large, regenerable) ===
+**/cache/
+**/*_cache/
+
+# === kg_explain large outputs ===
+kg_explain/output/evidence_pack_v5/
+kg_explain/output/evidence_paths_v3.jsonl
+kg_explain/output/evidence_paths_v5.jsonl
+
+# === dsmeta work data (large, regenerable from GEO) ===
+dsmeta_signature_pipeline/work/
+
+# === LLM+RAG large/regenerable ===
+LLM+RAG证据工程/archive/
+LLM+RAG证据工程/output/step6/cache/
+LLM+RAG证据工程/*.log
+LLM+RAG证据工程/ctgov_cache/
+
+# === sigreverse outputs (large, regenerable) ===
+sigreverse/data/cache/
+sigreverse/data/output*/
+sigreverse/*.log
+sigreverse/*.parquet

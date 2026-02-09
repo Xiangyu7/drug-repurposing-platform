@@ -1,0 +1,57 @@
+# 药物名称规范化停用词
+# 用于canonicalize_name函数
+
+# 剂型相关
+formulation:
+  - tablet
+  - tablets
+  - capsule
+  - capsules
+  - injection
+  - injectable
+  - infusion
+  - solution
+  - suspension
+  - gel
+  - cream
+  - patch
+  - spray
+  - drops
+  - drop
+
+# 给药途径
+route:
+  - oral
+  - iv
+  - intravenous
+  - sc
+  - subcutaneous
+  - im
+  - intramuscular
+  - po
+
+# 给药频率
+frequency:
+  - qd
+  - bid
+  - tid
+  - qod
+  - qhs
+
+# 释放类型
+release:
+  - sustained
+  - extended
+  - release
+  - er
+  - sr
+  - xr
+
+# 单位
+units:
+  - mg
+  - g
+  - mcg
+  - ug
+  - iu
+  - ml

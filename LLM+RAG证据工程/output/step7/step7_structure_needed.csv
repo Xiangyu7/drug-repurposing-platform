@@ -1,0 +1,8 @@
+﻿drug,drug_id,structure_needed,when_yes
+medi6570,D413D3EC269,NO,YES only for novel binding hypothesis / lead optimization; otherwise validate via biomarkers/cell assays first.
+apolipoprotein a-i human apoa-i,D4BE4598792,NO,YES only for novel binding hypothesis / lead optimization; otherwise validate via biomarkers/cell assays first.
+resveratrol,D81B744A593,NO,YES only for novel binding hypothesis / lead optimization; otherwise validate via biomarkers/cell assays first.
+nicotinamide riboside,D8291C5A5C4,NO,YES only for novel binding hypothesis / lead optimization; otherwise validate via biomarkers/cell assays first.
+creatine monohydrate,D9F9BB8C160,NO,YES only for novel binding hypothesis / lead optimization; otherwise validate via biomarkers/cell assays first.
+dexamethasone,DD76A1941B2,NO,YES only for novel binding hypothesis / lead optimization; otherwise validate via biomarkers/cell assays first.
+vm202,DF09C894FE9,NO,YES only for novel binding hypothesis / lead optimization; otherwise validate via biomarkers/cell assays first.

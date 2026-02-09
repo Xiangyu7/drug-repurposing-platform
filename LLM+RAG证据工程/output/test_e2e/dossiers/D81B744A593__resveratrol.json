@@ -1,0 +1,597 @@
+{
+  "drug_id": "D81B744A593",
+  "canonical_name": "resveratrol",
+  "target_disease": "atherosclerosis",
+  "endpoint_type": "OTHER",
+  "query": "(\"resveratrol\") AND ((atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)) AND (\"atherosclerosis\")",
+  "qc": {
+    "topic_match_ratio": 0.7143,
+    "topic_mismatch": false,
+    "removed_evidence_count": 0,
+    "removed_cross_drug_count": 0,
+    "supporting_evidence_after_qc": 10,
+    "supporting_sentence_count_after_qc": 14,
+    "qc_reasons": []
+  },
+  "clinicaltrials_negative": [],
+  "pubmed_rag": {
+    "top_abstracts": [
+      {
+        "pmid": "34830366",
+        "title": "Natural Compound Resveratrol Attenuates TNF-Alpha-Induced Vascular Dysfunction in Mice and Human Endothelial Cells: The Involvement of the NF-κB Signaling Pathway.",
+        "abstract": "Resveratrol, a natural compound in grapes and red wine, has drawn attention due to potential cardiovascular-related health benefits. However, its effect on vascular inflammation at physiologically achievable concentrations is largely unknown. In this study, resveratrol in concentrations as low as 1 μm suppressed TNF-α-induced monocyte adhesion to human EA.hy926 endothelial cells (ECs), a key event in the initiation and development of atherosclerosis. Low concentrations of resveratrol (0.25-2 μm) also significantly attenuated TNF-α-stimulated mRNA expressions of MCP-1/CCL2 and ICAM-1, which are vital mediators of EC-monocyte adhesion molecules and cytokines for cardiovascular plaque formation. Additionally, resveratrol diminished TNF-α-induced IκB-α degradation and subsequent nuclear translocation of NF-κB p65 in ECs. In the animal study, resveratrol supplementation in diet significantly diminished TNF-α-induced increases in circulating levels of adhesion molecules and cytokines, monocyte adhesion to mouse aortic ECs, F4/80-positive macrophages and VCAM-1 expression in mice aortas and restored the disruption in aortic elastin fiber caused by TNF-α treatment. The animal study also confirmed that resveratrol blocks the activation of NF-κB In Vivo. In conclusion, resveratrol at physiologically achievable concentrations displayed protective effects against TNF-α-induced vascular endothelial inflammation in vitro and In Vivo. The ability of resveratrol in reducing inflammation may be associated with its role as a down-regulator of the NF-κB pathway.",
+        "year": "2021"
+      },
+      {
+        "pmid": "40686105",
+        "title": "[Research progress on cardiovascular protective mechanism of resveratrol].",
+        "abstract": "Resveratrol(Res) is a kind of polyphenolic compound, possessing multiple biological activities such as antioxidant, anti-inflammatory, cardioprotective, and anticancer effects. In recent years, the cardiovascular protective mechanism of Res has become a research hotspot. Studies have shown that Res has a protective effect on the cardiovascular system through various pathways, such as inhibiting oxidative stress, regulating ferroptosis of cells, improving ischemia-reperfusion(I/R) injury, regulating lipid metabolism, suppressing inflammatory responses, and enhancing endothelial function. It can also alleviate cardiotoxicity caused by drugs and chemicals. In terms of oxidative stress, Res reduces the level of intracellular reactive oxygen species(ROS) by enhancing the expression of proteins such as silent information regulator 1(SIRT1) and regulating mitochondrial function, thereby alleviating myocardial cell damage. Regarding ferroptosis, Res inhibits the occurrence of ferroptosis by regulating the expression of proteins related to iron metabolism. Res can also improve I/R injury through mechanisms such as activating autophagy and the mitochondrial quality control network. In regard to improving endothelial function, Res protects the function of endothelial cells by regulating multiple signaling pathways, such as downregulating the PREP1-mediated pathway. Res can also regulate lipid metabolism and inhibit the progression of atherosclerosis. In terms of inflammatory responses, Res exerts anti-inflammatory effects through mechanisms such as inhibiting the nuclear factor-kappa B(NF-κB) signaling pathway. In addition, Res has an improving effect on cardiotoxicity caused by different drugs or environmental factors. However, the clinical application of Res still faces limitations such as poor pharmacokinetic properties. In the future, in-depth exploration is needed at multiple levels from basic research to clinical application to clarify the dose-response relationship and standardize the standards of medication regimens with the expectation of providing more effective strategies for the prevention and treatment of cardiovascular diseases.",
+        "year": "2025"
+      },
+      {
+        "pmid": "30469326",
+        "title": "Beneficial Effects of Resveratrol Administration-Focus on Potential Biochemical Mechanisms in Cardiovascular Conditions.",
+        "abstract": "Resveratrol (RV) is a natural non-flavonoid polyphenol and phytoalexin produced by a number of plants such as peanuts, grapes, red wine and berries. Numerous in vitro studies have shown promising results of resveratrol usage as antioxidant, antiplatelet or anti-inflammatory agent. Beneficial effects of resveratrol activity probably result from its ability to purify the body from ROS (reactive oxygen species), inhibition of COX (cyclooxygenase) and activation of many anti-inflammatory pathways. Administration of the polyphenol has a potential to slow down the development of CVD (cardiovascular disease) by influencing on certain risk factors such as development of diabetes or atherosclerosis. Resveratrol induced an increase in Sirtuin-1 level, which by disrupting the TLR4/NF-κB/STAT signal cascade (toll-like receptor 4/nuclear factor κ-light-chain enhancer of activated B cells/signal transducer and activator of transcription) reduces production of cytokines in activated microglia. Resveratrol caused an attenuation of macrophage/mast cell-derived pro-inflammatory factors such as PAF (platelet-activating factor), TNF-α (tumour necrosis factor-α and histamine. Endothelial and anti-oxidative effect of resveratrol may contribute to better outcomes in stroke management. By increasing BDNF (brain-derived neurotrophic factor) serum concentration and inducing NOS-3 (nitric oxide synthase-3) activity resveratrol may have possible therapeutical effects on cognitive impairments and dementias especially in those characterized by defective cerebrovascular blood flow.",
+        "year": "2018"
+      },
+      {
+        "pmid": "28346848",
+        "title": "Cardiovascular Protective Effects and Clinical Applications of Resveratrol.",
+        "abstract": "Resveratrol is a naturally occurring phenol that is generated by plant species following injury or attack by bacterial and fungal pathogens. This compound was first described as the French Paradox in 1992. Later in 2003, resveratrol was reported to activate sirtuins in yeast cells. Recent experimental studies have found that resveratrol offers a variety of benefits that include both anticarcinogenic and anti-inflammatory effects in addition to the ability to reverse obesity, attenuate hyperglycemia and hyperinsulinemia, protect heart and endothelial function, and increase the life span. Multiple molecular targets are associated with the cardioprotective capabilities of resveratrol, and therefore, resveratrol has potential for a wide range of new therapeutic strategies for atherosclerosis, ischemia/reperfusion, metabolic syndrome, cardiac failure, and inflammatory alterations during aging. Expectations for application in human patients, however, suffer from a lack of sufficient clinical evidence in support of these beneficial effects. This article reviews recently reported basic research results that describe the beneficial effects of resveratrol in an attempt to condense the evidence observed in clinical trials and provide support for the future development of novel clinical therapeutics in patients with cardiovascular diseases.",
+        "year": "2017"
+      },
+      {
+        "pmid": "30253861",
+        "title": "Effect of resveratrol on seric vascular endothelial growth factor concentrations during atherosclerosis.",
+        "abstract": "Although it is known that resveratrol has anti-inflammatory and anti-atherogenic actions, its effect on vascular endothelial growth factor (VEGF) in atherosclerosis is unknown. To evaluate the effect of resveratrol on serum concentrations of VEGF during the progression and evolution of atherosclerosis, as well as and its evolution over time in rabbits fed with a cholesterol diet. A total of 48 New Zealand white male rabbits were randomly divided into four groups of 12 rabbits: group1 (control): standard diet (commercial rabbit food); group2: cholesterol diet (0.5% cholesterol); group3 (control resveratrol): standard diet (commercial rabbit food) and resveratrol (2mg/Kg); group4: cholesterol diet (0.5% cholesterol) and resveratrol (2mg/Kg), for 12weeks. Blood samples of overnight-fasted rabbits were collected at baseline and the sixth and twelfth weeks, and the lipid profile, VEGF, and C-reactive protein (CRP) levels were determined. Half of the animals were sacrificed on the sixth or twelfth week, and the aorta was dissected for histological studies. VEGF and CRP levels were significantly higher in groups2 and 4 than in groups1 and 3, respectively, from the 6th week (p<0.001). VEGF and CRP were significantly lower in group4 than in group2 on 12th week (p<0.004). Supplementation of resveratrol reduced the formation of atherosclerotic lesions. Serum VEGF and CRP levels are early markers of atherosclerosis. Oral supplementation of resveratrol exerts anti-inflammatory and anti-atherosclerotic effects, decreasing serum concentrations of VEGF and CRP and the formation and evolution of atherosclerotic lesions.",
+        "year": "2018"
+      },
+      {
+        "pmid": "21261638",
+        "title": "Resveratrol in cardiovascular health and disease.",
+        "abstract": "Resveratrol, initially used for cancer therapy, has shown beneficial effects against most degenerative and cardiovascular diseases from atherosclerosis, hypertension, ischemia/reperfusion, and heart failure to diabetes, obesity, and aging. The cardioprotective effects of resveratrol are associated with its preconditioning-like action potentiated by its adaptive response. During preconditioning, small doses of resveratrol can exert an adaptive stress response, forcing the expression of cardioprotective genes and proteins such as heat shock and antioxidant proteins. Similarly, resveratrol can induce autophagy, another form of stress adaptation for degrading damaged or long-lived proteins, as a first line of protection against oxidative stress. Resveratrol's interaction with multiple molecular targets of diverse intracellular pathways (e.g., action on sirtuins and FoxOs through multiple transcription factors and protein targets) intertwines with those of the autophagic pathway to give support in the modified redox environment after stem cell therapy, which leads to prolonged survival of cells. The successful application of resveratrol in therapy is based upon its hormetic action similar to any toxin: exerting beneficial effects at lower doses and cytotoxic effects at higher doses.",
+        "year": "2011"
+      },
+      {
+        "pmid": "29044265",
+        "title": "A comprehensive review of the health perspectives of resveratrol.",
+        "abstract": "Many natural products present in our diet, including flavonoids, can prevent the progression of cancer and other diseases. Resveratrol, a natural polyphenol present in various fruits and vegetables, plays an important role as a therapeutic and chemopreventive agent used in the treatment of various illnesses. It exhibits effects against different types of cancer through different pathways. It additionally exerts antidiabetic, anti-inflammatory, and anti-oxidant effects in a variety of cell types. Furthermore, the cardiovascular protective capacities of resveratrol are associated with multiple molecular targets and may lead to the development of novel therapeutic strategies for atherosclerosis, ischemia/reperfusion, metabolic syndrome, and heart failure. Accordingly, this article presents an overview of recent developments in the use of resveratrol for the prevention and treatment of different diseases along with various mechanisms. In addition, the present review summarizes the most recent literature pertaining to resveratrol as a chemotherapeutic agent against multiple diseases and provides an assessment of the potential of this natural compound as a complementary or alternative medicine.",
+        "year": "2017"
+      },
+      {
+        "pmid": "11408943",
+        "title": "Mechanism of cardioprotection by resveratrol, a phenolic antioxidant present in red wine (Review).",
+        "abstract": "Coronary heart disease (CHD) has been and remains a major contributor to morbidity and mortality in developed countries. The most common form of CHD in the western world is atherosclerosis (AS), especially of the major coronary arteries. Failure to maintain an intact endothelium, as a result of episodic and/or persistent injury and perturbation of the vascular endothelium, promotes formation of fatty streaks which are considered initiation events of AS. Cellular constituents contributing to endothelial injury include endothelial cells, monocytes, platelets, and smooth muscle cells. Individuals diagnosed with AS face complex, enduring clinical complications and enormous medical costs. Simple and easily compliant prevention and treatment measures are therefore strategic considerations in the management of this vascular disease. Based on known risk factors for CHD, priorities in AS prevention should include smoking cessation, blood pressure control, and diet modification. In recent years, the possible benefits of low to moderate consumption of alcoholic beverages, particularly of red wine, in the prevention of heart disease has received increasing attention and debate in the popular media as well as in the scientific community. Such attention has been prompted by research findings supporting a relationship between red wine consumption and the French paradox. This phenomenon refers to people residing in certain parts of France where red wine is customarily consumed during meals having a low CHD mortality, despite living a lifestyle considered to have comparably high CHD risks, as those in the US and many other developed countries. Studies have reported that the cardioprotective effects of red wine are greater than those attributed solely to ethanol and other types of alcoholic beverages. The mechanism(s) underlying the greater CHD protective benefits of red wine have not been elucidated. Recently the polyphenol resveratrol (3,5,4'-trihydroxy-trans-stilbene), known to be abundantly present in red wine, compared to white wine, beer, or spirits, has been demonstrated to elicit a broad spectrum of biological responses in in vitro and in animal studies, including effects that are compatible with the cardioprotective roles proposed for red wine. These recently described effects of resveratrol will be reviewed in this article. We will first summarize published data showing an inverse association between consumption of alcoholic beverages/red wine and risk of CHD. A review of biosynthesis of resveratrol and its presence in food groups and wines will follow. Recent studies relating exposure to wine/resveratrol with reduction in myocardial damage during ischemia-reperfusion, modulation of vascular cell functions, inhibition of LDL oxidation, and suppression of platelet aggregation will be presented. The last section of this review will focus on a discussion of mechanism(s) by which resveratrol acts as a potential cardioprotective agent.",
+        "year": "2001"
+      },
+      {
+        "pmid": "21530968",
+        "title": "Resveratrol prevents the development of abdominal aortic aneurysm through attenuation of inflammation, oxidative stress, and neovascularization.",
+        "abstract": "We sought to examine the effect of resveratrol (3,4',5-trihydroxy-trans-stilbene), a plant-derived polyphenolic compound, on the development of abdominal aortic aneurysm (AAA). AAA was induced in mice by periaortic application of CaCl(2). NaCl (0.9%)-applied mice were used as a sham group. Mice were treated with intraperitoneal injection of PBS (Sham/CON, AAA/CON, n=30 for each) or resveratrol (100 mg/kg/day) (AAA/RSVT, n=30). Six weeks after the operation, aortic tissue was excised for further examinations. Aortic diameter was enlarged in AAA/CON compared with Sham/CON. Resveratrol treatment reduced the aneurysm size and inflammatory cell infiltration in the aortic wall compared with AAA/CON. Elastica Van Gieson staining showed destruction of the wavy morphology of the elastic lamellae in AAA/CON, while it was preserved in AAA/RSVT. The increased mRNA expression of monocyte chemotactic protein-1, tumor necrosis factor-α, intercellular adhesion molecule-1, CD68, vascular endothelial growth factor-A, p47, glutathione peroxidase (GPX)1 and GPX3 were attenuated by resveratrol treatment (all p<0.05). Administration of resveratrol decreased protein expression of phospho-p65 in AAA. The increased 8-hydroxy-2'-deoxyguanosine-positive cell count and 4-hydroxy-2-nonenal-positive cell count in AAA were also reduced by resveratrol treatment. Zymographic activity of matrix metalloproteinase (MMP)-9 and MMP-2 was lower in AAA/RSVT compared with AAA/CON (both p<0.05). Compared with AAA/CON, Mac-2(+) macrophages and CD31(+) vessels in the aortic wall were decreased in AAA/RSVT (both p<0.05). Treatment with resveratrol in mice prevented the development of CaCl(2)-induced AAA, in association with reduced inflammation, oxidative stress, neoangiogenesis, and extracellular matrix disruption. These findings suggest therapeutic potential of resveratrol for AAA.",
+        "year": "2011"
+      },
+      {
+        "pmid": "20850033",
+        "title": "Dietary polyphenols: focus on resveratrol, a promising agent in the prevention of cardiovascular diseases and control of glucose homeostasis.",
+        "abstract": "Plants continuously produce an extraordinary variety of biologically active low-molecular-mass compounds. Among them, resveratrol (3,5,4'-trihydroxystilbene) is endowed with significant positive activities by protecting against cardiovascular diseases and preventing the development and progression of atherosclerosis. Furthermore, the molecule significantly ameliorates glucose homeostasis in obese mice. These beneficial effects have driven considerable interest towards resveratrol molecular activities, and intensive efforts for the identification of the stilbene targets have been made. The molecule shows a pleiotropic mode of action. Particularly, its cellular targets are crucial for cell proliferation and differentiation, apoptosis, antioxidant defence and mitochondrial energy production. The complexity of resveratrol activities might account for its effectiveness in ameliorating multifactorial processes, including the onset and/or progression of several degenerative diseases such as myocardial infarction, atherosclerosis and type 2 diabetes. This article reports the actions of resveratrol on cardiovascular diseases and the molecular bases of its activity. We also discuss recent data on the effect of resveratrol on glucose homeostasis and obesity. Finally, the relevance of the stilbene use in the development of new pharmacological strategies is evaluated.",
+        "year": "2010"
+      }
+    ],
+    "top_sentences": [
+      {
+        "pmid": "34830366",
+        "text": "Resveratrol blocks NF-κB activation and reduces inflammation in mice and human cells.",
+        "score": 0.5786
+      },
+      {
+        "pmid": "21530968",
+        "text": "Resveratrol prevents abdominal aortic aneurysm by reducing inflammation, oxidative stress, and neovascularization.",
+        "score": 0.5786
+      },
+      {
+        "pmid": "35736860",
+        "text": "Resveratrol protects against ox-LDL-induced endothelial dysfunction.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "36364780",
+        "text": "Atherosclerosis is a chronic inflammatory vascular disease in which endothelial cells play an important role in maintaining vascular homeostasis. Endotheliitis ",
+        "score": 0.4286
+      },
+      {
+        "pmid": "34830366",
+        "text": "Resveratrol suppresses TNF-α-induced monocyte adhesion in human endothelial cells.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "40686105",
+        "text": "Resveratrol can inhibit the progression of atherosclerosis through multiple mechanisms.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "30469326",
+        "text": "Resveratrol administration may reduce the development of atherosclerosis by influencing risk factors.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "30469326",
+        "text": "Resveratrol reduces pro-inflammatory factors and has anti-oxidative effects.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "28346848",
+        "text": "Resveratrol offers benefits for heart and endothelial function.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "21261638",
+        "text": "Resveratrol has shown beneficial effects against atherosclerosis.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "21530968",
+        "text": "Resveratrol prevents the development of abdominal aortic aneurysms through reduced inflammation, oxidative stress, and neoangiogenesis.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "20850033",
+        "text": "Resveratrol significantly ameliorates glucose homeostasis and prevents the development and progression of atherosclerosis in obese mice.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "36364780",
+        "text": "By transcriptome profiling of RES-treated human umbilical vein endothelial cells (HUVECs) and in-depth bioinformatic analysis, we observed that differentially e",
+        "score": 0.2929
+      },
+      {
+        "pmid": "35736860",
+        "text": "Resveratrol promotes cell viability and angiogenesis while inhibiting ox-LDL-induced apoptosis, inflammation, and oxidative stress.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "12871381",
+        "text": "Resveratrol down-regulates tissue factor expression in vascular cells.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "12871381",
+        "text": "Resveratrol down-regulates tissue factor expression in vascular cells.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "20107610",
+        "text": "The effects of anti-inflammatory plant extracts, such as black tea extract (BTE) and resveratrol (RSV) could modulate cell activation leading to atherosclerosis",
+        "score": 0.2929
+      },
+      {
+        "pmid": "20107610",
+        "text": "Prostacyclin levels were highest in HUVEC and were inhibited by RSV in all cell types. The differences between the endothelial cell types could account for grea",
+        "score": 0.2929
+      },
+      {
+        "pmid": "29044265",
+        "text": "It additionally exerts antidiabetic, anti-inflammatory, and anti-oxidant effects in a variety of cell types. Furthermore, the cardiovascular protective capaciti",
+        "score": 0.2857
+      },
+      {
+        "pmid": "28346848",
+        "text": "Clinical evidence lacking for repurposing resveratrol in atherosclerosis.",
+        "score": 0.1429
+      }
+    ]
+  },
+  "llm_structured": {
+    "confidence": "HIGH",
+    "mode": "llm",
+    "repurpose_rationale": "",
+    "proposed_mechanisms": [
+      "and",
+      "applications",
+      "attenuates",
+      "beneficial",
+      "biochemical",
+      "cardiovascular",
+      "cells",
+      "clinical",
+      "compound",
+      "conditions",
+      "dysfunction",
+      "effects"
+    ],
+    "key_risks": [],
+    "supporting_evidence": [
+      {
+        "pmid": "34830366",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "reduces TNF-α-induced monocyte adhesion to ECs",
+        "claim": "Resveratrol suppresses TNF-α-induced monocyte adhesion in human endothelial cells.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 's34830366' vs expected '34830366'"
+        ],
+        "source": "llm",
+        "pmid_raw": "s34830366",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "34830366",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "reduces TNF-α-induced vascular endothelial inflammation",
+        "claim": "Resveratrol blocks NF-κB activation and reduces inflammation in mice and human cells.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'strconv30366' vs expected '34830366'"
+        ],
+        "source": "llm",
+        "pmid_raw": "strconv30366",
+        "topic_match_ratio": 0.4286
+      },
+      {
+        "pmid": "40686105",
+        "supports": true,
+        "direction": "benefit",
+        "model": "unknown",
+        "endpoint": "Inhibits atherosclerosis progression",
+        "claim": "Resveratrol can inhibit the progression of atherosclerosis through multiple mechanisms.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'strconv(40686105)' vs expected '40686105'"
+        ],
+        "source": "llm",
+        "pmid_raw": "strconv(40686105)",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "30469326",
+        "supports": true,
+        "direction": "benefit",
+        "model": "unknown",
+        "endpoint": "Reduction in atherosclerosis risk factors",
+        "claim": "Resveratrol administration may reduce the development of atherosclerosis by influencing risk factors.",
+        "confidence": 0.85,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'strconv(30469326)' vs expected '30469326'"
+        ],
+        "source": "llm",
+        "pmid_raw": "strconv(30469326)",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "30469326",
+        "supports": true,
+        "direction": "benefit",
+        "model": "unknown",
+        "endpoint": "Reduced inflammation and oxidative stress",
+        "claim": "Resveratrol reduces pro-inflammatory factors and has anti-oxidative effects.",
+        "confidence": 0.8,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'http://www.ncbi.nlm.nih.gov/pubmed/30469326' vs expected '30469326'"
+        ],
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/30469326",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "28346848",
+        "supports": true,
+        "direction": "benefit",
+        "model": "cell",
+        "endpoint": "cardioprotective effects",
+        "claim": "Resveratrol offers benefits for heart and endothelial function.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'strconv(28346848)' vs expected '28346848'"
+        ],
+        "source": "llm",
+        "pmid_raw": "strconv(28346848)",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "21261638",
+        "supports": true,
+        "direction": "benefit",
+        "model": "unknown",
+        "endpoint": "atherosclerosis",
+        "claim": "Resveratrol has shown beneficial effects against atherosclerosis.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'inferred' vs expected '21261638'"
+        ],
+        "source": "llm",
+        "pmid_raw": "inferred",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "21530968",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "attenuation of atherosclerosis-related inflammation and oxidative stress",
+        "claim": "Resveratrol prevents abdominal aortic aneurysm by reducing inflammation, oxidative stress, and neovascularization.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'inferred' vs expected '21530968'"
+        ],
+        "source": "llm",
+        "pmid_raw": "inferred",
+        "topic_match_ratio": 0.4286
+      },
+      {
+        "pmid": "21530968",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "prevents aortic aneurysm development",
+        "claim": "Resveratrol prevents the development of abdominal aortic aneurysms through reduced inflammation, oxidative stress, and neoangiogenesis.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'inferred' vs expected '21530968'"
+        ],
+        "source": "llm",
+        "pmid_raw": "inferred",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "20850033",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "prevents atherosclerosis",
+        "claim": "Resveratrol significantly ameliorates glucose homeostasis and prevents the development and progression of atherosclerosis in obese mice.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'http://www.ncbi.nlm.nih.gov/pubmed/20850033' vs expected '20850033'"
+        ],
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/20850033",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "36364780",
+        "supports": true,
+        "direction": "benefit",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "By transcriptome profiling of RES-treated human umbilical vein endothelial cells (HUVECs) and in-depth bioinformatic analysis, we observed that differentially e",
+        "confidence": 0.35,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "35736860",
+        "supports": true,
+        "direction": "benefit",
+        "model": "cell",
+        "endpoint": "endothelial dysfunction in atherosclerosis",
+        "claim": "Resveratrol protects against ox-LDL-induced endothelial dysfunction.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'gibberish_replaced_with_gibberish' vs expected '35736860'"
+        ],
+        "source": "llm",
+        "pmid_raw": "gibberish_replaced_with_gibberish",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "35736860",
+        "supports": true,
+        "direction": "benefit",
+        "model": "cell",
+        "endpoint": "Cell viability and angiogenesis",
+        "claim": "Resveratrol promotes cell viability and angiogenesis while inhibiting ox-LDL-induced apoptosis, inflammation, and oxidative stress.",
+        "confidence": 0.9,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'http://www.ncbi.nlm.nih.gov/pubmed/35736860' vs expected '35736860'"
+        ],
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/35736860",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "12871381",
+        "supports": true,
+        "direction": "benefit",
+        "model": "cell",
+        "endpoint": "down-regulate tissue factor expression",
+        "claim": "Resveratrol down-regulates tissue factor expression in vascular cells.",
+        "confidence": 0.9,
+        "source": "llm",
+        "topic_match_ratio": 0.1429
+      }
+    ],
+    "harm_or_neutral_evidence": [
+      {
+        "pmid": "28346848",
+        "supports": false,
+        "direction": "unknown",
+        "model": "human",
+        "endpoint": "repurposing of resveratrol",
+        "claim": "Clinical evidence lacking for repurposing resveratrol in atherosclerosis.",
+        "confidence": 0.7,
+        "source": "llm",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "30253861",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "VEGF levels in atherosclerosis",
+        "claim": "Resveratrol did not show a clear effect on VEGF levels in rabbits with atherosclerosis.",
+        "confidence": 0.7,
+        "hallucination_warnings": [
+          "pmid_mismatch: extracted 'strconv(30253861)' vs expected '30253861'"
+        ],
+        "source": "llm",
+        "pmid_raw": "strconv(30253861)",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "29044265",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "It additionally exerts antidiabetic, anti-inflammatory, and anti-oxidant effects in a variety of cell types. Furthermore, the cardiovascular protective capaciti",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "11408943",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Coronary heart disease (CHD) has been and remains a major contributor to morbidity and mortality in developed countries. The most common form of CHD in the west",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "11408943",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "Failure to maintain an intact endothelium, as a result of episodic and/or persistent injury and perturbation of the vascular endothelium, promotes formation of ",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "26190093",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "This review presents recent evidence implicating microRNAs (miRNAs) in the beneficial effects of resveratrol (trihydroxystilbene), a nonflavonoid plant polyphen",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "36364780",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "Atherosclerosis is a chronic inflammatory vascular disease in which endothelial cells play an important role in maintaining vascular homeostasis. Endotheliitis ",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.4286
+      },
+      {
+        "pmid": "37687232",
+        "supports": false,
+        "direction": "unknown",
+        "model": "human",
+        "endpoint": "OTHER",
+        "claim": "These compounds exhibit several health benefits such as immune modulators, vasodilators, and antioxidants. This review focuses on recent studies on using dietar",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "37687232",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Kaempferol, quercetin, and resveratrol prevent oxidative stress by regulating proteins that induce oxidation in heart tissues. In addition, polyphenols modulate",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "21371465",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "Oxidized low-density lipoproteins (oxLDL) play a critical role in the initiation of atherosclerosis through activation of inflammatory signaling. In the present",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "21371465",
+        "supports": false,
+        "direction": "unknown",
+        "model": "unknown",
+        "endpoint": "OTHER",
+        "claim": "Significant differences between HUVEC treaded with oxLDL and LPS were found in both the expression pattern of inflammation-related genes and the effects of plan",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "24416418",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "We found that low dose resveratrol stimulated differentiation through SirT1-mediated activation of AKT, whereas high dose resveratrol stimulated differentiation",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "24416418",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Phenotypic plasticity in vascular smooth muscle cells (VSMC) is necessary for vessel maintenance, repair and adaptation to vascular changes associated with agin",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "20107610",
+        "supports": false,
+        "direction": "harm",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "The effects of anti-inflammatory plant extracts, such as black tea extract (BTE) and resveratrol (RSV) could modulate cell activation leading to atherosclerosis",
+        "confidence": 0.35,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "20107610",
+        "supports": false,
+        "direction": "harm",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "Prostacyclin levels were highest in HUVEC and were inhibited by RSV in all cell types. The differences between the endothelial cell types could account for grea",
+        "confidence": 0.35,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      }
+    ],
+    "counts": {
+      "supporting_evidence_count": 10,
+      "supporting_sentence_count": 14,
+      "unique_supporting_pmids_count": 10,
+      "unique_supporting_pmids": [
+        "12871381",
+        "20850033",
+        "21261638",
+        "21530968",
+        "28346848",
+        "30469326",
+        "34830366",
+        "35736860",
+        "36364780",
+        "40686105"
+      ],
+      "harm_or_neutral_count": 15,
+      "llm_items_total": 16
+    }
+  }
+}

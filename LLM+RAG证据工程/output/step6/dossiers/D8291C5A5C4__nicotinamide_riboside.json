@@ -1,0 +1,331 @@
+{
+  "drug_id": "D8291C5A5C4",
+  "canonical_name": "nicotinamide riboside",
+  "target_disease": "atherosclerosis",
+  "endpoint_type": "OTHER",
+  "query": "(\"nicotinamide riboside\") AND ((atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)) AND (\"atherosclerosis\")",
+  "qc": {
+    "topic_match_ratio": 0.7143,
+    "topic_mismatch": false,
+    "removed_evidence_count": 2,
+    "removed_cross_drug_count": 2,
+    "supporting_evidence_after_qc": 1,
+    "supporting_sentence_count_after_qc": 1,
+    "qc_reasons": [
+      "cross_drug_leakage"
+    ]
+  },
+  "clinicaltrials_negative": [],
+  "pubmed_rag": {
+    "top_abstracts": [
+      {
+        "pmid": "35453391",
+        "title": "Sirtuin 3 Dependent and Independent Effects of NAD + to Suppress Vascular Inflammation and Improve Endothelial Function in Mice.",
+        "abstract": "Atherosclerosis is initiated by endothelial cell dysfunction and vascular inflammation under the condition of hyperlipidemia. Sirtuin 3 (SIRT3) is a nicotinamide adenine dinucleotide (NAD + )-dependent mitochondrial deacetylase, which plays a key role in maintaining normal mitochondrial function. The present study tested whether endothelial-selective SIRT3 deletion accelerates vascular inflammation and oxidative stress, and assessed the protective effect of NAD + to alleviate these changes in endothelial cells and in mouse models of atherosclerosis. We found that the selective deletion of SIRT3 in endothelial cells further impaired endothelium-dependent vasodilatation in the aorta treated with IL-1&#x3b2;, which was accompanied by upregulation of vascular inflammation markers and mitochondrial superoxide overproduction. Excepting the dysfunction of endothelium-dependent vasodilatation, such effects could be attenuated by treatment with NAD + . In human umbilical vein endothelial cells, SIRT3 silencing potentiated the induction of inflammatory factors by IL-1&#x3b2;, including VCAM-1, ICAM-1, and MCP1, and the impairment of mitochondrial respiration, both of which were alleviated by NAD + treatment. In ApoE-deficient mice fed with a high-cholesterol diet, supplementation with nicotinamide riboside, the NAD + precursor, reduced plaque formation, improved vascular function, and diminished vascular inflammation. Our results support the SIRT3-dependent and -independent of NAD + to improve endothelial function in atherosclerosis.",
+        "year": "2022"
+      },
+      {
+        "pmid": "40143060",
+        "title": "Nicotinamide Mononucleotide and Nicotinamide Riboside Improve Dyslipidemia and Fatty Liver but Promote Atherosclerosis in Apolipoprotein E Knockout Mice.",
+        "abstract": "Background: Nicotinamide mononucleotide (NMN) and nicotinamide riboside (NR) are intermediary products in NAD+ metabolism. NMN and NR supplementation can elevate NAD+ levels in tissues, addressing health issues associated with aging and obesity. However, the impact of NMN and NR on atherosclerosis remains incompletely elucidated. Methods: C57BL/6J and Apolipoprotein E knockout (ApoE -/- ) mice were used to explore the impact of NMN and NR supplementation on serum lipids, fatty liver, and atherosclerosis. Additionally, various suppliers, administration protocols, and doses on ApoE -/- mice were investigated. Results: The intragastric administration of NMN (300 mg/kg) and NR (230 mg/kg) reduced body weight, serum lipids, and fatty liver but aggravated atherosclerosis in ApoE -/- mice after 4 months of administration with different suppliers. Atherosclerosis also deteriorated after 2 months of different NMN administration protocols (intragastric and water administration) in ApoE -/- mice with existing plaques. The effects of NMN were dose-dependent, and doses around 100 mg/kg had little harmful effects on atherosclerosis. Conclusions: NMN and NR improve dyslipidemia and fatty liver but promote atherosclerosis in ApoE -/- mice. These findings emphasize the safe dosage for the clinical trials of NMN.",
+        "year": "2025"
+      },
+      {
+        "pmid": "40459998",
+        "title": "Nicotinamide Riboside Supplementation Benefits in Patients With Werner Syndrome: A Double-Blind Randomized Crossover Placebo-Controlled Trial.",
+        "abstract": "Werner syndrome (WS) is a rare hereditary progeroid syndrome caused by mutations in the WRN gene. Patients frequently develop various age-associated diseases prematurely, often leading to early mortality (&#x2264;&#x2009;60&#x2009;years of age). Depletion of nicotinamide adenine dinucleotide (NAD) + has been reported in patients with WS, suggesting a key role in the pathogenesis of WS. NAD + supplementation may improve the condition of WS and other accelerated aging diseases. Therefore, we conducted a double-blind, randomized, crossover, placebo-controlled trial in patients with WS to evaluate the safety and efficacy of the NAD + precursor, nicotinamide riboside (NR). NR (1000&#x2009;mg) or placebo capsules were self-administered once daily for 26&#x2009;weeks, followed by a crossover to the opposite arm for another 26&#x2009;weeks. The primary endpoint was the safety of NR. Secondary endpoints included NAD + levels in plasma, number, and size of skin ulcers, blood examinations, sarcopenia, heel pad thickness, cardio-ankle vascular index (CAVI), and ankle-brachial index. The exploratory endpoints involved metabolome profiles of plasma. No serious adverse events were observed during NR treatment. Importantly, CAVI improved, the skin ulcer area decreased, and heel pad thinning showed a declining trend. Metabolomic analysis revealed a significant decrease in blood creatinine. NR treatment significantly improved arterial stiffness, as indicated by CAVI, and likely suppressed renal functional decline in patients with WS. Therefore, NR may be beneficial for preventing atherosclerosis, skin ulcers, and kidney dysfunction in patients with WS.",
+        "year": "2025"
+      },
+      {
+        "pmid": "40215896",
+        "title": "NAD + boosting increases atherosclerotic plaques and inflammation in Apoe knockout mice.",
+        "abstract": "NAD + (nicotinamide adenine dinucleotide) is a cosubstrate of the sirtuins (SIRT) that are activated upon caloric restriction. Supplementing NAD + precursors such as nicotinamide riboside (NR) has been reported to extend life span and combat metabolic syndrome through pan-sirtuin activation in mice. Notably, sirtuins compete with poly (ADP-ribose) polymerase (PARP)1 and CD38 for NAD + . Supplementing NAD + precursors did not improve cardiovascular outcome in the AIM-HIGH trial. Recently, the terminal NAD + metabolite 4PY (N 1 -methyl-4-pyridone-3-carboxamide) was reported to increase inflammation and to be associated with cardiovascular risk. We aimed to investigate whether NR provides atheroprotection. 8-week-old male apolipoprotein E (Apoe) knockout mice were fed for 12 weeks a high-cholesterol diet supplemented with three NR doses: NR-, NR+, and NR++. RAW264.7 mouse macrophages and bone marrow macrophages were stimulated with oxLDL and NR. NR++ enhanced plaque lesions in aortic sinus sections and increased plasma levels of TNF&#x3b1;, IL-6, and LDL-cholesterol. Liver and plasma NAD + concentrations remained unchanged, but the downstream metabolite 4PY increased. In liver lysates, SIRT1 and lipoprotein receptors were decreased and CD38 increased in NR++; cleaved PARP1 and total PARylation decreased upon NR supplementation. In oxLDL-treated macrophages, high NR levels increased CD38 and CD86 expression. High-dose NR supplementation in mice did not decrease but increase both aortic plaque lesions and systemic inflammation. These effects may be mediated by increased CD38 expression in macrophages, with NAD + metabolism shifted from sirtuins towards CD38 and PARP1 pathways. Caution should be applied with presumed NAD + boosters in patients with atherosclerosis.",
+        "year": "2025"
+      },
+      {
+        "pmid": "32075942",
+        "title": "Long noncoding RNA SNHG12 integrates a DNA-PK-mediated DNA damage response and vascular senescence.",
+        "abstract": "Long noncoding RNAs (lncRNAs) are emerging regulators of biological processes in the vessel wall; however, their role in atherosclerosis remains poorly defined. We used RNA sequencing to profile lncRNAs derived specifically from the aortic intima of Ldlr -/- mice on a high-cholesterol diet during lesion progression and regression phases. We found that the evolutionarily conserved lncRNA small nucleolar host gene-12 ( SNHG12 ) is highly expressed in the vascular endothelium and decreases during lesion progression. SNHG12 knockdown accelerated atherosclerotic lesion formation by 2.4-fold in Ldlr -/- mice by increased DNA damage and senescence in the vascular endothelium, independent of effects on lipid profile or vessel wall inflammation. Conversely, intravenous delivery of SNHG12 protected the tunica intima from DNA damage and atherosclerosis. LncRNA pulldown in combination with liquid chromatography-tandem mass spectrometry (LC-MS/MS) analysis showed that SNHG12 interacted with DNA-dependent protein kinase (DNA-PK), an important regulator of the DNA damage response. The absence of SNHG12 reduced the DNA-PK interaction with its binding partners Ku70 and Ku80, abrogating DNA damage repair. Moreover, the anti-DNA damage agent nicotinamide riboside (NR), a clinical-grade small-molecule activator of NAD + , fully rescued the increases in lesional DNA damage, senescence, and atherosclerosis mediated by SNHG12 knockdown. SNHG12 expression was also reduced in pig and human atherosclerotic specimens and correlated inversely with DNA damage and senescent markers. These findings reveal a role for this lncRNA in regulating DNA damage repair in the vessel wall and may have implications for chronic vascular disease states and aging.",
+        "year": "2020"
+      },
+      {
+        "pmid": "35196876",
+        "title": "Rewiring Vascular Metabolism Prevents Sudden Death due to Aortic Ruptures-Brief Report.",
+        "abstract": "The goal of this study was to determine whether boosting mitochondrial respiration prevents the development of fatal aortic ruptures triggered by atherosclerosis and hypertension. Ang-II (angiotensin-II) was infused in ApoE (Apolipoprotein E)-deficient mice fed with a western diet to induce acute aortic aneurysms and lethal ruptures. We found decreased mitochondrial respiration and mitochondrial proteins in vascular smooth muscle cells from murine and human aortic aneurysms. Boosting NAD levels with nicotinamide riboside reduced the development of aortic aneurysms and sudden death by aortic ruptures. Targetable vascular metabolism is a new clinical strategy to prevent fatal aortic ruptures and sudden death in patients with aortic aneurysms.",
+        "year": "2022"
+      },
+      {
+        "pmid": "32758058",
+        "title": "Modulation of Energy Sensing by Leucine Synergy with Natural Sirtuin Activators: Effects on Health Span.",
+        "abstract": "Sirt1 and 5' adenosine monophosphate-activated protein kinase (AMPK) are energy-sensing systems that work cooperatively and regulate mitochondrial biogenesis and fuel metabolism, and mediate, in part, the salutary effects of caloric restriction on lifespan and healthspan. We have shown that leucine activates Sirt1 and enables synergy with sirtuin co-activators. Resveratrol is a widely recognized activator of Sirt1; however, poor bioavailability and rapid metabolism limit effective clinical translation of promising animal data. However, we found that combining low resveratrol doses with leucine increased skeletal muscle and adipocyte Sirt1 activity, mitochondrial biogenesis and fatty acid oxidation; these effects result in increased lifespan and marked reductions in insulin resistance, inflammatory markers, body weight, and visceral adiposity in preclinical models. To translate these data to humans, we assessed the effects of resveratrol (50&#x2009;mg)/leucine (1.11&#x2009;g) on glucose dynamics in a 4-week placebo-controlled trial of 36 prediabetic subjects. Leucine-resveratrol reduced insulin resistance (homeostatic model assessment for insulin resistance) 33% with corresponding reductions in glucose and insulin area under the curve in oral glucose tolerance tests. We extended these concepts in preclinical studies using both direct Sirt1 activators and Sirt1 pathway activators. Low-dose (10&#x2009;nM) NAD + precursors (nicotinic acid, nicotinamide mononucleotide, and nicotinamide riboside) synergized with leucine to increase Sirt1 activity in adipocytes, hepatocytes, and muscle cells (30-100%, P &#x2009;&lt;&#x2009;.01) and lifespan in Caenorhabditis elegans (25%, P &#x2009;=&#x2009;.025) and to significantly regress atherosclerotic lesion size and macrophage infiltration in a mouse model of atherosclerosis. Thus, synergistic activation of Sirt1 using leucine and a co-activator exerts pleiotropic effects impacting cardiometabolic endpoints.",
+        "year": "2020"
+      },
+      {
+        "pmid": "39034866",
+        "title": "Systemic aging fuels heart failure: Molecular mechanisms and therapeutic avenues.",
+        "abstract": "Systemic aging influences various physiological processes and contributes to structural and functional decline in cardiac tissue. These alterations include an increased incidence of left ventricular hypertrophy, a decline in left ventricular diastolic function, left atrial dilation, atrial fibrillation, myocardial fibrosis and cardiac amyloidosis, elevating susceptibility to chronic heart failure (HF) in the elderly. Age-related cardiac dysfunction stems from prolonged exposure to genomic, epigenetic, oxidative, autophagic, inflammatory and regenerative stresses, along with the accumulation of senescent cells. Concurrently, age-related structural and functional changes in the vascular system, attributed to endothelial dysfunction, arterial stiffness, impaired angiogenesis, oxidative stress and inflammation, impose additional strain on the heart. Dysregulated mechanosignalling and impaired nitric oxide signalling play critical roles in the age-related vascular dysfunction associated with HF. Metabolic aging drives intricate shifts in glucose and lipid metabolism, leading to insulin resistance, mitochondrial dysfunction and lipid accumulation within cardiomyocytes. These alterations contribute to cardiac hypertrophy, fibrosis and impaired contractility, ultimately propelling HF. Systemic low-grade chronic inflammation, in conjunction with the senescence-associated secretory phenotype, aggravates cardiac dysfunction with age by promoting immune cell infiltration into the myocardium, fostering HF. This is further exacerbated by age-related comorbidities like coronary artery disease (CAD), atherosclerosis, hypertension, obesity, diabetes and chronic kidney disease (CKD). CAD and atherosclerosis induce myocardial ischaemia and adverse remodelling, while hypertension contributes to cardiac hypertrophy and fibrosis. Obesity-associated insulin resistance, inflammation and dyslipidaemia create a profibrotic cardiac environment, whereas diabetes-related metabolic disturbances further impair cardiac function. CKD-related fluid overload, electrolyte imbalances and uraemic toxins exacerbate HF through systemic inflammation and neurohormonal renin-angiotensin-aldosterone system (RAAS) activation. Recognizing aging as a modifiable process has opened avenues to target systemic aging in HF through both lifestyle interventions and therapeutics. Exercise, known for its antioxidant effects, can partly reverse pathological cardiac remodelling in the elderly by countering processes linked to age-related chronic HF, such as mitochondrial dysfunction, inflammation, senescence and declining cardiomyocyte regeneration. Dietary interventions such as plant-based and ketogenic diets, caloric restriction and macronutrient supplementation are instrumental in maintaining energy balance, reducing adiposity and addressing micronutrient and macronutrient imbalances associated with age-related HF. Therapeutic advancements targeting systemic aging in HF are underway. Key approaches include senomorphics and senolytics to limit senescence, antioxidants targeting mitochondrial stress, anti-inflammatory drugs like interleukin (IL)-1&#x3b2; inhibitors, metabolic rejuvenators such as nicotinamide riboside, resveratrol and sirtuin (SIRT) activators and autophagy enhancers like metformin and sodium-glucose cotransporter 2 (SGLT2) inhibitors, all of which offer potential for preserving cardiac function and alleviating the age-related HF burden.",
+        "year": "2025"
+      },
+      {
+        "pmid": "40257024",
+        "title": "Novel Molecules Targeting Metabolism and Mitochondrial Function in Cardiac Diseases.",
+        "abstract": "Cardiovascular diseases (CVD) are the leading cause of death worldwide, creating the need for new therapeutic strategies targeting the pathological processes involved. Mitochondria, which comprise one-third of cardiac cell volume, maybe a potential therapeutic target for CVD. Known primarily for energy production, mitochondria are also involved in other processes including intermediary metabolism, mitophagy, calcium homeostasis, and regulation of cell apoptosis. Mitochondrial function is closely linked to morphology, which is altered through mitochondrial dynamics, including processes such as fission and fusion, which ensure that the energy needs of the cell are met. Recent data indicate that mitochondrial dysfunction is involved in the pathophysiology of several CVDs, including cardiac hypertrophy, heart failure, ischemia/reperfusion injury, and cardiac fibrosis. Furthermore, mitochondrial dysfunction is associated with oxidative stress related to atherosclerosis, hypertension, and pulmonary hypertension. In this review, we first briefly present the physiological mechanisms of mitochondrial function in the heart and then summarize the current knowledge on the impact of mitochondrial dysfunction on CVD. And finally, we highlight the evidence from in vitro, in vivo, and clinical studies of the cardioprotective effects of drugs that preserve mitochondrial function in CVD. It is hoped that this review may provide new insights into the need to discover new pharmacological targets with direct actions on mitochondria that may provide combined therapeutic strategies to optimally treat these pathologies.",
+        "year": "2025"
+      }
+    ],
+    "top_sentences": [
+      {
+        "pmid": "35453391",
+        "text": "SIRT3 deletion in endothelial cells exacerbates atherosclerosis-related inflammation and oxidative stress.",
+        "score": 0.4286
+      },
+      {
+        "pmid": "40143060",
+        "text": "Nicotinamide Riboside worsens atherosclerosis in ApoE knockout mice.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "40143060",
+        "text": "Nicotinamide riboside promotes atherosclerosis in ApoE knockout mice.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "40215896",
+        "text": "Nicotinamide riboside increases atherosclerotic plaques and inflammation in Apoe knockout mice.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "40215896",
+        "text": "Nicotinamide riboside increases atherosclerotic plaques and inflammation in Apoe knockout mice.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "32075942",
+        "text": "We found that the evolutionarily conserved lncRNA small nucleolar host gene-12 ( SNHG12 ) is highly expressed in the vascular endothelium and decreases during l",
+        "score": 0.2929
+      },
+      {
+        "pmid": "40257024",
+        "text": "Cardiovascular diseases (CVD) are the leading cause of death worldwide, creating the need for new therapeutic strategies targeting the pathological processes in",
+        "score": 0.2857
+      },
+      {
+        "pmid": "40459998",
+        "text": "Depletion of nicotinamide adenine dinucleotide (NAD) + has been reported in patients with WS, suggesting a key role in the pathogenesis of WS. NAD + supplementa",
+        "score": 0.15
+      },
+      {
+        "pmid": "35196876",
+        "text": "Nicotinamide riboside reduces the development of aortic aneurysms and prevents sudden death by aortic ruptures in mice.",
+        "score": 0.15
+      },
+      {
+        "pmid": "32075942",
+        "text": "Long noncoding RNAs (lncRNAs) are emerging regulators of biological processes in the vessel wall; however, their role in atherosclerosis remains poorly defined.",
+        "score": 0.1429
+      },
+      {
+        "pmid": "39034866",
+        "text": "CAD and atherosclerosis induce myocardial ischaemia and adverse remodelling, while hypertension contributes to cardiac hypertrophy and fibrosis. Obesity-associa",
+        "score": 0.1429
+      },
+      {
+        "pmid": "40459998",
+        "text": "The primary endpoint was the safety of NR. Secondary endpoints included NAD + levels in plasma, number, and size of skin ulcers, blood examinations, sarcopenia,",
+        "score": 0.0
+      },
+      {
+        "pmid": "39034866",
+        "text": "Age-related cardiac dysfunction stems from prolonged exposure to genomic, epigenetic, oxidative, autophagic, inflammatory and regenerative stresses, along with ",
+        "score": 0.0
+      },
+      {
+        "pmid": "40257024",
+        "text": "Recent data indicate that mitochondrial dysfunction is involved in the pathophysiology of several CVDs, including cardiac hypertrophy, heart failure, ischemia/r",
+        "score": 0.0
+      }
+    ]
+  },
+  "llm_structured": {
+    "confidence": "LOW",
+    "mode": "llm",
+    "repurpose_rationale": "",
+    "proposed_mechanisms": [
+      "and",
+      "apoe",
+      "apolipoprotein",
+      "atherosclerosis",
+      "atherosclerotic",
+      "benefits",
+      "boosting",
+      "but",
+      "crossover",
+      "dependent",
+      "double-blind",
+      "dyslipidemia"
+    ],
+    "key_risks": [],
+    "supporting_evidence": [
+      {
+        "pmid": "35196876",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "reduces aortic aneurysms and sudden death",
+        "claim": "Nicotinamide riboside reduces the development of aortic aneurysms and prevents sudden death by aortic ruptures in mice.",
+        "confidence": 0.9,
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/35196876",
+        "topic_match_ratio": 0.0
+      }
+    ],
+    "harm_or_neutral_evidence": [
+      {
+        "pmid": "35453391",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "Atherosclerosis",
+        "claim": "SIRT3 deletion in endothelial cells exacerbates atherosclerosis-related inflammation and oxidative stress.",
+        "confidence": 0.7,
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/35453391",
+        "topic_match_ratio": 0.4286
+      },
+      {
+        "pmid": "40143060",
+        "supports": false,
+        "direction": "harm",
+        "model": "animal",
+        "endpoint": "Atherosclerosis progression",
+        "claim": "Nicotinamide Riboside worsens atherosclerosis in ApoE knockout mice.",
+        "confidence": 0.8,
+        "source": "llm",
+        "pmid_raw": "strconv(40143060)",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "40143060",
+        "supports": false,
+        "direction": "harm",
+        "model": "animal",
+        "endpoint": "Atherosclerosis progression",
+        "claim": "Nicotinamide riboside promotes atherosclerosis in ApoE knockout mice.",
+        "confidence": 0.8,
+        "source": "llm",
+        "pmid_raw": "strconv(40143060)",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "40459998",
+        "supports": false,
+        "direction": "harm",
+        "model": "human",
+        "endpoint": "OTHER",
+        "claim": "Depletion of nicotinamide adenine dinucleotide (NAD) + has been reported in patients with WS, suggesting a key role in the pathogenesis of WS. NAD + supplementa",
+        "confidence": 0.35,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "40459998",
+        "supports": false,
+        "direction": "unknown",
+        "model": "human",
+        "endpoint": "OTHER",
+        "claim": "The primary endpoint was the safety of NR. Secondary endpoints included NAD + levels in plasma, number, and size of skin ulcers, blood examinations, sarcopenia,",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "40215896",
+        "supports": false,
+        "direction": "harm",
+        "model": "animal",
+        "endpoint": "Atherosclerotic plaques and inflammation",
+        "claim": "Nicotinamide riboside increases atherosclerotic plaques and inflammation in Apoe knockout mice.",
+        "confidence": 0.8,
+        "source": "llm",
+        "pmid_raw": "s40215896",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "32075942",
+        "supports": false,
+        "direction": "harm",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "We found that the evolutionarily conserved lncRNA small nucleolar host gene-12 ( SNHG12 ) is highly expressed in the vascular endothelium and decreases during l",
+        "confidence": 0.35,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "32075942",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Long noncoding RNAs (lncRNAs) are emerging regulators of biological processes in the vessel wall; however, their role in atherosclerosis remains poorly defined.",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "39034866",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Age-related cardiac dysfunction stems from prolonged exposure to genomic, epigenetic, oxidative, autophagic, inflammatory and regenerative stresses, along with ",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "39034866",
+        "supports": false,
+        "direction": "unknown",
+        "model": "unknown",
+        "endpoint": "OTHER",
+        "claim": "CAD and atherosclerosis induce myocardial ischaemia and adverse remodelling, while hypertension contributes to cardiac hypertrophy and fibrosis. Obesity-associa",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "40257024",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Cardiovascular diseases (CVD) are the leading cause of death worldwide, creating the need for new therapeutic strategies targeting the pathological processes in",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "40257024",
+        "supports": false,
+        "direction": "unknown",
+        "model": "unknown",
+        "endpoint": "OTHER",
+        "claim": "Recent data indicate that mitochondrial dysfunction is involved in the pathophysiology of several CVDs, including cardiac hypertrophy, heart failure, ischemia/r",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      }
+    ],
+    "counts": {
+      "supporting_evidence_count": 1,
+      "supporting_sentence_count": 1,
+      "unique_supporting_pmids_count": 1,
+      "unique_supporting_pmids": [
+        "35196876"
+      ],
+      "harm_or_neutral_count": 12,
+      "llm_items_total": 6
+    }
+  }
+}

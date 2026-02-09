@@ -1,0 +1,19 @@
+{
+  "disease": "ulcerative_colitis",
+  "known_reversers": [
+    "tofacitinib", "baricitinib", "sulfasalazine",
+    "dexamethasone", "hydrocortisone", "prednisolone", "methylprednisolone",
+    "tacrolimus", "cyclosporine", "azathioprine", "mercaptopurine",
+    "methotrexate", "mycophenolate",
+    "simvastatin", "pioglitazone", "rosiglitazone",
+    "curcumin", "resveratrol", "quercetin",
+    "celecoxib", "diclofenac", "vorinostat",
+    "thalidomide", "colchicine"
+  ],
+  "known_non_reversers": [
+    "cisplatin", "doxorubicin", "paclitaxel", "vincristine",
+    "haloperidol", "fluoxetine",
+    "wortmannin", "staurosporine", "thapsigargin",
+    "tamoxifen"
+  ]
+}

@@ -1,0 +1,9 @@
+﻿drug_id,canonical_name,gate_decision,gate_reasons,total_score,benefit,harm,neutral,total_pmids
+D413D3EC269,medi6570,NO-GO,pmids<3,49.1,2,0,0,2
+D4BE4598792,apolipoprotein a-i human apoa-i,NO-GO,safety_concern,84.0,12,6,0,80
+D4BE4598792,apolipoprotein a-i human apoa-i,NO-GO,safety_concern,74.4,10,7,0,20
+D81B744A593,resveratrol,GO,,98.0,17,0,0,80
+D8291C5A5C4,nicotinamide riboside,MAYBE,score<60.0,59.1,5,2,0,11
+D9F9BB8C160,creatine monohydrate,NO-GO,benefit<2; pmids<3,31.1,0,0,0,2
+DD76A1941B2,dexamethasone,GO,,94.0,18,0,0,80
+DF09C894FE9,vm202,NO-GO,benefit<2; pmids<3,43.1,1,0,0,2

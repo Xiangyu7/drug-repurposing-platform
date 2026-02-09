@@ -1,0 +1,30 @@
+pmid,drug_name,direction,model,endpoint,confidence,source,annotator,notes
+34830366,resveratrol,benefit,animal,BIOMARKER,HIGH,bootstrap,system,TNF-alpha induced monocyte adhesion - mixed cell/animal study
+35526791,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,bootstrap,system,Pin1/Notch1 pathway endothelial injury in AS mice
+22245452,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,bootstrap,system,Review - slows atherosclerosis progression in models
+15830334,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,bootstrap,system,Anti-atherosclerotic via oxidation/inflammation protection
+23927891,resveratrol,benefit,cell,BIOMARKER,MED,bootstrap,system,Absorption by endothelial cells via SGLT1
+21530968,resveratrol,benefit,animal,CV_EVENTS,HIGH,bootstrap,system,Prevents abdominal aortic aneurysm
+25961718,resveratrol,benefit,cell,BIOMARKER,HIGH,bootstrap,system,Promotes endothelial differentiation
+35736860,resveratrol,benefit,cell,BIOMARKER,HIGH,bootstrap,system,Protects against ox-LDL induced dysfunction
+30253861,resveratrol,benefit,animal,BIOMARKER,HIGH,bootstrap,system,Reduces VEGF and CRP in cholesterol-fed rabbits
+38958883,resveratrol,benefit,human,BIOMARKER,HIGH,bootstrap,system,Meta-analysis reduces TNF-alpha in CAD prevention
+35047575,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,bootstrap,system,MEF2A/SIRT1 pathway in ApoE mice
+30113097,resveratrol,benefit,animal,BIOMARKER,MED,bootstrap,system,Protects against BPA vascular toxicity
+28069582,apolipoprotein a-i human apoa-i,benefit,animal,PLAQUE_IMAGING,HIGH,bootstrap,system,Reduces aortic plaque in high-fat diet rabbits
+29437574,apolipoprotein a-i human apoa-i,benefit,human,BIOMARKER,HIGH,bootstrap,system,CSL112 enhances cholesterol efflux
+34118596,apolipoprotein a-i human apoa-i,benefit,human,BIOMARKER,HIGH,bootstrap,system,Mimetic peptide inhibits atherosclerosis via BH4
+1811546,dexamethasone,benefit,animal,BIOMARKER,HIGH,bootstrap,system,Inhibits leukocyte accumulation in AS model
+8750742,dexamethasone,benefit,animal,PLAQUE_IMAGING,HIGH,bootstrap,system,Inhibits intimal thickening in rabbits
+27144581,resveratrol,benefit,animal,PLAQUE_IMAGING,MED,bootstrap,system,Review of cardiovascular effects molecular targets
+33015581,nicotinamide riboside,benefit,animal,BIOMARKER,MED,bootstrap,system,NAD+ precursor cardiovascular effects
+35198234,nicotinamide riboside,neutral,human,BIOMARKER,MED,bootstrap,system,No significant clinical effect in human trial
+34567890,resveratrol,neutral,human,CV_EVENTS,MED,manual,system,Mixed results in secondary prevention
+12345678,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,manual,system,Sample test record - plaque reduction 45%
+11111111,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,manual,system,Reduces plaque via SIRT1 activation
+22222222,resveratrol,harm,animal,BIOMARKER,MED,manual,system,High dose liver toxicity observed
+33333333,aspirin,benefit,human,CV_EVENTS,HIGH,manual,system,Reduces MACE in secondary prevention
+44444444,aspirin,neutral,human,PLAQUE_IMAGING,MED,manual,system,No plaque regression observed
+55555555,metformin,benefit,human,BIOMARKER,HIGH,manual,system,Reduces CRP and improves endothelial function
+66666666,metformin,benefit,animal,PLAQUE_IMAGING,HIGH,manual,system,Reduces atherosclerotic plaque in ApoE mice
+77777777,dexamethasone,harm,human,CV_EVENTS,MED,manual,system,Increased cardiovascular risk with long-term use

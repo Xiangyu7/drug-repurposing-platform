@@ -1,0 +1,35 @@
+{
+  "drug_id": "D413D3EC269",
+  "canonical_name": "medi6570",
+  "total_pmids": 2,
+  "evidence_count": {
+    "benefit": 2,
+    "harm": 0,
+    "neutral": 0,
+    "unknown": 0
+  },
+  "evidence_blocks": [
+    {
+      "pmid": "36688371",
+      "title": "Lectin-Like Oxidized Low-Density Lipoprotein Receptor 1 Inhibition in Type 2 Diabetes: Phase 1 Results.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Background Blockade of the lectin-like oxidized low-density lipoprotein receptor-1 (LOX-1) is a potentially attractive mechanism for lowering inflammatory and lipid risk in patients with atheroscleros",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40999229",
+      "title": "Antibody-mediated LOX-1 inhibition in patients with residual inflammation after myocardial infarction: a randomized phase 2 trial.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "The lectin-like oxidized low-density lipoprotein (LDL) receptor-1 (LOX-1) is a key scavenger receptor for oxidized low-density lipoprotein cholesterol (oxLDL), which promotes inflammation and atherosc",
+      "confidence": "medium"
+    }
+  ],
+  "top_pmids": [
+    "36688371",
+    "40999229"
+  ]
+}

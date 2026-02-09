@@ -1,0 +1,25 @@
+{
+  "disease": "atherosclerosis",
+  "known_reversers": [
+    "simvastatin", "atorvastatin", "lovastatin", "pravastatin",
+    "rosuvastatin", "fluvastatin", "pitavastatin", "mevastatin",
+    "dexamethasone", "prednisolone", "hydrocortisone", "methylprednisolone",
+    "prednisone", "betamethasone", "triamcinolone",
+    "pioglitazone", "rosiglitazone", "troglitazone",
+    "celecoxib", "ibuprofen", "aspirin", "indomethacin", "naproxen",
+    "diclofenac", "sulindac",
+    "captopril", "enalapril", "ramipril", "lisinopril", "perindopril",
+    "losartan", "valsartan", "telmisartan", "irbesartan",
+    "metformin", "colchicine", "resveratrol", "ezetimibe",
+    "sirolimus", "everolimus", "rapamycin",
+    "vorinostat", "trichostatin-a", "trichostatin a",
+    "quercetin", "curcumin",
+    "fenofibrate", "gemfibrozil", "niacin"
+  ],
+  "known_non_reversers": [
+    "doxorubicin", "cisplatin", "vincristine", "paclitaxel",
+    "etoposide", "camptothecin", "methotrexate",
+    "haloperidol", "chlorpromazine", "fluoxetine", "clozapine",
+    "wortmannin", "staurosporine", "thapsigargin"
+  ]
+}

@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+.DS_Store
+*.sqlite
+
+# Cache (large, regenerable)
+cache/
+output/step6/cache/
+
+# Archive (old backups / deprecated scripts)
+archive/
+
+# Coverage / test artifacts
+htmlcov/
+.coverage
+logs/
+
+# Misc
+.cursor/
+.claude/

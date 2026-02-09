@@ -1,0 +1,125 @@
+{
+  "drug_id": "D8291C5A5C4",
+  "canonical_name": "nicotinamide riboside",
+  "total_pmids": 11,
+  "evidence_count": {
+    "benefit": 5,
+    "harm": 2,
+    "neutral": 0,
+    "unknown": 4
+  },
+  "evidence_blocks": [
+    {
+      "pmid": "40143060",
+      "title": "Nicotinamide Mononucleotide and Nicotinamide Riboside Improve Dyslipidemia and Fatty Liver but Promote Atherosclerosis in Apolipoprotein E Knockout Mice.",
+      "direction": "harm",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40459998",
+      "title": "Nicotinamide Riboside Supplementation Benefits in Patients With Werner Syndrome: A Double-Blind Randomized Crossover Placebo-Controlled Trial.",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Werner syndrome (WS) is a rare hereditary progeroid syndrome caused by mutations in the WRN gene. Patients frequently develop various age-associated diseases prematurely, often leading to early mortal",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "35453391",
+      "title": "Sirtuin 3 Dependent and Independent Effects of NAD",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis is initiated by endothelial cell dysfunction and vascular inflammation under the condition of hyperlipidemia. Sirtuin 3 (SIRT3) is a nicotinamide adenine dinucleotide (NAD",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "38871717",
+      "title": "Nicotinamide riboside for peripheral artery disease: the NICE randomized clinical trial.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "People with lower extremity peripheral artery disease (PAD) have increased oxidative stress, impaired mitochondrial activity, and poor walking performance. NAD+ reduces oxidative stress and is an esse",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40479886",
+      "title": "Effects of NAD",
+      "direction": "harm",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Peripheral artery disease (PAD) significantly contributes to increased morbidity and mortality among older adults. Characterized by generalized endothelial dysfunction, PAD is associated with a height",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "39034866",
+      "title": "Systemic aging fuels heart failure: Molecular mechanisms and therapeutic avenues.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Systemic aging influences various physiological processes and contributes to structural and functional decline in cardiac tissue. These alterations include an increased incidence of left ventricular h",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "35196876",
+      "title": "Rewiring Vascular Metabolism Prevents Sudden Death due to Aortic Ruptures-Brief Report.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "The goal of this study was to determine whether boosting mitochondrial respiration prevents the development of fatal aortic ruptures triggered by atherosclerosis and hypertension.",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "32075942",
+      "title": "Long noncoding RNA ",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Long noncoding RNAs (lncRNAs) are emerging regulators of biological processes in the vessel wall; however, their role in atherosclerosis remains poorly defined. We used RNA sequencing to profile lncRN",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40257024",
+      "title": "Novel Molecules Targeting Metabolism and Mitochondrial Function in Cardiac Diseases.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Cardiovascular diseases (CVD) are the leading cause of death worldwide, creating the need for new therapeutic strategies targeting the pathological processes involved. Mitochondria, which comprise one",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40215896",
+      "title": "NAD",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "NAD",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "32758058",
+      "title": "Modulation of Energy Sensing by Leucine Synergy with Natural Sirtuin Activators: Effects on Health Span.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Sirt1 and 5' adenosine monophosphate-activated protein kinase (AMPK) are energy-sensing systems that work cooperatively and regulate mitochondrial biogenesis and fuel metabolism, and mediate, in part,",
+      "confidence": "medium"
+    }
+  ],
+  "top_pmids": [
+    "40143060",
+    "40459998",
+    "35453391",
+    "38871717",
+    "40479886",
+    "39034866",
+    "35196876",
+    "32075942",
+    "40257024",
+    "40215896",
+    "32758058"
+  ]
+}

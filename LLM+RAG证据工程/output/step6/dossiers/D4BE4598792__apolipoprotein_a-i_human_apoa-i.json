@@ -1,0 +1,528 @@
+{
+  "drug_id": "D4BE4598792",
+  "canonical_name": "apolipoprotein a-i human apoa-i",
+  "target_disease": "atherosclerosis",
+  "endpoint_type": "OTHER",
+  "query": "(\"apolipoprotein a-i human apoa-i\") AND ((atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)) AND (\"atherosclerosis\")",
+  "qc": {
+    "topic_match_ratio": 0.7143,
+    "topic_mismatch": false,
+    "removed_evidence_count": 0,
+    "removed_cross_drug_count": 0,
+    "supporting_evidence_after_qc": 4,
+    "supporting_sentence_count_after_qc": 7,
+    "qc_reasons": []
+  },
+  "clinicaltrials_negative": [],
+  "pubmed_rag": {
+    "top_abstracts": [
+      {
+        "pmid": "26323267",
+        "title": "Dysfunctional HDL and atherosclerotic cardiovascular disease.",
+        "abstract": "High-density lipoproteins (HDLs) protect against atherosclerosis by removing excess cholesterol from macrophages through the ATP-binding cassette transporter A1 (ABCA1) and ATP-binding cassette transporter G1 (ABCG1) pathways involved in reverse cholesterol transport. Factors that impair the availability of functional apolipoproteins or the activities of ABCA1 and ABCG1 could, therefore, strongly influence atherogenesis. HDL also inhibits lipid oxidation, restores endothelial function, exerts anti-inflammatory and antiapoptotic actions, and exerts anti-inflammatory actions in animal models. Such properties could contribute considerably to the capacity of HDL to inhibit atherosclerosis. Systemic and vascular inflammation has been proposed to convert HDL to a dysfunctional form that has impaired antiatherogenic effects. A loss of anti-inflammatory and antioxidative proteins, perhaps in combination with a gain of proinflammatory proteins, might be another important component in rendering HDL dysfunctional. The proinflammatory enzyme myeloperoxidase induces both oxidative modification and nitrosylation of specific residues on plasma and arterial apolipoprotein A-I to render HDL dysfunctional, which results in impaired ABCA1 macrophage transport, the activation of inflammatory pathways, and an increased risk of coronary artery disease. Understanding the features of dysfunctional HDL or apolipoprotein A-I in clinical practice might lead to new diagnostic and therapeutic approaches to atherosclerosis.",
+        "year": "2016"
+      },
+      {
+        "pmid": "32009037",
+        "title": "[Challenges in Drug Development Targeting Anti-atherosclerotic Proteins].",
+        "abstract": "Atherosclerosis is a vascular disease responsible for acute heart attacks and stroke, which are leading causes of death not only in industrialized countries but also worldwide, and the number of patients afflicted by this disease has been increasing in Japan. High-density lipoprotein (HDL) is the plasma lipoprotein that carries what is often called your \"good cholesterol\" through the blood. This good cholesterol moniker is associated with HDL because higher circulating levels of this lipoprotein are associated with a well-known reduction in the risk of arteriosclerosis. Moreover, many protective mechanisms by which HDL could reduce atherosclerosis are described, including reverse cholesterol transport, along with anti-oxidant, anti-inflammatory and anti-thrombosis activities. However, HDL-modulating therapies to lower cardiovascular risk are not yet available. It has recently been proposed that apolipoprotein A-I (apoA-I) binding protein (AIBP) enhances HDL function by accelerating lipid release from cells and reducing associated inflammatory processes. In this context, our research is focused on the function of HDL-related proteins, such as proteins that regulate HDL production (ATP-binding cassette transporters), and HDL-binding proteins. We expect that these studies could eventually help in the development of HDL-related prognostic and therapeutic strategies to reduce the burden of cardiovascular disease in the future.",
+        "year": "2020"
+      },
+      {
+        "pmid": "28069582",
+        "title": "Human apolipoprotein A-I exerts a prophylactic effect on high-fat diet-induced atherosclerosis via inflammation inhibition in a rabbit model.",
+        "abstract": "Apolipoprotein A-I (apoA-I) is the major functional protein fraction of high-density lipoprotein. The prophylactic effect and mechanism of human apoA-I on atherosclerosis (AS) were investigated in a high-fat diet-induced AS rabbit model. The rabbits were injected with apoA-I once a week while fed high-fat diet for 20 weeks. Our results showed that apoA-I could raise the serum level of high-density lipoprotein-cholesterol and reduce those of lipid total cholesterol, triglyceride, and low-density lipoprotein-cholesterol in AS rabbits. Decreased aortic plaque area and aortic injury degree were also observed by Oil Red O staining and HE staining in apoA-I-treated high-fat diet-induced AS rabbits. Further study elucidated that apoA-I could down-regulate the expression of some inflammatory mediators including intercellular adhesion molecule type 1, vascular adhesion molecule-1 (VCAM-1), monocyte chemoattractant protein-1, tumor necrosis factor-&#x3b1;, interleukin-6 (IL-6), and C-reactive protein in serum and aorta of AS rabbits. In addition, real-time quantitative RT-PCR analyses showed that the apoA-I infusions decreased the mRNA levels of two pro-inflammatory molecules, i.e. nuclear factor kappa B (NF-&#x3ba;B) and cyclooxygenase-2 (COX-2), in aorta of AS rabbits, which was associated with a concomitant reduction in endothelial VCAM-1 and IL-6 mRNA transcription. Together, our results support the atheroprotective and prophylactic role of apoA-I in vivo, and this activity may be correlated with its anti-inflammatory effect.",
+        "year": "2017"
+      },
+      {
+        "pmid": "33811580",
+        "title": "Apolipoprotein-AI and AIBP synergetic anti-inflammation as vascular diseases therapy: the new perspective.",
+        "abstract": "Vascular diseases (VDs) including pulmonary arterial hypertension (PAH), atherosclerosis (AS) and coronary arterial diseases (CADs) contribute to the higher morbidity and mortality worldwide. Apolipoprotein A-I (Apo A-I) binding protein (AIBP) and Apo-AI negatively correlate with VDs. However, the mechanism by which AIBP and apo-AI regulate VDs still remains unexplained. Here, we provide an overview of the role of AIBP and apo-AI regulation of vascular diseases molecular mechanisms such as vascular energy homeostasis imbalance, oxidative and endoplasmic reticulum stress and inflammation in VDs. In addition, the role of AIBP and apo-AI in endothelial cells (ECs), vascular smooth muscle (VSMCs) and immune cells activation in the pathogenesis of VDs are explained. The in-depth understanding of AIBP and apo-AI function in the vascular system may lead to the discovery of VDs therapy.",
+        "year": "2021"
+      },
+      {
+        "pmid": "29437574",
+        "title": "CSL112 (Apolipoprotein A-I [Human]) Enhances Cholesterol Efflux Similarly in Healthy Individuals and Stable Atherosclerotic Disease Patients.",
+        "abstract": "CSL112 (apolipoprotein A-I [apoA-I; human]) is a novel formulation of apoA-I in development for reduction of early recurrent cardiovascular events after acute myocardial infarction. Cholesterol efflux capacity (CEC) is a marker of high-density lipoprotein (HDL) function that is strongly correlated with incident cardiovascular disease. Impaired CEC has been observed in patients with coronary heart disease. Here, we determined whether infused apoA-I improves CEC when administered to patients with stable atherosclerotic disease versus healthy volunteers. Measurements of apoA-I, HDL unesterified cholesterol, HDL esterified cholesterol, pre-&#x3b2;1-HDL, and CEC were determined in samples from patients with stable atherosclerotic disease before and after intravenous administration of CSL112. These measures were compared with 2 prior studies in healthy volunteers for differences in CEC at baseline and after CSL112 infusion. Patients with stable atherosclerotic disease exhibited significantly lower ATP-binding cassette transporter 1-mediated CEC at baseline ( P &lt;0.0001) despite slightly higher apoA-I levels when compared with healthy individuals (2 phase 1 studies pooled; P &#x2264;0.05), suggesting impaired HDL function. However, no differences were observed in apoA-I pharmacokinetics or in pre-&#x3b2;1-HDL ( P =0.5) or CEC ( P =0.1) after infusion of CSL112. Similar elevation in CEC was observed in patients with low or high baseline HDL function (based on tertiles of apoA-I-normalized CEC; P =0.1242). These observations were extended and confirmed using cholesterol esterification as an additional measure. CSL112 shows comparable, strong, and immediate effects on CEC despite underlying cardiovascular disease. CSL112 is, therefore, a promising novel therapy for lowering the burden of atherosclerosis and reducing the risk of recurrent cardiovascular events.",
+        "year": "2018"
+      },
+      {
+        "pmid": "25170076",
+        "title": "Definition of human apolipoprotein A-I epitopes recognized by autoantibodies present in patients with cardiovascular diseases.",
+        "abstract": "Autoantibodies to apolipoprotein A-I (anti-apoA-I IgG) have been shown to be both markers and mediators of cardiovascular disease, promoting atherogenesis and unstable atherosclerotic plaque. Previous studies have shown that high levels of anti-apoA-I IgGs are independently associated with major adverse cardiovascular events in patients with myocardial infarction. Autoantibody responses to apoA-I can be polyclonal and it is likely that more than one epitope may exist. To identify the specific immunoreactive peptides in apoA-I, we have developed a set of methodologies and procedures to isolate, purify, and identify novel apoA-I endogenous epitopes. First, we generated high purity apoA-I from human plasma, using thiophilic interaction chromatography followed by enzymatic digestion specifically at lysine or arginine residues. Immunoreactivity to the different peptides generated was tested by ELISA using serum obtained from patients with acute myocardial infarction and high titers of autoantibodies to native apoA-I. The immunoreactive peptides were further sequenced by mass spectrometry. Our approach successfully identified two novel immunoreactive peptides, recognized by autoantibodies from patients suffering from myocardial infarction, who contain a high titer of anti-apoA-I IgG. The discovery of these epitopes may open innovative prognostic and therapeutic opportunities potentially suitable to improve current cardiovascular risk stratification.",
+        "year": "2014"
+      },
+      {
+        "pmid": "22986928",
+        "title": "Characterization of a human apolipoprotein a-I construct expressed in a bacterial system.",
+        "abstract": "Apolipoprotein A-I (apoA-I) is the major protein component of high density lipoproteins. This protein has key functions in lipoprotein metabolism and its plasma concentration is inversely correlated with the incidence of atherosclerosis and cardiovascular diseases. There is an increasing need to develop methods for efficient production of recombinant apoA-I for using it in basic research or pharmacological therapy. An apoA-I variant lacking two amino acid residues at the N-terminus can be easily produced by bacterial expression. We report here the characterization of this variant comparing its properties with those of the protein isolated from human serum. The results validate the use of this variant in future assays and investigations.",
+        "year": "2012"
+      },
+      {
+        "pmid": "16755201",
+        "title": "Myeloperoxidase: an inflammatory enzyme for generating dysfunctional high density lipoprotein.",
+        "abstract": "Evidence indicates that high density lipoprotein (HDL) is cardioprotective and that several mechanisms are involved. One important pathway is a membrane-associated ATP-binding cassette transporter, ABCA1, that clears cholesterol from macrophage foam cells. Anti-inflammatory and antioxidant properties also might contribute to HDL's ability to inhibit atherosclerosis. Myeloperoxidase targets HDL for oxidation, raising the possibility that the enzyme provides a specific mechanism for generating dysfunctional HDL in humans. Myeloperoxidase-dependent oxidation of apolipoprotein A-I, the major protein in HDL, blocks HDL's ability to remove excess cholesterol from cells by the ABCA1 pathway. Analysis of mutated forms of apoA-I and oxidized apoA-I treated with methionine sulfoxide reductase implicate oxidation of specific tyrosine and methionine residues in impairing the ABCA1 transport activity of apoA-I. The crystal structure of lipid-free apoA-I suggests that such oxidative damage might disrupt negatively charged regions on the protein's surface or alter its remodeling, resulting in conformations that fail to interact with ABCA1. Oxidation of HDL by myeloperoxidase may represent a specific molecular mechanism for converting the cardioprotective lipoprotein into a dysfunctional form, raising the possibility that the enzyme represents a potential therapeutic target for preventing vascular disease in humans. Moreover, oxidized HDL might prove useful as a blood marker for clinically significant cardiovascular disease in humans.",
+        "year": "2006"
+      },
+      {
+        "pmid": "21811627",
+        "title": "Human apolipoprotein A-I-derived amyloid: its association with atherosclerosis.",
+        "abstract": "Amyloidoses constitute a group of diseases in which soluble proteins aggregate and deposit extracellularly in tissues. Nonhereditary apolipoprotein A-I (apoA-I) amyloid is characterized by deposits of nonvariant protein in atherosclerotic arteries. Despite being common, little is known about the pathogenesis and significance of apoA-I deposition. In this work we investigated by fluorescence and biochemical approaches the impact of a cellular microenvironment associated with chronic inflammation on the folding and pro-amyloidogenic processing of apoA-I. Results showed that mildly acidic pH promotes misfolding, aggregation, and increased binding of apoA-I to extracellular matrix elements, thus favoring protein deposition as amyloid like-complexes. In addition, activated neutrophils and oxidative/proteolytic cleavage of the protein give rise to pro amyloidogenic products. We conclude that, even though apoA-I is not inherently amyloidogenic, it may produce non hereditary amyloidosis as a consequence of the pro-inflammatory microenvironment associated to atherogenesis.",
+        "year": "2011"
+      },
+      {
+        "pmid": "33327742",
+        "title": "Aortic Gene Expression Profiles Show How ApoA-I Levels Modulate Inflammation, Lysosomal Activity, and Sphingolipid Metabolism in Murine Atherosclerosis.",
+        "abstract": "HDL (high-density lipoprotein) particles are known to possess several antiatherogenic properties that include the removal of excess cholesterol from peripheral tissues, the maintenance of endothelial integrity, antioxidant, and anti-inflammatory activities. ApoA-I overexpression in apoE-deficient (EKO) mice has been shown to increase HDL levels and to strongly reduce atherosclerosis development. The aim of the study was to investigate gene expression patterns associated with atherosclerosis development in the aorta of EKO mice and how HDL plasma levels relate to gene expression patterns at different stages of atherosclerosis development and with different dietary treatments. Approach and Results: Eight-week-old EKO mice, EKO mice overexpressing human apoA-I, and wild-type mice as controls were fed either normal laboratory or Western diet for 6 or 22 weeks. Cholesterol distribution among lipoproteins was evaluated, and atherosclerosis of the aorta was quantified. High-throughput sequencing technologies were used to analyze the transcriptome of the aorta of the 3 genotypes in each experimental condition. In addition to the well-known activation of inflammation and immune response, the impairment of sphingolipid metabolism, phagosome-lysosome system, and osteoclast differentiation emerged as relevant players in atherosclerosis development. The reduced atherosclerotic burden in the aorta of EKO mice expressing high levels of apoA-I was accompanied by a reduced activation of immune system markers, as well as reduced perturbation of lysosomal activity and a better regulation of the sphingolipid synthesis pathway. ApoA-I modulates atherosclerosis development in the aorta of EKO mice affecting the expression of pathways additional to those associated with inflammation and immune response.",
+        "year": "2021"
+      }
+    ],
+    "top_sentences": [
+      {
+        "pmid": "30079772",
+        "text": "Overexpression of ABCA1 in endothelial cells enhances ApoAI-mediated cholesterol efflux and decreases inflammation.",
+        "score": 0.5714
+      },
+      {
+        "pmid": "29437574",
+        "text": "CSL112 enhances cholesterol efflux in both healthy individuals and patients with stable atherosclerosis.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "29437574",
+        "text": "CSL112 enhances cholesterol efflux and is promising for atherosclerosis therapy.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "33327742",
+        "text": "High apoA-I levels in mice reduce atherosclerotic burden and immune system activation, lysosomal activity perturbation, and sphingolipid synthesis pathway dysregulation.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "35587694",
+        "text": "ApoA-I deficiency exacerbates atherosclerosis in the absence of hyperlipidemia.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "35587694",
+        "text": "ApoA-I deficiency worsens atherosclerosis in normolipidemic conditions.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "34118596",
+        "text": "Apolipoprotein A-I mimetic peptide inhibits atherosclerosis by increasing tetrahydrobiopterin and reducing uncoupled endothelial nitric oxide synthase activity.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "34118596",
+        "text": "Apolipoprotein A-I mimetic peptide inhibits atherosclerosis by increasing tetrahydrobiopterin via regulation of GTP-cyclohydrolase 1 and reducing uncoupled endothelial nitric oxide synthase activity.",
+        "score": 0.4357
+      },
+      {
+        "pmid": "28181168",
+        "text": "Endothelial dysfunction plays a vital role during the initial stage of atherosclerosis. Oxidized low-density lipoprotein (ox-LDL) induces vascular endothelial i",
+        "score": 0.4286
+      },
+      {
+        "pmid": "16019715",
+        "text": "The ability of high-density lipoprotein (HDL) to promote cholesterol efflux is thought to be important in its protection against cardiovascular disease. Anti-in",
+        "score": 0.4286
+      },
+      {
+        "pmid": "28069582",
+        "text": "Apolipoprotein A-I reduces aortic plaque area and injury in high-fat diet-induced atherosclerosis.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "28069582",
+        "text": "Apolipoprotein A-I prophylactically inhibits high-fat diet-induced atherosclerosis in rabbits.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "33327742",
+        "text": "ApoA-I overexpression reduces atherosclerosis in mice.",
+        "score": 0.2929
+      },
+      {
+        "pmid": "24523407",
+        "text": "To identify unknown PLA2-mediated activities on the molecular components of HDL, we characterized the protein and lipid products of the PLA2 reaction with HDL. ",
+        "score": 0.2929
+      },
+      {
+        "pmid": "26323267",
+        "text": "High-density lipoproteins (HDLs) protect against atherosclerosis by removing excess cholesterol from macrophages through the ATP-binding cassette transporter A1",
+        "score": 0.2857
+      },
+      {
+        "pmid": "32009037",
+        "text": "Atherosclerosis is a vascular disease responsible for acute heart attacks and stroke, which are leading causes of death not only in industrialized countries but",
+        "score": 0.2857
+      },
+      {
+        "pmid": "33811580",
+        "text": "Vascular diseases (VDs) including pulmonary arterial hypertension (PAH), atherosclerosis (AS) and coronary arterial diseases (CADs) contribute to the higher mor",
+        "score": 0.2857
+      },
+      {
+        "pmid": "25170076",
+        "text": "Autoantibodies to apolipoprotein A-I (anti-apoA-I IgG) have been shown to be both markers and mediators of cardiovascular disease, promoting atherogenesis and u",
+        "score": 0.2857
+      },
+      {
+        "pmid": "16182131",
+        "text": "Recent studies identify the presence of high-density lipoprotein (HDL) particles in patients with cardiovascular disease, which are \"dysfunctional,\" lacking in ",
+        "score": 0.2857
+      },
+      {
+        "pmid": "21811627",
+        "text": "Despite being common, little is known about the pathogenesis and significance of apoA-I deposition. In this work we investigated by fluorescence and biochemical",
+        "score": 0.15
+      }
+    ]
+  },
+  "llm_structured": {
+    "confidence": "MED",
+    "mode": "llm",
+    "repurpose_rationale": "",
+    "proposed_mechanisms": [
+      "a-i",
+      "aibp",
+      "and",
+      "anti-inflammation",
+      "apolipoprotein",
+      "apolipoprotein-ai",
+      "atherosclerosis",
+      "atherosclerotic",
+      "cardiovascular",
+      "challenges",
+      "development",
+      "diet-induced"
+    ],
+    "key_risks": [],
+    "supporting_evidence": [
+      {
+        "pmid": "28069582",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "Inhibition of atherosclerosis",
+        "claim": "Apolipoprotein A-I reduces aortic plaque area and injury in high-fat diet-induced atherosclerosis.",
+        "confidence": 0.9,
+        "source": "llm",
+        "pmid_raw": "inferred_from_context",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "28069582",
+        "supports": true,
+        "direction": "benefit",
+        "model": "animal",
+        "endpoint": "inhibition of atherosclerosis",
+        "claim": "Apolipoprotein A-I prophylactically inhibits high-fat diet-induced atherosclerosis in rabbits.",
+        "confidence": 0.9,
+        "source": "llm",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "29437574",
+        "supports": true,
+        "direction": "benefit",
+        "model": "human",
+        "endpoint": "Cholesterol efflux capacity improvement",
+        "claim": "CSL112 enhances cholesterol efflux in both healthy individuals and patients with stable atherosclerosis.",
+        "confidence": 0.9,
+        "source": "llm",
+        "pmid_raw": "inferred",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "29437574",
+        "supports": true,
+        "direction": "benefit",
+        "model": "human",
+        "endpoint": "atherosclerosis treatment",
+        "claim": "CSL112 enhances cholesterol efflux and is promising for atherosclerosis therapy.",
+        "confidence": 0.9,
+        "source": "llm",
+        "pmid_raw": "inferred",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "24523407",
+        "supports": true,
+        "direction": "benefit",
+        "model": "unknown",
+        "endpoint": "OTHER",
+        "claim": "To identify unknown PLA2-mediated activities on the molecular components of HDL, we characterized the protein and lipid products of the PLA2 reaction with HDL. ",
+        "confidence": 0.35,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "34118596",
+        "supports": true,
+        "direction": "benefit",
+        "model": "human",
+        "endpoint": "Inhibits atherosclerosis",
+        "claim": "Apolipoprotein A-I mimetic peptide inhibits atherosclerosis by increasing tetrahydrobiopterin and reducing uncoupled endothelial nitric oxide synthase activity.",
+        "confidence": 0.9,
+        "source": "llm",
+        "pmid_raw": "strconv(34118596)",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "34118596",
+        "supports": true,
+        "direction": "benefit",
+        "model": "human",
+        "endpoint": "reduces atherosclerosis",
+        "claim": "Apolipoprotein A-I mimetic peptide inhibits atherosclerosis by increasing tetrahydrobiopterin via regulation of GTP-cyclohydrolase 1 and reducing uncoupled endothelial nitric oxide synthase activity.",
+        "confidence": 0.9,
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/34118596",
+        "topic_match_ratio": 0.2857
+      }
+    ],
+    "harm_or_neutral_evidence": [
+      {
+        "pmid": "26323267",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "High-density lipoproteins (HDLs) protect against atherosclerosis by removing excess cholesterol from macrophages through the ATP-binding cassette transporter A1",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "26323267",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "Factors that impair the availability of functional apolipoproteins or the activities of ABCA1 and ABCG1 could, therefore, strongly influence atherogenesis. HDL ",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "32009037",
+        "supports": false,
+        "direction": "unknown",
+        "model": "human",
+        "endpoint": "OTHER",
+        "claim": "Atherosclerosis is a vascular disease responsible for acute heart attacks and stroke, which are leading causes of death not only in industrialized countries but",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "32009037",
+        "supports": false,
+        "direction": "unknown",
+        "model": "unknown",
+        "endpoint": "OTHER",
+        "claim": "This good cholesterol moniker is associated with HDL because higher circulating levels of this lipoprotein are associated with a well-known reduction in the ris",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "33811580",
+        "supports": false,
+        "direction": "unknown",
+        "model": "unknown",
+        "endpoint": "OTHER",
+        "claim": "Vascular diseases (VDs) including pulmonary arterial hypertension (PAH), atherosclerosis (AS) and coronary arterial diseases (CADs) contribute to the higher mor",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "33811580",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "However, the mechanism by which AIBP and apo-AI regulate VDs still remains unexplained. Here, we provide an overview of the role of AIBP and apo-AI regulation o",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "25170076",
+        "supports": false,
+        "direction": "unknown",
+        "model": "human",
+        "endpoint": "OTHER",
+        "claim": "Autoantibodies to apolipoprotein A-I (anti-apoA-I IgG) have been shown to be both markers and mediators of cardiovascular disease, promoting atherogenesis and u",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "25170076",
+        "supports": false,
+        "direction": "unknown",
+        "model": "human",
+        "endpoint": "OTHER",
+        "claim": "Our approach successfully identified two novel immunoreactive peptides, recognized by autoantibodies from patients suffering from myocardial infarction, who con",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "22986928",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Apolipoprotein A-I (apoA-I) is the major protein component of high density lipoproteins. This protein has key functions in lipoprotein metabolism and its plasma",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "16755201",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Oxidation of HDL by myeloperoxidase may represent a specific molecular mechanism for converting the cardioprotective lipoprotein into a dysfunctional form, rais",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "16755201",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "OTHER",
+        "claim": "Evidence indicates that high density lipoprotein (HDL) is cardioprotective and that several mechanisms are involved. One important pathway is a membrane-associa",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "21811627",
+        "supports": false,
+        "direction": "harm",
+        "model": "unknown",
+        "endpoint": "OTHER",
+        "claim": "Despite being common, little is known about the pathogenesis and significance of apoA-I deposition. In this work we investigated by fluorescence and biochemical",
+        "confidence": 0.35,
+        "source": "rule",
+        "topic_match_ratio": 0.0
+      },
+      {
+        "pmid": "33327742",
+        "supports": false,
+        "direction": "neutral",
+        "model": "animal",
+        "endpoint": "Atherosclerosis modulation",
+        "claim": "High apoA-I levels in mice reduce atherosclerotic burden and immune system activation, lysosomal activity perturbation, and sphingolipid synthesis pathway dysregulation.",
+        "confidence": 0.7,
+        "source": "llm",
+        "pmid_raw": "gibberish_replaced_with_gibberish",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "33327742",
+        "supports": false,
+        "direction": "neutral",
+        "model": "animal",
+        "endpoint": "ApoA-I and atherosclerosis",
+        "claim": "ApoA-I overexpression reduces atherosclerosis in mice.",
+        "confidence": 0.7,
+        "source": "llm",
+        "pmid_raw": "given",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "35587694",
+        "supports": false,
+        "direction": "harm",
+        "model": "animal",
+        "endpoint": "Atherosclerosis progression",
+        "claim": "ApoA-I deficiency exacerbates atherosclerosis in the absence of hyperlipidemia.",
+        "confidence": 0.8,
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/35587694",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "35587694",
+        "supports": false,
+        "direction": "harm",
+        "model": "animal",
+        "endpoint": "Atherosclerosis progression",
+        "claim": "ApoA-I deficiency worsens atherosclerosis in normolipidemic conditions.",
+        "confidence": 0.8,
+        "source": "llm",
+        "pmid_raw": "gibberish_replaced_with_gibberish",
+        "topic_match_ratio": 0.2857
+      },
+      {
+        "pmid": "18417073",
+        "supports": false,
+        "direction": "unknown",
+        "model": "animal",
+        "endpoint": "OTHER",
+        "claim": "Reactive oxygen species generated by several enzyme systems can modify phospholipids and sterols, producing oxidized phospholipids and oxidized sterols that red",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "18417073",
+        "supports": false,
+        "direction": "unknown",
+        "model": "human",
+        "endpoint": "OTHER",
+        "claim": "Atherosclerosis is an example of an inflammatory disorder. During the acute phase and under inflammatory conditions, high-density lipoprotein (HDL), which is no",
+        "confidence": 0.2,
+        "source": "rule",
+        "topic_match_ratio": 0.1429
+      },
+      {
+        "pmid": "30079772",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "Atherosclerosis prevention and treatment",
+        "claim": "Overexpression of ABCA1 in endothelial cells enhances ApoAI-mediated cholesterol efflux and decreases inflammation.",
+        "confidence": 0.7,
+        "source": "llm",
+        "pmid_raw": "gibberish",
+        "topic_match_ratio": 0.5714
+      },
+      {
+        "pmid": "30079772",
+        "supports": false,
+        "direction": "unknown",
+        "model": "cell",
+        "endpoint": "ApoAI and atherosclerosis",
+        "claim": "HDAdApoAI reduces atherosclerosis but its effect is partial.",
+        "confidence": 0.8,
+        "source": "llm",
+        "pmid_raw": "http://www.ncbi.nlm.nih.gov/pubmed/30079772",
+        "topic_match_ratio": 0.1429
+      }
+    ],
+    "counts": {
+      "supporting_evidence_count": 4,
+      "supporting_sentence_count": 7,
+      "unique_supporting_pmids_count": 4,
+      "unique_supporting_pmids": [
+        "24523407",
+        "28069582",
+        "29437574",
+        "34118596"
+      ],
+      "harm_or_neutral_count": 27,
+      "llm_items_total": 12
+    }
+  }
+}

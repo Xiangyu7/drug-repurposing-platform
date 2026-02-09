@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sigreverse"
+version = "0.4.0"
+description = "Industrial-grade LINCS/CMap signature reversal scoring with WTCS/NCS/Tau, drug standardization, dose-response, and KG fusion"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "requests>=2.31.0",
+  "pandas>=2.0.0",
+  "PyYAML>=6.0.1",
+  "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sigreverse*"]

@@ -1,0 +1,106 @@
+# SigReverse default config — v0.3.0
+
+ldp3:
+  metadata_api: "https://maayanlab.cloud/sigcom-lincs/metadata-api/"
+  data_api: "https://maayanlab.cloud/sigcom-lincs/data-api/api/v1/"
+  database: "l1000_cp"  # l1000_cp=小分子药物, l1000_xpr=CRISPR knockout
+  topk_signatures: 2000       # signature-level results to fetch (increased from 500 for better coverage)
+  timeout_sec: 120
+  retries: 3
+  backoff_sec: 2
+
+signature:
+  trim_topn: null             # e.g. 200, or null to keep all
+  dedupe: true
+  # Signature size recommendations:
+  #   minimum_viable: 50 genes per direction
+  #   optimal: 150-300 genes per direction
+  #   below 50: high variance, results unreliable
+
+scoring:
+  # Scoring mode: "wtcs_like" (recommended), "continuous", "legacy_binary"
+  mode: "wtcs_like"
+  # FDR significance threshold for signature-level filtering
+  fdr_threshold: 0.05
+  # LDP3 z-down sign convention. Keep false unless you verified API returns
+  # inverted z-down values.
+  flip_z_down: false
+
+robustness:
+  n_cap: 8                    # sample-size saturation cap (lowered from 20 for sparse LDP3 data)
+  min_signatures: 1           # require at least N FDR-passing contexts (1 = include single-sig drugs)
+  min_reverser: 1             # require at least N reverser contexts, else score=0 and flagged
+  filter_fdr: true            # exclude FDR-failing signatures from aggregation
+  aggregation_mode: "weighted_median"  # "weighted_median" or "quantile_max"
+  n_factor_mode: "log"        # "log" (gentle saturation) or "sqrt" (harsh penalty)
+  cl_diversity_bonus: 0.1     # bonus per extra cell line (0 = disabled)
+  # Cell line relevance weights file (optional, uncomment for disease-specific weighting)
+  # cell_line_weights_path: "configs/cell_line_weights_atherosclerosis.csv"
+  # Time window weights (built-in defaults used if not specified)
+  time_weights:
+    "24 h": 1.0
+    "6 h": 0.6
+    "48 h": 0.9
+    "72 h": 0.8
+    "3 h": 0.4
+
+statistics:
+  enabled: true
+  n_permutations: 1000        # number of label permutations for null distribution
+  n_bootstrap: 2000           # bootstrap resamples for CI
+  confidence_level: 0.95
+  seed: 42
+
+# CMap 4-stage pipeline (ES → WTCS → NCS → Tau)
+cmap_pipeline:
+  enabled: true
+  ncs_method: "cell_line_null"    # "cell_line_null", "global_null", "none"
+  tau_aggregation: "quantile_max" # "quantile_max", "median", "max_abs"
+  tau_reference_mode: "bootstrap"  # "bootstrap", "leave_one_out", "auto", "external"
+  # External Touchstone reference file (optional, self-referencing if not provided)
+  # touchstone_path: "data/reference/touchstone_ncs.npy"
+
+# Drug name standardization (PubChem → InChIKey → UniChem)
+drug_standardization:
+  enabled: false                   # set true to run (requires internet, ~0.5s per drug)
+  use_unichem: true                # cross-reference to ChEMBL, DrugBank
+  cache_path: "data/cache/drug_identity_cache.json"
+  pubchem_delay_sec: 0.25          # rate limiting for PubChem API
+  unichem_delay_sec: 0.30          # rate limiting for UniChem API
+  deduplicate: true                # merge drugs with same InChIKey
+
+# Dose-response modeling
+dose_response:
+  enabled: true
+  dose_col: "meta.pert_dose"
+  dose_unit_col: "meta.pert_dose_unit"
+  score_col: "sig_score"
+
+# Multi-source fusion ranking
+fusion:
+  enabled: false                   # set true to run (requires KG_Explain scores)
+  weights:
+    signature: 0.50
+    kg: 0.30
+    safety: 0.10
+    dose_response: 0.05
+    literature: 0.05
+  normalization: "rank"            # "rank" or "minmax"
+  # kg_scores_path: "data/external/kg_explain_scores.csv"
+  # safety_scores_path: "data/external/faers_safety_scores.csv"
+
+qc:
+  max_missing_gene_ratio: 0.30
+  signature_size:
+    min_recommended: 50
+    optimal_min: 150
+  # Heuristic toxicity/confounder flag thresholds
+  toxicity_flag:
+    enabled: true
+    min_signatures: 10
+    min_p_reverser: 0.80
+    min_median_strength: 25.0
+
+cache:
+  enabled: true
+  cache_dir: "data/cache"

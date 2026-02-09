@@ -1,0 +1,215 @@
+{
+  "drug_id": "D81B744A593",
+  "canonical_name": "resveratrol",
+  "total_pmids": 80,
+  "evidence_count": {
+    "benefit": 17,
+    "harm": 0,
+    "neutral": 0,
+    "unknown": 3
+  },
+  "evidence_blocks": [
+    {
+      "pmid": "40043912",
+      "title": "Pitavastatin and resveratrol bio-nanocomplexes against hyperhomocysteinemia-induced atherosclerosis via blocking ferroptosis-related lipid deposition.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis (AS) therapy has been commonly based on lipid-lowering agents (e.g., statins), supplemented by other therapies, such as anti-inflammatory agents and antioxidants, through traditional C",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "24895526",
+      "title": "Resveratrol counteracts inflammation in human M1 and M2 macrophages upon challenge with 7-oxo-cholesterol: potential therapeutic implications in atherosclerosis.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "the proinflammatory M1 subset and the anti-inflammatory M2 one. 7-oxo-cholesterol, the most abundant cholesterol autoxidation product within atherosclerotic plaque, is able to skew the M1/M2 balance t",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "27156686",
+      "title": "Resveratrol attenuates monocyte-to-macrophage differentiation and associated inflammation via modulation of intracellular GSH homeostasis: Relevance in atherosclerosis.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Monocyte-to-macrophage differentiation promotes an inflammatory environment within the arterial vessel wall that causes a mal-adaptive immune response, which contributes to the progression of atheroma",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "30885430",
+      "title": "Appropriate dose of ethanol exerts anti-senescence and anti-atherosclerosis protective effects by activating ALDH2.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Moderate alcohol consumption has been shown to reduce atherosclerosis-associated diseases. As shown in our earlier works, ethanol has a dose-dependent protective effects against endothelial cellular s",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "26306466",
+      "title": "Resveratrol and anti-atherogenic effects.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "The role of inflammation and oxidative stress in atherosclerosis development has been increasingly well recognized over the past decade. Inflammation has a significant role at all stages of atheroscle",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40634132",
+      "title": "An Up-to-Date Review of Traditional Chinese Medicine in the Treatment of Atherosclerosis: Components, Mechanisms, and Therapeutic Potentials.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis is a chronic inflammatory disease and a major global health concern. In recent years, traditional Chinese medicines (TCMs) have demonstrated multi-target therapeutic potential against ",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "37030661",
+      "title": "Resveratrol protects against postmenopausal atherosclerosis progression through reducing PCSK9 expression via the regulation of the ERα-mediated signaling pathway.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Elevated circulating proprotein convertase subtilisin/kexin 9 (PCSK9) levels are an important contributor to postmenopausal atherosclerosis (AS). We have previously reported that resveratrol (RSV), as",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "23450206",
+      "title": "Resveratrol, wine, and atherosclerosis.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "This review emphasizes the effects of resveratrol on factors involved in the mechanism of atherosclerosis and risk factors for atherosclerosis. The effects of wine and resveratrol on atherosclerosis a",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "23337345",
+      "title": "Resveratrol protects against atherosclerosis, but does not add to the antiatherogenic effect of atorvastatin, in APOE*3-Leiden.CETP mice.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Resveratrol is a major constituent of traditional Asian medicinal herbs and red wine and is suggested to be a potential antiatherosclerotic drug due to its proposed hypolipidemic, anti-inflammatory an",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "36932392",
+      "title": "Therapeutic effects of resveratrol and Omega-3 in mice atherosclerosis: focus on histopathological changes.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Resveratrol and omega-3 have been shown to prevent atherosclerosis. However, histopathological changes and their comparison have not been studied well. This study investigated the therapeutic effects ",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "37292256",
+      "title": "Therapeutic Role and Potential Mechanism of Resveratrol in Atherosclerosis: TLR4/NF-",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis, the main pathological basis of cardiovascular disease, is a chronic inflammatory disease that severely affects the quality of human life. Resveratrol (Res) is a natural polyphenol tha",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "19053850",
+      "title": "Beneficial effects of resveratrol on atherosclerosis.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis, a progressive disease characterized by the accumulation of lipids and fibrous elements in the arteries, is a most important contributor to cardiovascular diseases. Resveratrol is a na",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "30253861",
+      "title": "Effect of resveratrol on seric vascular endothelial growth factor concentrations during atherosclerosis.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Although it is known that resveratrol has anti-inflammatory and anti-atherogenic actions, its effect on vascular endothelial growth factor (VEGF) in atherosclerosis is unknown.",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "34771008",
+      "title": "A Comprehensive Analysis of the Efficacy of Resveratrol in Atherosclerotic Cardiovascular Disease, Myocardial Infarction and Heart Failure.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis, myocardial infarction (MI) and heart failure (HF) are the main causes of mortality and morbidity around the globe. New therapies are needed to better manage ischemic heart disease and",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "34933718",
+      "title": "The clinical effects of resveratrol on atherosclerosis treatment and its effect on the expression of NADPH oxidase complex genes in vascular smooth muscle cell line.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis is a disease that covers the arteries of the middle to large arteries and can affect the aorta to the coronary arteries. Atherosclerosis is a progressive and slow process that begins i",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40259219",
+      "title": "The relevance of resveratrol in ameliorating carotid atherosclerosis through glycolysis.",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis (AS) poses a pressing challenge in contemporary medicine. Glycolysis is a crucial bioenergetic metabolic pathway that provides the primary energy source for endothelial cells. Resverat",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "35736860",
+      "title": "Resveratrol protects against ox-LDL-induced endothelial dysfunction in atherosclerosis via depending on circ_0091822/miR-106b-5p-mediated upregulation of TLR4.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis (AS) is the most common inducer of cardiovascular diseases, and resveratrol (RSV) has played a protective function in the endothelial injury of AS. This study was to explore the molecu",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "35601067",
+      "title": "Resveratrol protects against atherosclerosis by downregulating the PI3K/AKT/mTOR signaling pathway in atherosclerosis model mice.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis is a cardiovascular disease, which is characterized by the interaction between carbohydrates, lipids, cells and various other molecules and genetic factors. Previous studies have demon",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "32508962",
+      "title": "Resveratrol ameliorates atherosclerosis induced by high-fat diet and LPS in ApoE",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis (AS), which characterized with the accumulation of lipids on the vessel wall, is the pathological basis of many cardiovascular diseases (CVD) and seriously threatens human health. Resv",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "40697701",
+      "title": "Unlocking Resveratrol's Potential: Targeting Ferroptosis in Atherosclerosis Through MAPK1.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Atherosclerosis (AS) is a chronic inflammatory metabolic disorder and a leading cause of cardiovascular diseases. Resveratrol (RSV), a natural polyphenolic phytoestrogen, exhibits anti-atherosclerotic",
+      "confidence": "medium"
+    }
+  ],
+  "top_pmids": [
+    "40043912",
+    "24895526",
+    "27156686",
+    "30885430",
+    "26306466",
+    "40634132",
+    "37030661",
+    "23450206",
+    "23337345",
+    "36932392",
+    "37292256",
+    "19053850",
+    "30253861",
+    "34771008",
+    "34933718",
+    "40259219",
+    "35736860",
+    "35601067",
+    "32508962",
+    "40697701"
+  ]
+}

@@ -1,0 +1,109 @@
+# ==========================
+# dsmeta-signature config
+# ==========================
+project:
+  name: "my_disease_signature"
+  outdir: "outputs"
+  workdir: "work"
+  seed: 13
+
+geo:
+  # List of GEO Series (GSE) to include
+  gse_list:
+    - "GSEXXXX"
+    - "GSEYYYY"
+
+  # Prefer series matrix downloads when available (fast, common)
+  prefer_series_matrix: true
+
+labeling:
+  # Choose ONE mode:
+  # 1) "regex" (auto-label using regex rules on GEO sample metadata)
+  # 2) "explicit" (you provide GSM lists for case/control)
+  mode: "regex"
+
+  # If mode = regex:
+  # For each GSE, define rules to assign case/control.
+  # Fields available: title, source_name_ch1, characteristics_ch1 (collapsed), description (when available)
+  # Regex is case-insensitive by default.
+  regex_rules:
+    GSEXXXX:
+      case:
+        any:
+          - "disease"
+      control:
+        any:
+          - "control"
+    GSEYYYY:
+      case:
+        any: ["disease"]
+      control:
+        any: ["control"]
+
+  # If mode = explicit:
+  explicit:
+    GSEXXXX:
+      case_gsm: ["GSM000001","GSM000002"]
+      control_gsm: ["GSM000003","GSM000004"]
+
+de:
+  # Differential expression method
+  # - "limma" is suitable for (log)normalized expression (microarray / normalized RNA-seq)
+  method: "limma"
+
+  # Optional covariates: if present in GEO pheno data (after parsing),
+  # you can include them here. Example: ["age","sex"]
+  covariates: []
+
+  # Outlier removal (per GSE). If true: remove samples with extreme PCA distance.
+  qc:
+    remove_outliers: true
+    pca_outlier_z: 3.5
+
+meta:
+  # Cross-study meta-analysis
+  # - model: "random" (recommended) or "fixed"
+  model: "random"
+
+  # Keep genes with sign agreement >= this fraction across studies
+  min_sign_concordance: 0.7
+
+  # Max I2 allowed before downweight/flag (still kept but flagged)
+  flag_i2_above: 0.6
+
+  # Final signature size (top N up + top N down)
+  top_n: 300
+
+rank_aggregation:
+  enable: true
+  # "rra" (RobustRankAggreg) recommended for stability
+  method: "rra"
+  # ensemble: combine effect-meta rank and RRA rank
+  ensemble:
+    enable: true
+    w_meta: 0.7
+    w_rra: 0.3
+
+genesets:
+  # Reactome + WikiPathways are open and recommended.
+  enable_reactome: true
+  enable_wikipathways: true
+
+  # KEGG is optional due to licensing/source constraints
+  enable_kegg: false
+
+gsea:
+  # Per-study GSEA method
+  method: "fgsea"
+  min_size: 15
+  max_size: 500
+  nperm: 10000
+
+pathway_meta:
+  # How to combine pathway results
+  # - "stouffer": combine signed z (direction-aware)
+  method: "stouffer"
+  min_concordance: 0.7
+
+report:
+  enable: true

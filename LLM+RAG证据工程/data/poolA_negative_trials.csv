@@ -1,0 +1,4 @@
+﻿nctId,briefTitle,overallStatus,phases,studyType,has_resultsSection,mvp_outcome_label,mvp_outcome_confidence,pass_interventional,pass_phase23,primary_endpoint_met,outcome_label_human,failure_reason_human,endpoint_name,p_value_or_CI,notes,reviewer,review_date,final_outcome_label,final_confidence
+NCT05613907,Can a Dedicated Chronic Limb-threatening Ischaemia (CLTI) Clinic Improve Patient Self-reported Quality of Life,COMPLETED,,OBSERVATIONAL,1,NEGATIVE,MED,0,0,,,,,,,,,NEGATIVE,MED
+NCT01070966,Vytorin Reexamination Study (0653A-174),COMPLETED,,OBSERVATIONAL,1,NEGATIVE,MED,0,0,,,,,,,,,NEGATIVE,MED
+NCT02576067,Cardiovascular Inflammation Reduction Trial - Inflammation Imaging Study,COMPLETED,PHASE3,INTERVENTIONAL,1,NEGATIVE,MED,1,1,,,,,,,,,NEGATIVE,MED

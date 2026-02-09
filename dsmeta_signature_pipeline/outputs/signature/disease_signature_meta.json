@@ -1,0 +1,9 @@
+{
+  "name": "atherosclerosis_meta_signature",
+  "top_n": 300,
+  "filters": {
+    "min_sign_concordance": 0.7
+  },
+  "up_genes": [],
+  "down_genes": []
+}

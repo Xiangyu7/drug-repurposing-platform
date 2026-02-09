@@ -1,0 +1,38 @@
+{
+  "drug_id": "D9F9BB8C160",
+  "canonical_name": "creatine monohydrate",
+  "target_disease": "atherosclerosis",
+  "endpoint_type": "OTHER",
+  "query": "(\"creatine monohydrate\") AND ((atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)) AND (\"atherosclerosis\")",
+  "qc": {
+    "topic_match_ratio": 0.0,
+    "topic_mismatch": false,
+    "removed_evidence_count": 0,
+    "removed_cross_drug_count": 0,
+    "supporting_evidence_after_qc": 0,
+    "supporting_sentence_count_after_qc": 0,
+    "qc_reasons": []
+  },
+  "clinicaltrials_negative": [],
+  "pubmed_rag": {
+    "top_abstracts": [],
+    "top_sentences": []
+  },
+  "llm_structured": {
+    "confidence": "LOW",
+    "mode": "rule",
+    "repurpose_rationale": "",
+    "proposed_mechanisms": [],
+    "key_risks": [],
+    "supporting_evidence": [],
+    "harm_or_neutral_evidence": [],
+    "counts": {
+      "supporting_evidence_count": 0,
+      "supporting_sentence_count": 0,
+      "unique_supporting_pmids_count": 0,
+      "unique_supporting_pmids": [],
+      "harm_or_neutral_count": 0,
+      "llm_items_total": 0
+    }
+  }
+}

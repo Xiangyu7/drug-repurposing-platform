@@ -1,0 +1,320 @@
+{
+  "dashboard": {
+    "title": "LLM+RAG证据工程 Monitoring",
+    "tags": ["dr-pipeline"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Pipeline Execution Rate",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(dr_pipeline_executions_total[5m])",
+            "legendFormat": "{{pipeline}} - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Executions/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Active Operations",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "dr_active_operations",
+            "legendFormat": "{{operation}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Count"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Pipeline Duration (p50, p95, p99)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(dr_pipeline_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{pipeline}} p50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(dr_pipeline_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{pipeline}} p95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(dr_pipeline_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{pipeline}} p99",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Duration"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "PubMed Request Rate",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(dr_pubmed_requests_total[5m])",
+            "legendFormat": "{{operation}} - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Requests/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "PubMed Request Duration",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(dr_pubmed_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{operation}} p95",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Duration"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "LLM Extraction Success Rate",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(dr_llm_extractions_total{status=\"success\"}[5m]) / rate(dr_llm_extractions_total[5m])",
+            "legendFormat": "Success Rate",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percentunit", "label": "Success Rate", "max": 1},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "LLM Extraction Duration",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(dr_llm_extraction_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Duration"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Drug Score Distribution",
+        "type": "heatmap",
+        "gridPos": {"x": 12, "y": 24, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(dr_drug_scores_bucket[5m])",
+            "legendFormat": "{{le}}",
+            "refId": "A",
+            "format": "heatmap"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Gating Decisions",
+        "type": "piechart",
+        "gridPos": {"x": 0, "y": 32, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "dr_gating_decisions_total",
+            "legendFormat": "{{decision}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Error Rate by Module",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 32, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(dr_errors_total[5m])",
+            "legendFormat": "{{module}} - {{error_type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Errors/sec"},
+          {"format": "short"}
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.1], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "60s",
+          "handler": 1,
+          "name": "High Error Rate",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 11,
+        "title": "Total Pipeline Executions",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 40, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(dr_pipeline_executions_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Success Rate",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 40, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(rate(dr_pipeline_executions_total{status=\"success\"}[5m])) / sum(rate(dr_pipeline_executions_total[5m]))",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "max": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.9},
+                {"color": "green", "value": 0.95}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "Total LLM Extractions",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 40, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(dr_llm_extractions_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        }
+      },
+      {
+        "id": 14,
+        "title": "Total Errors",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 40, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(dr_errors_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 10},
+                {"color": "red", "value": 50}
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

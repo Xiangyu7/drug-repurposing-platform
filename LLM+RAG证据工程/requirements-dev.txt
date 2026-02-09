@@ -1,0 +1,15 @@
+# Testing
+pytest==7.4.0
+pytest-cov==7.0.0
+
+# Linting & Formatting (optional)
+flake8>=6.1.0
+black>=23.7.0
+isort>=5.12.0
+
+# Type Checking (optional)
+mypy>=1.5.0
+types-requests
+
+# Coverage
+coverage[toml]>=7.3.0

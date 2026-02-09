@@ -1,0 +1,2 @@
+﻿drug_id,canonical_name,total_pmids,benefit_count,harm_count,neutral_count,unclear_count,extraction_success_rate,dossier_path
+D4BE4598792,apolipoprotein a-i human apoa-i,80,0,0,0,0,0.0,output/step6_llm/dossiers/D4BE4598792__apolipoprotein_a-i_human_apoa-i.json

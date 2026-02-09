@@ -1,0 +1,35 @@
+{
+  "drug_id": "DF09C894FE9",
+  "canonical_name": "vm202",
+  "total_pmids": 2,
+  "evidence_count": {
+    "benefit": 1,
+    "harm": 0,
+    "neutral": 0,
+    "unknown": 1
+  },
+  "evidence_blocks": [
+    {
+      "pmid": "39778757",
+      "title": "Hepatocyte growth factor for walking performance in peripheral artery disease.",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "VM202 is a plasmid encoding two isoforms of hepatocyte growth factor. In preclinical studies, hepatocyte growth factor stimulated angiogenesis and muscle regeneration. This preliminary clinical trial ",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "21430785",
+      "title": "Safety of a non-viral plasmid-encoding dual isoforms of hepatocyte growth factor in critical limb ischemia patients: a phase I study.",
+      "direction": "benefit",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "We aimed to evaluate in a phase I dose-escalation study, the safety of intramuscular injections of a novel non-viral plasmid DNA expressing two isoforms of human hepatocyte growth factor (HGF) (VM202)",
+      "confidence": "medium"
+    }
+  ],
+  "top_pmids": [
+    "39778757",
+    "21430785"
+  ]
+}

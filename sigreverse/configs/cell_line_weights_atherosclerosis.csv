@@ -1,0 +1,21 @@
+cell_line,tissue,relevance_weight,notes
+HUVEC,endothelial,1.0,Primary vascular endothelial — most relevant for atherosclerosis
+HAEC,endothelial,1.0,Human aortic endothelial cells — directly relevant
+HCAEC,endothelial,1.0,Human coronary artery endothelial cells
+HCASMC,smooth_muscle,0.95,Human coronary artery smooth muscle cells
+HASMC,smooth_muscle,0.95,Human aortic smooth muscle cells
+THP1,monocyte,0.90,Monocyte/macrophage line — foam cell formation model
+U937,monocyte,0.85,Monocytic cell line — inflammation model
+HEPG2,liver,0.80,Hepatocyte — lipid metabolism and statin target
+HUH7,liver,0.75,Hepatocyte — cholesterol/LDL pathway
+HA1E,kidney,0.50,Kidney — less relevant but captures systemic effects
+A549,lung,0.40,Lung epithelial — general toxicity reference
+MCF7,breast,0.35,Breast — CMap reference line (large dataset)
+PC3,prostate,0.30,Prostate — CMap reference line
+VCAP,prostate,0.30,Prostate — CMap reference line
+A375,skin,0.30,Melanoma — general perturbation reference
+HCC515,lung,0.35,Lung — general perturbation reference
+HT29,colon,0.40,Colon — inflammatory/metabolic pathway overlap
+NPC,neural_progenitor,0.25,Neural progenitor — limited relevance
+SKB,skeletal,0.30,Skeletal — limited relevance
+ASC,adipose,0.70,Adipose stromal cells — metabolic syndrome overlap

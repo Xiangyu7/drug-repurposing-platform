@@ -1,0 +1,35 @@
+{
+  "drug_id": "D9F9BB8C160",
+  "canonical_name": "creatine monohydrate",
+  "total_pmids": 2,
+  "evidence_count": {
+    "benefit": 0,
+    "harm": 0,
+    "neutral": 0,
+    "unknown": 2
+  },
+  "evidence_blocks": [
+    {
+      "pmid": "31563660",
+      "title": "Does Creatine Supplementation Affect Renal Function in Patients with Peripheral Artery Disease? A Randomized, Double Blind, Placebo-controlled, Clinical Trial.",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "Case studies and reviews have shown that creatine supplementation can affect kidney function. The objective of this study is to verify the effects of 8 weeks of creatine supplementation on renal funct",
+      "confidence": "medium"
+    },
+    {
+      "pmid": "33466233",
+      "title": "Effect of Creatine Supplementation on Functional Capacity and Muscle Oxygen Saturation in Patients with Symptomatic Peripheral Arterial Disease: A Pilot Study of a Randomized, Double-Blind Placebo-Controlled Clinical Trial.",
+      "direction": "unknown",
+      "model": "unknown",
+      "endpoint": "unknown",
+      "claim": "The aim of the study was to verify the effects of creatine (Cr) supplementation on functional capacity (walking capacity; primary outcome) and calf muscle oxygen saturation (StO",
+      "confidence": "medium"
+    }
+  ],
+  "top_pmids": [
+    "31563660",
+    "33466233"
+  ]
+}

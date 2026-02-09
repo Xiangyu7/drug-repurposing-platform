@@ -1,0 +1,8 @@
+﻿drug_id,canonical_name,n_negative_trials,row_count,phases,sponsors,conditions,primary_outcomes,evidence_sources,min_p
+D413D3EC269,medi6570,1,1,PHASE2,AstraZeneca,Coronary Heart Disease (CHD),"Change From Baseline to Day 253 in Non-calcified Plaque Volume in the Most Diseased Coronary Segment (NCPVMD), as Measured by Computed Tomography Angiography (CTA) Imaging",CTGOV_STRUCTURED,0.065
+D4BE4598792,apolipoprotein a-i human apoa-i,1,1,PHASE3,CSL Behring,Acute Coronary Syndrome,"Number of Participants With First Occurrence of Any Component of Composite MACE (CV Death, MI, or Stroke)",CTGOV_STRUCTURED,0.121
+D81B744A593,resveratrol,1,1,PHASE3,Northwestern University,Peripheral Artery Disease,Six-minute Walk Distance (NR Alone vs. Placebo),CTGOV_STRUCTURED,0.0775
+D8291C5A5C4,nicotinamide riboside,1,1,PHASE3,Northwestern University,Peripheral Artery Disease,Six-minute Walk Distance (NR Alone vs. Placebo),CTGOV_STRUCTURED,0.0775
+D9F9BB8C160,creatine monohydrate,1,1,PHASE2,Florida State University,Peripheral Arterial Disease,Walking Distance,CTGOV_STRUCTURED,0.38
+DD76A1941B2,dexamethasone,1,1,PHASE4,"University of California, San Francisco",Peripheral Artery Disease | Vascular Disease | Critical Limb Ischemia,Change in Percent Wall Volume (PWV),CTGOV_STRUCTURED,0.22
+DF09C894FE9,vm202,1,1,PHASE2,Northwestern University,Peripheral Artery Disease,Six-minute Walk Distance,CTGOV_STRUCTURED,0.7586

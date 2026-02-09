@@ -1,0 +1,26 @@
+# LLM+RAG证据工程 依赖 — 版本已锁定（2026-02-08）
+
+# 核心数据处理
+pandas==2.2.3
+numpy==1.26.4
+
+# HTTP请求
+requests==2.32.5
+
+# 进度条
+tqdm==4.67.1
+
+# Excel支持（step8）
+openpyxl==3.0.10
+
+# 环境变量管理
+python-dotenv==1.2.1
+
+# YAML配置
+PyYAML==6.0.3
+
+# 性能监控
+psutil==5.9.0
+
+# Monitoring
+prometheus-client==0.14.1
