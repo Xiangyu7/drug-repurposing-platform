@@ -28,6 +28,7 @@ Thumbs.db
 htmlcov/
 *.sqlite
 logs/
+*.log
 
 # === Caches (large, regenerable) ===
 **/cache/
@@ -43,7 +44,7 @@ dsmeta_signature_pipeline/work/
 
 # === LLM+RAG large/regenerable ===
 LLM+RAG证据工程/archive/
-LLM+RAG证据工程/output/step6/cache/
+LLM+RAG证据工程/output/
 LLM+RAG证据工程/*.log
 LLM+RAG证据工程/ctgov_cache/
 
@@ -52,3 +53,4 @@ sigreverse/data/cache/
 sigreverse/data/output*/
 sigreverse/*.log
 sigreverse/*.parquet
+*.bak

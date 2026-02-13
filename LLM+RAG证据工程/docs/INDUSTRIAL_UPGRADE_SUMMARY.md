@@ -5,6 +5,8 @@
 **执行者**: Claude Sonnet 4.5
 **目标**: 从研究级代码提升到工业化生产级别
 
+> **⚠️ 2026-02-12 更新**: 此后又完成了大量改进: 501 tests (75%+ 覆盖), ContractEnforcer (schema 校验), Release Gate (NO-GO 拦截), Bootstrap CI (不确定性量化), Leakage Audit (数据泄漏审计), 跨项目集成测试 12 个。详见各子项目 README。
+
 ---
 
 ## 📊 执行摘要

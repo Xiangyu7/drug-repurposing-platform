@@ -134,4 +134,63 @@ def track_drug_scoring(scores: dict):
 def track_gating_decision(decision: str, gate_reasons: list = None):
     gating_decisions_total.labels(decision=decision).inc()
 
+
+def record_llm_extraction(success: bool, duration_seconds: float, error_type: str = "unknown"):
+    """Record one LLM extraction attempt outcome.
+
+    This helper is useful in code paths that do not raise on failure
+    (e.g., returning None after retries), where context managers alone
+    cannot capture failure counts.
+    """
+    status = "success" if success else "failure"
+    llm_extractions_total.labels(status=status).inc()
+    llm_extraction_duration_seconds.observe(max(0.0, float(duration_seconds)))
+    if not success:
+        errors_total.labels(module="llm", error_type=str(error_type or "unknown")).inc()
+
 metrics = MetricsTracker()
+
+
+def collect_summary() -> dict[str, float]:
+    """Collect current metric values as a flat dict for alerting.
+
+    Reads Prometheus metric values and returns a dictionary suitable
+    for passing to AlertEngine.evaluate().
+
+    Returns:
+        Dictionary of metric names to current values.
+    """
+    summary: dict[str, float] = {}
+
+    # Pipeline metrics
+    try:
+        success = pipeline_executions_total.labels(pipeline="main", status="success")._value.get()
+        failure = pipeline_executions_total.labels(pipeline="main", status="failure")._value.get()
+        total = success + failure
+        if total > 0:
+            summary["pipeline_fail_rate"] = failure / total
+    except (AttributeError, TypeError):
+        pass
+
+    # LLM metrics
+    try:
+        llm_success = llm_extractions_total.labels(status="success")._value.get()
+        llm_failure = llm_extractions_total.labels(status="failure")._value.get()
+        llm_total = llm_success + llm_failure
+        if llm_total > 0:
+            summary["llm_fail_rate"] = llm_failure / llm_total
+    except (AttributeError, TypeError):
+        pass
+
+    # Gating decisions
+    try:
+        go = gating_decisions_total.labels(decision="GO")._value.get()
+        nogo = gating_decisions_total.labels(decision="NO-GO")._value.get()
+        maybe = gating_decisions_total.labels(decision="MAYBE")._value.get()
+        total_decisions = go + nogo + maybe
+        if total_decisions > 0:
+            summary["nogo_ratio"] = nogo / total_decisions
+    except (AttributeError, TypeError):
+        pass
+
+    return summary

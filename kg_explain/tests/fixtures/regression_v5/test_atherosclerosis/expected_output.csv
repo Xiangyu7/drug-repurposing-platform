@@ -1,0 +1,15 @@
+drug_normalized,diseaseId,final_score
+resveratrol,EFO_0003914,0.850000
+atorvastatin,EFO_0003914,0.780000
+metformin,EFO_0003914,0.720000
+aspirin,EFO_0003914,0.690000
+pioglitazone,EFO_0003914,0.650000
+rosuvastatin,EFO_0003914,0.620000
+ezetimibe,EFO_0003914,0.580000
+sitagliptin,EFO_0003914,0.550000
+canagliflozin,EFO_0003914,0.520000
+evolocumab,EFO_0003914,0.490000
+resveratrol,EFO_0000378,0.830000
+atorvastatin,EFO_0000378,0.760000
+metformin,EFO_0000378,0.700000
+aspirin,EFO_0000378,0.680000

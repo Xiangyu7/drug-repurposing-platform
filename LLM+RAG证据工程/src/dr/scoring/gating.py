@@ -6,13 +6,19 @@ to determine which drugs should advance to validation.
 Gates:
 - Hard gates: Immediate disqualification (e.g., < 2 benefit papers)
 - Soft gates: Score-based thresholds (e.g., total score < 50)
+- Explore track: Keeps high-novelty candidates in MAYBE instead of hard filtering
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from enum import Enum
 
 from ..logger import get_logger
+try:
+    from ..monitoring import track_gating_decision
+except Exception:  # pragma: no cover - monitoring is optional at runtime
+    def track_gating_decision(decision: str, gate_reasons: list = None):
+        return None
 
 logger = get_logger(__name__)
 
@@ -47,6 +53,14 @@ class GatingConfig:
     go_threshold: float = 60.0
     maybe_threshold: float = 40.0
 
+    # Explore track (recall-first lane for repurposing discovery)
+    enable_explore_track: bool = True
+    explore_min_total_pmids: int = 1
+    explore_min_benefit: int = 1
+    explore_min_novelty_score: float = 0.45
+    explore_max_harm_ratio: float = 0.60
+    explore_maybe_floor: float = 25.0
+
 
 @dataclass
 class GatingDecision:
@@ -62,6 +76,9 @@ class GatingDecision:
     gate_reasons: List[str] = field(default_factory=list)
     scores: Dict[str, float] = field(default_factory=dict)
     metrics: Dict[str, Any] = field(default_factory=dict)
+    decision_channel: str = "exploit"
+    novelty_score: float = 0.0
+    uncertainty_score: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -69,7 +86,10 @@ class GatingDecision:
             "decision": self.decision.value,
             "gate_reasons": self.gate_reasons,
             "scores": self.scores,
-            "metrics": self.metrics
+            "metrics": self.metrics,
+            "decision_channel": self.decision_channel,
+            "novelty_score": round(float(self.novelty_score), 4),
+            "uncertainty_score": round(float(self.uncertainty_score), 4),
         }
 
 
@@ -122,6 +142,9 @@ class GatingEngine:
         total_pmids = dossier.get("total_pmids", 0)
         total_score = scores.get("total_score_0_100", 0.0)
         safety_score = scores.get("safety_fit_0_20", 0.0)
+        novelty_score = self._compute_novelty_score(dossier, benefit, harm, neutral, unknown, total_pmids, total_score)
+        uncertainty_score = self._compute_uncertainty_score(benefit, harm, neutral, unknown, total_pmids)
+        harm_ratio = self._harm_ratio(benefit, harm, neutral)
 
         # Collect metrics
         metrics = {
@@ -131,7 +154,12 @@ class GatingEngine:
             "unknown": unknown,
             "total_pmids": total_pmids,
             "total_score": total_score,
-            "safety_score": safety_score
+            "safety_score": safety_score,
+            "harm_ratio": round(harm_ratio, 4),
+            "novelty_score": round(float(novelty_score), 4),
+            "uncertainty_score": round(float(uncertainty_score), 4),
+            "route_coverage": int(((dossier.get("retrieval") or {}).get("route_coverage", 0)) or 0),
+            "cross_disease_hits": int(((dossier.get("retrieval") or {}).get("cross_disease_hits", 0)) or 0),
         }
 
         # Apply hard gates
@@ -140,30 +168,82 @@ class GatingEngine:
         )
 
         if hard_gate_reasons:
+            if self._eligible_for_explore(
+                total_score=total_score,
+                benefit=benefit,
+                harm_ratio=harm_ratio,
+                total_pmids=total_pmids,
+                novelty_score=novelty_score,
+            ):
+                reasons = hard_gate_reasons + ["explore_track_override"]
+                logger.info("MAYBE (explore override): %s - %s", canonical, "; ".join(reasons))
+                decision_obj = GatingDecision(
+                    decision=GateDecision.MAYBE,
+                    gate_reasons=reasons,
+                    scores=scores,
+                    metrics=metrics,
+                    decision_channel="explore",
+                    novelty_score=novelty_score,
+                    uncertainty_score=uncertainty_score,
+                )
+                track_gating_decision(decision_obj.decision.value, decision_obj.gate_reasons)
+                return decision_obj
+
             logger.info("NO-GO (hard gates): %s - %s", canonical, "; ".join(hard_gate_reasons))
-            return GatingDecision(
+            decision_obj = GatingDecision(
                 decision=GateDecision.NO_GO,
                 gate_reasons=hard_gate_reasons,
                 scores=scores,
-                metrics=metrics
+                metrics=metrics,
+                decision_channel="exploit",
+                novelty_score=novelty_score,
+                uncertainty_score=uncertainty_score,
             )
+            track_gating_decision(decision_obj.decision.value, decision_obj.gate_reasons)
+            return decision_obj
 
         # Apply soft gates (scoring)
         soft_gate_result, soft_gate_reasons = self._check_soft_gates(total_score)
+        decision_channel = "exploit"
+
+        if (
+            soft_gate_result in {GateDecision.MAYBE, GateDecision.NO_GO}
+            and self._eligible_for_explore(
+                total_score=total_score,
+                benefit=benefit,
+                harm_ratio=harm_ratio,
+                total_pmids=total_pmids,
+                novelty_score=novelty_score,
+            )
+        ):
+            soft_gate_result = GateDecision.MAYBE
+            if "explore_track" not in soft_gate_reasons:
+                soft_gate_reasons = list(soft_gate_reasons) + ["explore_track"]
+            decision_channel = "explore"
 
         if soft_gate_result == GateDecision.NO_GO:
             logger.info("NO-GO (soft gates): %s - %s", canonical, "; ".join(soft_gate_reasons))
         elif soft_gate_result == GateDecision.MAYBE:
-            logger.info("MAYBE: %s - %s", canonical, "; ".join(soft_gate_reasons) if soft_gate_reasons else "borderline score")
+            logger.info(
+                "MAYBE (%s): %s - %s",
+                decision_channel,
+                canonical,
+                "; ".join(soft_gate_reasons) if soft_gate_reasons else "borderline score",
+            )
         else:
             logger.info("GO: %s (score=%.1f)", canonical, total_score)
 
-        return GatingDecision(
+        decision_obj = GatingDecision(
             decision=soft_gate_result,
             gate_reasons=soft_gate_reasons,
             scores=scores,
-            metrics=metrics
+            metrics=metrics,
+            decision_channel=decision_channel,
+            novelty_score=novelty_score,
+            uncertainty_score=uncertainty_score,
         )
+        track_gating_decision(decision_obj.decision.value, decision_obj.gate_reasons)
+        return decision_obj
 
     def _check_hard_gates(
         self,
@@ -234,6 +314,79 @@ class GatingEngine:
         else:
             reasons.append(f"score<{self.config.maybe_threshold}")
             return GateDecision.NO_GO, reasons
+
+    def _harm_ratio(self, benefit: int, harm: int, neutral: int) -> float:
+        total_classified = benefit + harm + neutral
+        if total_classified <= 0:
+            return 0.0
+        return float(harm) / float(total_classified)
+
+    def _compute_novelty_score(
+        self,
+        dossier: Dict[str, Any],
+        benefit: int,
+        harm: int,
+        neutral: int,
+        unknown: int,
+        total_pmids: int,
+        total_score: float,
+    ) -> float:
+        retrieval = dossier.get("retrieval") or {}
+        route_coverage = int(retrieval.get("route_coverage", 0) or 0)
+        cross_disease_hits = int(retrieval.get("cross_disease_hits", 0) or 0)
+        routes_total = int(retrieval.get("routes_total", 0) or 0)
+        llm = dossier.get("llm_structured") or {}
+        mechanisms = llm.get("proposed_mechanisms") or []
+
+        novelty = 0.0
+        if routes_total > 0:
+            novelty += min(0.35, (route_coverage / max(1, routes_total)) * 0.35)
+        novelty += min(0.25, float(cross_disease_hits) * 0.08)
+        novelty += min(0.20, len(mechanisms) / 8.0 * 0.20)
+
+        # Reward "not fully proven yet" candidates to avoid precision-only collapse.
+        if benefit >= 1 and total_score < self.config.go_threshold:
+            novelty += 0.10
+        if total_pmids <= 3 and (benefit + harm + neutral + unknown) > 0:
+            novelty += 0.05
+        return max(0.0, min(1.0, novelty))
+
+    def _compute_uncertainty_score(
+        self,
+        benefit: int,
+        harm: int,
+        neutral: int,
+        unknown: int,
+        total_pmids: int,
+    ) -> float:
+        total = benefit + harm + neutral + unknown
+        unknown_ratio = (unknown / total) if total > 0 else 1.0
+        low_coverage = 1.0 - min(1.0, float(total_pmids) / 12.0)
+        class_imbalance = 1.0 if (benefit + harm + neutral) == 0 else 0.0
+        uncertainty = 0.50 * unknown_ratio + 0.35 * low_coverage + 0.15 * class_imbalance
+        return max(0.0, min(1.0, uncertainty))
+
+    def _eligible_for_explore(
+        self,
+        total_score: float,
+        benefit: int,
+        harm_ratio: float,
+        total_pmids: int,
+        novelty_score: float,
+    ) -> bool:
+        if not self.config.enable_explore_track:
+            return False
+        if novelty_score < self.config.explore_min_novelty_score:
+            return False
+        if total_pmids < self.config.explore_min_total_pmids:
+            return False
+        if benefit < self.config.explore_min_benefit:
+            return False
+        if harm_ratio > self.config.explore_max_harm_ratio:
+            return False
+        if total_score < self.config.explore_maybe_floor:
+            return False
+        return True
 
     def batch_evaluate(
         self,

@@ -314,3 +314,83 @@ class TestGatingEngine:
         scores3 = {"total_score_0_100": 39.9, "safety_fit_0_20": 18.0}
         decision3 = engine.evaluate(dossier, scores3)
         assert decision3.decision == GateDecision.NO_GO
+
+    def test_evaluate_reports_monitoring(self, monkeypatch):
+        """Each evaluate call should emit one gating monitoring event."""
+        events = []
+
+        def fake_track(decision: str, gate_reasons=None):
+            events.append((decision, list(gate_reasons or [])))
+
+        monkeypatch.setattr("src.dr.scoring.gating.track_gating_decision", fake_track)
+
+        engine = GatingEngine()
+        dossier = {
+            "drug_id": "D012",
+            "canonical_name": "test_drug",
+            "total_pmids": 50,
+            "evidence_count": {"benefit": 10, "harm": 1, "neutral": 2, "unknown": 3},
+        }
+        scores = {"total_score_0_100": 72.0, "safety_fit_0_20": 18.0}
+
+        decision = engine.evaluate(dossier, scores)
+
+        assert decision.decision == GateDecision.GO
+        assert len(events) == 1
+        assert events[0][0] == "GO"
+
+    def test_explore_track_override_for_novelty_candidate(self):
+        """High-novelty candidates can stay in MAYBE (explore) instead of NO-GO."""
+        engine = GatingEngine()
+
+        dossier = {
+            "drug_id": "D013",
+            "canonical_name": "novel_drug",
+            "total_pmids": 2,
+            "retrieval": {
+                "route_coverage": 3,
+                "routes_total": 4,
+                "cross_disease_hits": 3,
+            },
+            "llm_structured": {
+                "proposed_mechanisms": ["endothelial", "inflammation", "foam cell", "oxidative stress"],
+            },
+            "evidence_count": {
+                "benefit": 1,  # below hard gate min=2
+                "harm": 0,
+                "neutral": 0,
+                "unknown": 1,
+            },
+        }
+        scores = {"total_score_0_100": 35.0, "safety_fit_0_20": 18.0}
+
+        decision = engine.evaluate(dossier, scores)
+
+        assert decision.decision == GateDecision.MAYBE
+        assert decision.decision_channel == "explore"
+        assert any("explore_track" in x for x in decision.gate_reasons)
+        assert decision.novelty_score >= engine.config.explore_min_novelty_score
+
+    def test_low_novelty_still_rejected(self):
+        """Without novelty signals, hard gates should remain strict."""
+        engine = GatingEngine()
+
+        dossier = {
+            "drug_id": "D014",
+            "canonical_name": "weak_drug",
+            "total_pmids": 2,
+            "retrieval": {"route_coverage": 0, "routes_total": 0, "cross_disease_hits": 0},
+            "llm_structured": {"proposed_mechanisms": []},
+            "evidence_count": {
+                "benefit": 1,
+                "harm": 0,
+                "neutral": 0,
+                "unknown": 1,
+            },
+        }
+        scores = {"total_score_0_100": 35.0, "safety_fit_0_20": 18.0}
+
+        decision = engine.evaluate(dossier, scores)
+
+        assert decision.decision == GateDecision.NO_GO
+        assert decision.decision_channel == "exploit"

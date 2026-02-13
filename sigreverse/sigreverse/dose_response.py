@@ -182,13 +182,12 @@ def _rank(values: np.ndarray) -> np.ndarray:
     ranks = np.empty_like(order, dtype=float)
     ranks[order] = np.arange(1, len(values) + 1, dtype=float)
     
-    # Handle ties by averaging ranks
-    unique_vals = np.unique(values)
-    if len(unique_vals) < len(values):
-        for val in unique_vals:
+    # Handle ties by averaging ranks (only iterate tied values)
+    if len(np.unique(values)) < len(values):
+        unique_vals, counts = np.unique(values, return_counts=True)
+        for val in unique_vals[counts > 1]:
             mask = values == val
-            if mask.sum() > 1:
-                ranks[mask] = ranks[mask].mean()
+            ranks[mask] = ranks[mask].mean()
     
     return ranks
 
@@ -197,6 +196,11 @@ def _rank(values: np.ndarray) -> np.ndarray:
 # Hill equation fitting (simplified, no scipy dependency)
 # ---------------------------------------------------------------------------
 
+def _hill_func(d: np.ndarray, emax: float, ec50: float, n: float) -> np.ndarray:
+    """Hill equation: E(D) = Emax * D^n / (EC50^n + D^n)."""
+    return emax * (d ** n) / (ec50 ** n + d ** n)
+
+
 def fit_hill_equation(
     doses: np.ndarray,
     scores: np.ndarray,
@@ -204,91 +208,117 @@ def fit_hill_equation(
     seed: int = 42,
 ) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[float]]:
     """Fit Hill equation to dose-response data.
-    
+
     Hill equation (for reversal, adapted):
-        E(D) = E0 + (Emax - E0) * D^n / (EC50^n + D^n)
-    
+        E(D) = Emax * D^n / (EC50^n + D^n)
+
     Where:
-        E0 = baseline effect (score at zero dose) ≈ 0
         Emax = maximum reversal effect (most negative score)
         EC50 = dose at half-maximum effect
         n = Hill coefficient (steepness)
-    
-    Since we don't have scipy for optimization, use grid search
-    with refinement for a reasonable fit.
-    
+
+    Uses scipy.optimize.curve_fit when available (fast, accurate),
+    falls back to grid search otherwise.
+
     Args:
         doses: Dose values (positive, in µM).
         scores: Reversal scores (more negative = stronger).
-        n_restarts: Number of random restarts for grid search.
+        n_restarts: Number of random restarts for scipy (or grid search fallback).
         seed: Random seed.
-    
+
     Returns:
         (EC50, Emax, n, R²) or (None, None, None, None) if fit fails.
     """
     if len(doses) < 3:
         return None, None, None, None
-    
+
     # Filter out zero/negative doses
     mask = doses > 0
     doses = doses[mask]
     scores = scores[mask]
-    
+
     if len(doses) < 3:
         return None, None, None, None
-    
-    rng = np.random.default_rng(seed)
-    
-    # Estimate bounds
-    dose_min, dose_max = doses.min(), doses.max()
-    score_min = scores.min()  # most negative
-    
+
+    score_min = scores.min()
     if score_min >= 0:
         return None, None, None, None  # no reversal signal
-    
-    # E0 ≈ 0 (baseline), Emax = most negative score
-    E0 = 0.0
-    
+
+    dose_min, dose_max = doses.min(), doses.max()
+    ss_tot = np.sum((scores - np.mean(scores)) ** 2)
+    if ss_tot < 1e-10:
+        return None, None, None, None
+
+    # --- Try scipy.optimize.curve_fit (preferred) ---
+    try:
+        from scipy.optimize import curve_fit
+
+        rng = np.random.default_rng(seed)
+        best_r2 = -np.inf
+        best_params = (None, None, None, None)
+
+        bounds_lo = [score_min * 3, dose_min * 0.001, 0.1]
+        bounds_hi = [0.0, dose_max * 100, 10.0]
+
+        for _ in range(n_restarts):
+            p0_emax = rng.uniform(score_min * 1.5, score_min * 0.5)
+            p0_ec50 = 10 ** rng.uniform(np.log10(max(dose_min, 0.001)), np.log10(dose_max * 10))
+            p0_n = rng.uniform(0.5, 3.0)
+
+            try:
+                popt, _ = curve_fit(
+                    _hill_func, doses, scores,
+                    p0=[p0_emax, p0_ec50, p0_n],
+                    bounds=(bounds_lo, bounds_hi),
+                    maxfev=5000,
+                )
+                predicted = _hill_func(doses, *popt)
+                ss_res = np.sum((scores - predicted) ** 2)
+                r2 = 1.0 - ss_res / ss_tot
+
+                if r2 > best_r2:
+                    best_r2 = r2
+                    best_params = (popt[1], popt[0], popt[2], r2)  # EC50, Emax, n, R²
+            except (RuntimeError, ValueError):
+                continue
+
+        ec50, emax, n, r2 = best_params
+        if r2 is not None and r2 > 0.3:
+            return ec50, emax, n, r2
+        return None, None, None, None
+
+    except ImportError:
+        pass
+
+    # --- Fallback: grid search (no scipy) ---
+    rng = np.random.default_rng(seed)
     best_r2 = -np.inf
     best_params = (None, None, None, None)
-    
-    # Grid search over EC50, Emax, n
+
     for _ in range(n_restarts):
-        # Random starting points
         ec50_try = 10 ** rng.uniform(np.log10(max(dose_min, 0.001)), np.log10(dose_max * 10))
         emax_try = rng.uniform(score_min * 1.5, score_min * 0.5)
         n_try = rng.uniform(0.5, 4.0)
-        
-        # Local grid refinement around this point
+
         for ec50_factor in [0.1, 0.3, 1.0, 3.0, 10.0]:
             for emax_factor in [0.7, 1.0, 1.3]:
                 for n_factor in [0.7, 1.0, 1.5]:
                     ec50 = ec50_try * ec50_factor
                     emax = emax_try * emax_factor
                     n = n_try * n_factor
-                    
-                    # Compute predicted scores
-                    predicted = E0 + (emax - E0) * (doses ** n) / (ec50 ** n + doses ** n)
-                    
-                    # R²
+
+                    predicted = _hill_func(doses, emax, ec50, n)
                     ss_res = np.sum((scores - predicted) ** 2)
-                    ss_tot = np.sum((scores - np.mean(scores)) ** 2)
-                    
-                    if ss_tot < 1e-10:
-                        continue
-                    
                     r2 = 1.0 - ss_res / ss_tot
-                    
+
                     if r2 > best_r2:
                         best_r2 = r2
                         best_params = (ec50, emax, n, r2)
-    
+
     ec50, emax, n, r2 = best_params
-    
     if r2 is not None and r2 > 0.3:
         return ec50, emax, n, r2
-    else:
-        return None, None, None, None
+    return None, None, None, None
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,7 @@
+{
+  "name": "test_atherosclerosis",
+  "data_subdir": "data",
+  "expected_output": "expected_output.csv",
+  "ranker_version": "v5",
+  "tolerance": 0.001
+}

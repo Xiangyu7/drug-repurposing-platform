@@ -1,15 +1,26 @@
 """
-KG Explain 命令行接口 — v0.6.0, 含步骤计时和管道 manifest
+KG Explain 命令行接口 — v0.7.0, 含步骤计时和管道 manifest
 
 用法:
-  # 运行完整管道
+  # 运行完整管道 (CT.gov 模式, 默认)
   python -m kg_explain pipeline --disease atherosclerosis --version v5
+
+  # 运行完整管道 (Signature 模式 — 基因签名驱动的跨疾病 drug repurposing)
+  python -m kg_explain pipeline --disease atherosclerosis --version v5 \\
+      --drug-source signature \\
+      --signature-path ../dsmeta_signature_pipeline/outputs/signature/disease_signature_meta.json
 
   # 仅运行排序
   python -m kg_explain rank --version v5
 
   # 获取数据
   python -m kg_explain fetch ctgov --condition atherosclerosis
+  python -m kg_explain fetch signature --signature-path PATH
+
+Improvements (v0.7.0):
+    - --drug-source {ctgov,signature}: 支持两种药物来源模式
+    - signature 模式: 从疾病基因签名反查 ChEMBL 已批准药物
+    - 已知适应症标记 (is_known_indication)
 
 Improvements (v0.6.0):
     - _timed_step(): 统一步骤计时
@@ -76,10 +87,11 @@ def main():
     parser = argparse.ArgumentParser(
         prog="kg_explain",
         description="""
-KG Explain v0.6.0 - 药物重定位知识图谱可解释路径系统
+KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
 
 疾病方向: 动脉粥样硬化 (Atherosclerosis) 及相关心血管疾病
-数据来源: CT.gov, RxNorm, ChEMBL, Reactome, OpenTargets, FAERS
+数据来源: CT.gov / Gene Signature, ChEMBL, Reactome, OpenTargets, FAERS
+药物来源: --drug-source ctgov (失败试验) 或 signature (基因签名反查)
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -91,6 +103,10 @@ KG Explain v0.6.0 - 药物重定位知识图谱可解释路径系统
     p_pipeline.add_argument("--disease", default="atherosclerosis", help="疾病名称")
     p_pipeline.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5"], help="排序版本")
     p_pipeline.add_argument("--skip-fetch", action="store_true", help="跳过数据获取")
+    p_pipeline.add_argument("--drug-source", default="ctgov", choices=["ctgov", "signature"],
+                            help="药物来源: ctgov (CT.gov失败试验) 或 signature (基因签名反查)")
+    p_pipeline.add_argument("--signature-path", default=None,
+                            help="疾病基因签名文件路径 (signature模式必需, disease_signature_meta.json)")
 
     # rank: 仅运行排序
     p_rank = subparsers.add_parser("rank", help="运行排序算法")
@@ -126,6 +142,10 @@ KG Explain v0.6.0 - 药物重定位知识图谱可解释路径系统
 
     # fetch phenotypes
     fetch_sub.add_parser("phenotypes", help="获取疾病表型")
+
+    # fetch signature
+    p_sig = fetch_sub.add_parser("signature", help="基因签名反查药物")
+    p_sig.add_argument("--signature-path", required=True, help="疾病基因签名文件路径")
 
     # build: 构建中间数据
     p_build = subparsers.add_parser("build", help="构建中间数据")
@@ -207,52 +227,129 @@ def _load_pipeline_config(disease: str, version: str) -> Config:
     return cfg
 
 
+def _fetch_known_indications(data_dir, cache, drugs_df):
+    """获取所有药物的已知适应症 (ChEMBL drug_indication), 用于标记."""
+    import pandas as pd
+    from .utils import concurrent_map, safe_str
+
+    mol_ids = []
+    if "chembl_id" in drugs_df.columns:
+        mol_ids = drugs_df["chembl_id"].dropna().unique().tolist()
+
+    if not mol_ids:
+        logger.info("没有 ChEMBL ID, 跳过已知适应症查询")
+        pd.DataFrame(columns=["molecule_chembl_id", "efo_id", "mesh_id", "indication", "max_phase_for_ind"]).to_csv(
+            data_dir / "drug_known_indications.csv", index=False
+        )
+        return
+
+    def _fetch_one(mol_id):
+        return datasources.fetch_known_indications(cache, mol_id)
+
+    results = concurrent_map(
+        _fetch_one, sorted(mol_ids),
+        max_workers=cache.max_workers, desc="ChEMBL drug_indication",
+    )
+
+    rows = []
+    for result in results:
+        if result is not None:
+            rows.extend(result)
+
+    ind_df = pd.DataFrame(rows) if rows else pd.DataFrame(
+        columns=["molecule_chembl_id", "efo_id", "mesh_id", "indication", "max_phase_for_ind"]
+    )
+    out = data_dir / "drug_known_indications.csv"
+    ind_df.to_csv(out, index=False)
+    logger.info("已知适应症: %d 条记录, %d 个药物",
+                len(ind_df), ind_df["molecule_chembl_id"].nunique() if not ind_df.empty else 0)
+
+
 def run_pipeline(args, cfg: Config, cache: HTTPCache):
     """运行完整管道 (含计时和 manifest)."""
     pipeline_start = time.time()
     step_timings = []
 
+    drug_source = getattr(args, "drug_source", "ctgov")
+    signature_path = getattr(args, "signature_path", None)
+
     logger.info("=" * 60)
-    logger.info("KG Explain v0.6.0 - Drug Repurposing Pipeline")
+    logger.info("KG Explain v0.7.0 - Drug Repurposing Pipeline")
     logger.info("疾病: %s (condition=%s)", args.disease, cfg.condition)
     logger.info("版本: %s", args.version)
+    logger.info("药物来源: %s", drug_source)
+    if drug_source == "signature":
+        logger.info("签名文件: %s", signature_path)
     logger.info("=" * 60)
+
+    # Validate signature mode
+    if drug_source == "signature" and not signature_path:
+        raise ValueError("signature 模式需要指定 --signature-path")
 
     data_dir = cfg.data_dir
 
     if not args.skip_fetch:
-        # Step 1: CT.gov
-        drug_filter = cfg.drug_filter
-        _, t = _timed_step("[1/10] CT.gov 失败试验",
-            datasources.fetch_failed_trials,
-            cfg.condition, data_dir, cache,
-            statuses=cfg.trial_statuses,
-            page_size=cfg.http_page_size,
-            max_pages=cfg.trial_max_pages,
-            include_types=drug_filter.get("include_types"),
-            exclude_types=drug_filter.get("exclude_types"),
-        )
-        step_timings.append(t)
 
-        # Step 2: RxNorm
-        _, t = _timed_step("[2/10] RxNorm 映射",
-            datasources.rxnorm_map, data_dir, cache)
-        step_timings.append(t)
+        if drug_source == "signature":
+            # ══════════════════════════════════════════
+            # Signature 模式: Step 1 替换为基因签名反查
+            # 直接生成 drug_chembl_map.csv + edge_drug_target.csv + 占位文件
+            # 跳过 Step 2-5
+            # ══════════════════════════════════════════
+            sig_cfg = cfg.raw.get("signature", {})
+            _, t = _timed_step("[1/10] 基因签名 → 药物反查",
+                datasources.fetch_drugs_from_signature,
+                data_dir, cache,
+                signature_path=signature_path,
+                max_phase=int(sig_cfg.get("max_phase", 2)),
+                max_genes=int(sig_cfg.get("max_genes", 100)),
+                gene_source=str(sig_cfg.get("gene_source", "both")),
+            )
+            step_timings.append(t)
+            logger.info("⏭ 跳过 Step 2-5 (signature 模式已直接生成药物映射和靶点数据)")
 
-        # Step 3: Canonical drug names
-        _, t = _timed_step("[3/10] 药物规范名称",
-            datasources.build_drug_canonical, data_dir)
-        step_timings.append(t)
+        else:
+            # ══════════════════════════════════════════
+            # CT.gov 模式: 原有 Step 1-5
+            # ══════════════════════════════════════════
 
-        # Step 4: ChEMBL mapping
-        _, t = _timed_step("[4/10] ChEMBL 药物映射",
-            datasources.chembl_map, data_dir, cache)
-        step_timings.append(t)
+            # Step 1: CT.gov
+            drug_filter = cfg.drug_filter
+            _, t = _timed_step("[1/10] CT.gov 失败试验",
+                datasources.fetch_failed_trials,
+                cfg.condition, data_dir, cache,
+                statuses=cfg.trial_statuses,
+                page_size=cfg.http_page_size,
+                max_pages=cfg.trial_max_pages,
+                include_types=drug_filter.get("include_types"),
+                exclude_types=drug_filter.get("exclude_types"),
+                also_completed=cfg.raw.get("ctgov", {}).get("also_completed", False),
+            )
+            step_timings.append(t)
 
-        # Step 5: Drug-Target
-        _, t = _timed_step("[5/10] Drug→Target",
-            datasources.fetch_drug_targets, data_dir, cache)
-        step_timings.append(t)
+            # Step 2: RxNorm
+            _, t = _timed_step("[2/10] RxNorm 映射",
+                datasources.rxnorm_map, data_dir, cache)
+            step_timings.append(t)
+
+            # Step 3: Canonical drug names
+            _, t = _timed_step("[3/10] 药物规范名称",
+                datasources.build_drug_canonical, data_dir)
+            step_timings.append(t)
+
+            # Step 4: ChEMBL mapping
+            _, t = _timed_step("[4/10] ChEMBL 药物映射",
+                datasources.chembl_map, data_dir, cache)
+            step_timings.append(t)
+
+            # Step 5: Drug-Target
+            _, t = _timed_step("[5/10] Drug→Target",
+                datasources.fetch_drug_targets, data_dir, cache)
+            step_timings.append(t)
+
+        # ══════════════════════════════════════════
+        # Step 6-10: 两种模式共享
+        # ══════════════════════════════════════════
 
         # Step 6: Target Xref
         def _step6():
@@ -285,10 +382,14 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
 
                 faers_cfg = cfg.faers
                 drugs_df = read_csv(data_dir / "drug_chembl_map.csv", dtype=str)
-                if "canonical_name" in drugs_df.columns:
-                    drugs = drugs_df["canonical_name"].dropna().unique().tolist()
-                else:
-                    drugs = drugs_df["drug_raw"].dropna().tolist()
+                # Prefer chembl_pref_name (INN/generic name) for FAERS matching,
+                # fallback to canonical_name then drug_raw
+                drugs = []
+                for col in ["chembl_pref_name", "canonical_name", "drug_raw"]:
+                    if col in drugs_df.columns:
+                        drugs = drugs_df[col].dropna().unique().tolist()
+                        if drugs:
+                            break
                 datasources.fetch_drug_ae(
                     data_dir, cache, drugs,
                     min_count=int(faers_cfg.get("min_report_count", 5)),
@@ -299,12 +400,31 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
 
                 phe_cfg = cfg.phenotype
                 diseases = read_csv(data_dir / "edge_target_disease_ot.csv", dtype=str)["diseaseId"].dropna().unique().tolist()
+                # Ensure core cardiovascular disease IDs are included for phenotype fetching
+                _CORE_CV_DISEASES = [
+                    "EFO_0003914",   # atherosclerosis
+                    "EFO_0000378",   # coronary artery disease
+                    "EFO_0004698",   # myocardial infarction
+                    "EFO_0003770",   # peripheral arterial disease
+                    "EFO_0000537",   # hyperlipidemia
+                    "EFO_0001360",   # type 2 diabetes
+                    "EFO_0000729",   # stroke / cerebrovascular disease
+                    "EFO_0001645",   # coronary heart disease
+                    "EFO_0003884",   # heart failure
+                ]
+                for did in _CORE_CV_DISEASES:
+                    if did not in diseases:
+                        diseases.append(did)
                 datasources.fetch_disease_phenotypes(
                     data_dir, cache, diseases,
                     min_score=float(phe_cfg.get("min_score", 0.3)),
                     max_phenotypes=int(phe_cfg.get("max_phenotypes_per_disease", 30)),
                 )
-            _, t = _timed_step("[10/10] V5 额外数据 (FAERS, Phenotype)", _step10)
+
+                # Fetch known indications for all drugs (for is_known_indication tagging)
+                _fetch_known_indications(data_dir, cache, drugs_df)
+
+            _, t = _timed_step("[10/10] V5 额外数据 (FAERS, Phenotype, Indications)", _step10)
             step_timings.append(t)
 
     # 运行排序
@@ -315,10 +435,12 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
     # 输出 manifest
     pipeline_elapsed = time.time() - pipeline_start
     manifest = {
-        "kg_explain_version": "0.6.0",
+        "kg_explain_version": "0.7.0",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "disease": args.disease,
         "condition": cfg.condition,
+        "drug_source": drug_source,
+        "signature_path": str(signature_path) if signature_path else None,
         "ranker_version": args.version,
         "pipeline_elapsed_sec": round(pipeline_elapsed, 2),
         "config_summary": cfg.summary(),
@@ -344,6 +466,10 @@ def run_rank(args, cfg: Config):
     if args.config:
         logger.warning("--config 参数目前不支持，使用默认配置")
     result = rankers.run_pipeline(cfg)
+
+    if result is None:
+        logger.error("排序失败，未返回结果")
+        return
 
     logger.info("输出文件:")
     for k, v in result.items():
@@ -376,7 +502,7 @@ def run_fetch(args, cfg: Config, cache: HTTPCache):
         logger.info("Wrote: %s", result)
         result = datasources.fetch_target_xrefs(data_dir, cache)
         logger.info("Wrote: %s", result)
-        result = datasources.target_to_ensembl(data_dir)
+        result = datasources.target_to_ensembl(data_dir, cache)
         logger.info("Wrote: %s", result)
     elif args.source == "pathways":
         result = datasources.fetch_target_pathways(data_dir, cache)
@@ -406,6 +532,16 @@ def run_fetch(args, cfg: Config, cache: HTTPCache):
             data_dir, cache, diseases,
             min_score=float(phe_cfg.get("min_score", 0.3)),
             max_phenotypes=int(phe_cfg.get("max_phenotypes_per_disease", 30)),
+        )
+        logger.info("Wrote: %s", result)
+    elif args.source == "signature":
+        sig_cfg = cfg.raw.get("signature", {})
+        result = datasources.fetch_drugs_from_signature(
+            data_dir, cache,
+            signature_path=args.signature_path,
+            max_phase=int(sig_cfg.get("max_phase", 2)),
+            max_genes=int(sig_cfg.get("max_genes", 100)),
+            gene_source=str(sig_cfg.get("gene_source", "both")),
         )
         logger.info("Wrote: %s", result)
 

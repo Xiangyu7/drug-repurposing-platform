@@ -29,7 +29,15 @@ import os, re, json, math, time, hashlib, argparse, sys, logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import requests
+# Load .env BEFORE any os.getenv calls
+try:
+    from dotenv import load_dotenv
+    _env_path = Path(__file__).resolve().parent.parent / ".env"
+    if _env_path.exists():
+        load_dotenv(_env_path, override=False)
+except ImportError:
+    pass
+
 import pandas as pd
 from tqdm import tqdm
 
@@ -48,9 +56,22 @@ if not _logger.handlers:
 # ---- Modular imports from src/dr ----
 # Ensure src/ is on path for modular imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from src.dr.evidence.ranker import BM25Ranker, HybridRanker, RankingPipeline
+from src.dr.evidence.ranker import (
+    BM25Ranker,
+    HybridRanker,
+    RankingPipeline,
+    reciprocal_rank_fusion,
+)
 from src.dr.evidence.extractor import repair_json as modular_repair_json
 from src.dr.evidence.extractor import validate_extraction, coerce_extraction, detect_hallucination
+from src.dr.common.http import request_with_retries as shared_request_with_retries
+from src.dr.common.provenance import build_manifest, write_manifest
+from src.dr.contracts import (
+    STEP6_DOSSIER_SCHEMA,
+    STEP6_DOSSIER_VERSION,
+    stamp_step6_dossier_contract,
+    validate_step6_dossier,
+)
 from src.dr.config import Config as _Config
 
 # ---------------------------
@@ -63,7 +84,6 @@ NCBI_DELAY = float(os.getenv("NCBI_DELAY", "0.6"))  # polite default
 PUBMED_TIMEOUT = float(os.getenv("PUBMED_TIMEOUT", "30"))
 PUBMED_EFETCH_CHUNK = int(os.getenv("PUBMED_EFETCH_CHUNK", "20"))  # smaller batches reduce SSL/EOF issues
 OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "600"))
-REQUEST_TIMEOUT = float(os.getenv("REQUEST_TIMEOUT", "30"))  # kept for backward compat
 DISABLE_EMBED = os.getenv("DISABLE_EMBED", "0") == "1"
 DISABLE_LLM = os.getenv("DISABLE_LLM", "0") == "1"
 
@@ -71,8 +91,8 @@ CROSS_DRUG_FILTER = os.getenv("CROSS_DRUG_FILTER", "1") == "1"
 PMID_STRICT = os.getenv("PMID_STRICT", "1") == "1"
 SUPPORT_COUNT_MODE = os.getenv("SUPPORT_COUNT_MODE", "unique_pmids")  # unique_pmids | sentences
 
-MAX_RETRIES = int(os.getenv("MAX_RETRIES", "4"))
-RETRY_SLEEP = float(os.getenv("RETRY_SLEEP", "2"))
+MAX_RETRIES = int(os.getenv("MAX_RETRIES", "8"))
+RETRY_SLEEP = float(os.getenv("RETRY_SLEEP", "3"))
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
@@ -102,37 +122,15 @@ def safe_filename(s: str, max_len: int = 80) -> str:
 def sha1(s: str) -> str:
     return hashlib.sha1(s.encode("utf-8")).hexdigest()
 
-def request_with_retries(method: str, url: str, **kwargs) -> requests.Response:
-    """
-    Robust HTTP helper with retries.
-    IMPORTANT: do not mutate the caller kwargs across retries (so timeout stays consistent).
-    """
-    last = None
-    timeout_default = kwargs.get("timeout", REQUEST_TIMEOUT)
-    trust_env_default = kwargs.get("trust_env", True)
-
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            # copy kwargs per attempt so we don't lose timeout/trust_env
-            kw = dict(kwargs)
-            timeout = kw.pop("timeout", timeout_default)
-            trust_env = kw.pop("trust_env", trust_env_default)
-
-            if trust_env is False:
-                sess = requests.Session()
-                sess.trust_env = False
-                r = sess.request(method, url, timeout=timeout, **kw)
-            else:
-                r = requests.request(method, url, timeout=timeout, **kw)
-
-            r.raise_for_status()
-            return r
-        except Exception as e:
-            last = e
-            log(f"[HTTP] {method} {url} attempt {attempt}/{MAX_RETRIES} failed: {type(e).__name__}: {e}", "warning")
-            time.sleep(RETRY_SLEEP * attempt)
-
-    raise RuntimeError(f"HTTP failed after {MAX_RETRIES} retries: {last}")
+def request_with_retries(method: str, url: str, **kwargs):
+    """Compatibility wrapper around shared HTTP retry helper."""
+    return shared_request_with_retries(
+        method=method,
+        url=url,
+        max_retries=MAX_RETRIES,
+        retry_sleep=RETRY_SLEEP,
+        **kwargs,
+    )
 
 def read_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -221,6 +219,52 @@ ENDPOINT_QUERY = {
     "PAD_FUNCTION": '("peripheral artery disease" OR PAD OR claudication OR "six-minute walk" OR treadmill OR "limb ischemia" OR perfusion)',
     "CV_EVENTS": '("myocardial infarction" OR MI OR "acute coronary syndrome" OR ACS OR MACE OR stroke OR revascularization)',
     "OTHER": '(atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)'
+}
+
+RELATED_DISEASE_TERMS = {
+    "atherosclerosis": [
+        "coronary artery disease",
+        "peripheral artery disease",
+        "ischemic stroke",
+        "carotid stenosis",
+    ],
+    "coronary artery disease": [
+        "atherosclerosis",
+        "myocardial infarction",
+        "ischemic heart disease",
+    ],
+    "heart failure": [
+        "cardiomyopathy",
+        "ischemic heart disease",
+        "cardiac remodeling",
+    ],
+}
+
+MECHANISM_HINTS_BY_ENDPOINT = {
+    "PLAQUE_IMAGING": [
+        "endothelial dysfunction",
+        "foam cell",
+        "oxidative stress",
+        "NLRP3",
+        "NF-kB",
+    ],
+    "PAD_FUNCTION": [
+        "microvascular perfusion",
+        "angiogenesis",
+        "exercise tolerance",
+        "skeletal muscle ischemia",
+    ],
+    "CV_EVENTS": [
+        "thrombosis",
+        "platelet activation",
+        "vascular inflammation",
+        "plaque instability",
+    ],
+    "OTHER": [
+        "inflammation",
+        "oxidative stress",
+        "immune modulation",
+    ],
 }
 
 def topic_match_ratio(text: str, endpoint_type: str) -> float:
@@ -573,12 +617,35 @@ def ollama_chat_json(system: str, user: str, temperature: float = 0.2) -> Option
         log(f"[LLM] Chat call failed: {type(e).__name__}: {e}", "error")
         return None
 
-def extract_evidence_with_llm(drug: str, target_disease: str, endpoint_type: str, pmid: str, fragment: str) -> List[Dict[str, Any]]:
+def _clean_pmid(raw: str, expected: str) -> str:
+    """Post-process PMID: strip URL wrappers, strconv(), prefixes → pure digits."""
+    s = str(raw).strip()
+    # http://www.ncbi.nlm.nih.gov/pubmed/12345678 → 12345678
+    m = re.search(r'pubmed[./](\d{6,9})', s)
+    if m:
+        return m.group(1)
+    # strconv(12345678) or s12345678 or g12345678
+    m = re.search(r'(?:strconv\()?(\d{6,9})\)?', s)
+    if m:
+        return m.group(1)
+    # PMID:12345678 or PMID 12345678
+    m = re.search(r'PMID[:\s]*(\d{6,9})', s, re.IGNORECASE)
+    if m:
+        return m.group(1)
+    # Pure digits already
+    if re.fullmatch(r'\d{6,9}', s):
+        return s
+    # Fallback: use expected
+    return expected
+
+def extract_evidence_with_llm(drug: str, target_disease: str, endpoint_type: str, pmid: str, fragment: str, aliases: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     system = (
         "You extract citable evidence items from biomedical abstracts. "
         "Return STRICT JSON ONLY (no markdown). Output must be a JSON array of 0-2 objects. "
         "Each object must have keys: pmid, supports (true/false), direction (benefit|harm|neutral|unknown), "
-        "model (human|animal|cell|unknown), endpoint (short phrase), claim (<=25 words), confidence (0-1)."
+        "model (human|animal|cell|unknown), endpoint (short phrase), claim (<=25 words), confidence (0-1). "
+        "CRITICAL: the 'pmid' field MUST be a numeric string of 6-9 digits ONLY (e.g. \"24861566\"). "
+        "Do NOT return URLs, prefixes, or any formatting — just the digits."
     )
     user = (
         f"DRUG={drug}\nTARGET={target_disease}\nENDPOINT_TYPE={endpoint_type}\nPMID={pmid}\n\n"
@@ -603,11 +670,11 @@ def extract_evidence_with_llm(drug: str, target_disease: str, endpoint_type: str
             for o in out[:2]:
                 if not isinstance(o, dict):
                     continue
-                o['pmid'] = str(o.get('pmid') or pmid).strip()
-                if not o['pmid']:
-                    o['pmid'] = pmid
+                raw_pmid = str(o.get('pmid') or pmid).strip()
+                o['pmid_raw'] = raw_pmid  # keep original for audit
+                o['pmid'] = _clean_pmid(raw_pmid, pmid)
                 # --- modular hallucination detection ---
-                warnings = detect_hallucination(o, pmid, fragment, drug)
+                warnings = detect_hallucination(o, pmid, fragment, drug, aliases=aliases)
                 if warnings:
                     o['hallucination_warnings'] = warnings
                     log(f"[HALLUCINATION] drug={drug} PMID={pmid}: {warnings}", "warning")
@@ -733,16 +800,83 @@ def negative_evidence_from_trials(trials: List[Dict[str, Any]]) -> List[Dict[str
 # ---------------------------
 # Main per-candidate
 # ---------------------------
-def build_query(drug: str, target_disease: str, endpoint_type: str) -> str:
+def _normalize_disease_key(disease: str) -> str:
+    s = (disease or "").strip().lower()
+    s = re.sub(r"\s+", " ", s)
+    return s
+
+
+def _related_disease_terms(target_disease: str, endpoint_type: str) -> List[str]:
+    base_key = _normalize_disease_key(target_disease)
+    terms = list(RELATED_DISEASE_TERMS.get(base_key, []))
+
+    # Endpoint-specific defaults increase recall for cross-disease repurposing.
+    if endpoint_type == "PLAQUE_IMAGING":
+        terms.extend(["coronary artery disease", "peripheral artery disease", "ischemic stroke"])
+    elif endpoint_type == "PAD_FUNCTION":
+        terms.extend(["critical limb ischemia", "intermittent claudication"])
+    elif endpoint_type == "CV_EVENTS":
+        terms.extend(["acute coronary syndrome", "myocardial infarction", "ischemic stroke"])
+
+    seen = set()
+    out = []
+    for t in terms:
+        tt = (t or "").strip().lower()
+        if not tt or tt == base_key or tt in seen:
+            continue
+        seen.add(tt)
+        out.append(t)
+    return out[:5]
+
+
+def build_query_routes(drug: str, target_disease: str, endpoint_type: str) -> List[Dict[str, str]]:
     endpoint_clause = ENDPOINT_QUERY.get(endpoint_type, ENDPOINT_QUERY["OTHER"])
-    # keep it broad but on-topic: drug AND (endpoint terms)
-    # include target disease in OTHER only; for PAD/CV_EVENTS endpoint clause already includes spectrum
-    if endpoint_type == "OTHER":
-        return f'("{drug}") AND ({endpoint_clause}) AND ("{target_disease}")'
-    return f'("{drug}") AND ({endpoint_clause})'
+    mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type, MECHANISM_HINTS_BY_ENDPOINT["OTHER"])
+    mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])
+    related_terms = _related_disease_terms(target_disease, endpoint_type)
+
+    routes: List[Dict[str, str]] = []
+    routes.append({
+        "route": "exact_disease",
+        "query": f'("{drug}") AND ("{target_disease}")',
+    })
+    routes.append({
+        "route": "endpoint_mechanism",
+        "query": f'("{drug}") AND ({endpoint_clause}) AND ({mech_clause})',
+    })
+    routes.append({
+        "route": "disease_or_endpoint",
+        "query": f'("{drug}") AND (("{target_disease}") OR ({endpoint_clause}))',
+    })
+    if related_terms:
+        rel_clause = " OR ".join([f'"{t}"' for t in related_terms])
+        routes.append({
+            "route": "cross_disease_transfer",
+            "query": f'("{drug}") AND ({rel_clause}) AND ({mech_clause})',
+        })
+
+    # Deduplicate exact query strings while preserving order.
+    seen_q = set()
+    deduped: List[Dict[str, str]] = []
+    for item in routes:
+        q = item["query"].strip()
+        if q in seen_q:
+            continue
+        seen_q.add(q)
+        deduped.append(item)
+    return deduped
+
+
+def build_query(drug: str, target_disease: str, endpoint_type: str) -> str:
+    """Backward-compatible single query accessor (primary route)."""
+    routes = build_query_routes(drug, target_disease, endpoint_type)
+    if not routes:
+        return f'("{drug}") AND ("{target_disease}")'
+    return routes[0]["query"]
 
 def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint_type_hint: str,
-                neg_path: Optional[str], out_dir: Path, cache_dir: Path, all_drug_names: List[str]) -> Tuple[Path, Path, Dict[str, Any]]:
+                neg_path: Optional[str], out_dir: Path, cache_dir: Path, all_drug_names: List[str],
+                aliases: Optional[List[str]] = None) -> Tuple[Path, Path, Dict[str, Any]]:
     # cache layout
     base = cache_dir / safe_filename(drug_id) / safe_filename(canonical_name)
     base.mkdir(parents=True, exist_ok=True)
@@ -755,7 +889,8 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
     if endpoint_type_hint and endpoint_type_hint != "nan":
         endpoint_type = str(endpoint_type_hint)
 
-    query = build_query(canonical_name, target_disease, endpoint_type)
+    query_routes = build_query_routes(canonical_name, target_disease, endpoint_type)
+    query = query_routes[0]["query"] if query_routes else build_query(canonical_name, target_disease, endpoint_type)
 
     # Markers for cross-drug leakage filtering (built once per drug)
     other_markers: List[str] = []
@@ -781,36 +916,142 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
         other_markers = sorted(markers, key=len, reverse=True)
 
 
-    # 1) retrieve pmids
-    if FORCE_REBUILD or is_empty(pmids_path) or (REFRESH_EMPTY_CACHE and is_empty(pmids_path)):
-        pmids = pubmed_esearch(query, retmax=200)
-        write_json(pmids_path, {"query": query, "pmids": pmids})
-    else:
-        pmids = (read_json(pmids_path) or {}).get("pmids", [])
+    route_pmids_map: Dict[str, List[str]] = {}
+    route_docs_map: Dict[str, List[Dict[str, Any]]] = {}
+    route_stats: List[Dict[str, Any]] = []
 
-    # 2) fetch xml -> parse docs
-    if FORCE_REBUILD or is_empty(docs_path) or (REFRESH_EMPTY_CACHE and is_empty(docs_path)):
-        # fetch in batches to avoid URL length issues
-        all_docs = []
-        for i in range(0, min(len(pmids), 200), 50):
-            batch = pmids[i:i+50]
-            xml = pubmed_efetch_xml(batch)
-            all_docs.extend(parse_pubmed_xml(xml, max_articles=80))
-            # keep last xml for debugging
-            if i == 0:
-                write_text(xml_path, xml)
-        write_json(docs_path, {"query": query, "endpoint_type": endpoint_type, "docs": all_docs})
-    else:
-        all_docs = (read_json(docs_path) or {}).get("docs", [])
+    # 1) multi-route retrieve PMIDs + docs
+    if FORCE_REBUILD or is_empty(pmids_path) or is_empty(docs_path) or (REFRESH_EMPTY_CACHE and (is_empty(pmids_path) or is_empty(docs_path))):
+        for idx, route in enumerate(query_routes):
+            rname = safe_filename(route.get("route", f"route{idx+1}"))
+            rquery = route.get("query", "")
+            r_pmids_path = base / f"pmids_{rname}.json"
+            r_docs_path = base / f"docs_{rname}.json"
 
-    # 3) stage-1 rank with BM25
-    bm25 = bm25_rank(query, all_docs, topk=80)
+            pmids = pubmed_esearch(rquery, retmax=180)
+            route_pmids_map[rname] = pmids
+            write_json(r_pmids_path, {"route": rname, "query": rquery, "pmids": pmids})
+
+            all_route_docs: List[Dict[str, Any]] = []
+            for i in range(0, min(len(pmids), 180), 50):
+                batch = pmids[i:i + 50]
+                xml = pubmed_efetch_xml(batch)
+                parsed = parse_pubmed_xml(xml, max_articles=80)
+                all_route_docs.extend(parsed)
+                if idx == 0 and i == 0:
+                    write_text(xml_path, xml)
+            route_docs_map[rname] = all_route_docs
+            write_json(
+                r_docs_path,
+                {
+                    "route": rname,
+                    "query": rquery,
+                    "endpoint_type": endpoint_type,
+                    "docs": all_route_docs,
+                },
+            )
+    else:
+        # Backward/forward-compatible cache loading.
+        cached_pmids = read_json(pmids_path) or {}
+        cached_docs = read_json(docs_path) or {}
+        route_pmids_map = cached_pmids.get("route_pmids", {})
+        route_docs_map = cached_docs.get("route_docs", {})
+        if not route_pmids_map or not route_docs_map:
+            for idx, route in enumerate(query_routes):
+                rname = safe_filename(route.get("route", f"route{idx+1}"))
+                r_pmids_path = base / f"pmids_{rname}.json"
+                r_docs_path = base / f"docs_{rname}.json"
+                if r_pmids_path.exists():
+                    route_pmids_map[rname] = (read_json(r_pmids_path) or {}).get("pmids", [])
+                else:
+                    route_pmids_map[rname] = []
+                if r_docs_path.exists():
+                    route_docs_map[rname] = (read_json(r_docs_path) or {}).get("docs", [])
+                else:
+                    route_docs_map[rname] = []
+
+    # 2) merge docs and keep route hit provenance
+    merged_by_pmid: Dict[str, Dict[str, Any]] = {}
+    for rname, docs in route_docs_map.items():
+        for doc in docs or []:
+            pmid = str(doc.get("pmid", "")).strip()
+            if not pmid:
+                continue
+            if pmid not in merged_by_pmid:
+                merged = dict(doc)
+                merged["route_hits"] = [rname]
+                merged_by_pmid[pmid] = merged
+            else:
+                hits = merged_by_pmid[pmid].get("route_hits", [])
+                if rname not in hits:
+                    hits.append(rname)
+                merged_by_pmid[pmid]["route_hits"] = hits
+
+    all_docs = list(merged_by_pmid.values())
+    pmids = sorted(merged_by_pmid.keys())
+
+    write_json(
+        pmids_path,
+        {
+            "query": query,
+            "query_routes": query_routes,
+            "pmids": pmids,
+            "route_pmids": route_pmids_map,
+        },
+    )
+    write_json(
+        docs_path,
+        {
+            "query": query,
+            "query_routes": query_routes,
+            "endpoint_type": endpoint_type,
+            "docs": all_docs,
+            "route_docs": route_docs_map,
+        },
+    )
+
+    # 3) stage-1 rank: BM25 for each route, then fuse with RRF.
+    route_ranked_lists: List[List[Tuple[float, Dict[str, Any]]]] = []
+    for idx, route in enumerate(query_routes):
+        rname = safe_filename(route.get("route", f"route{idx+1}"))
+        rquery = route.get("query", query)
+        ranked = bm25_rank(rquery, all_docs, topk=80)
+        route_ranked_lists.append(ranked)
+
+        top_pmids = [str(d.get("pmid", "")) for _, d in ranked[:10]]
+        route_stats.append(
+            {
+                "route": rname,
+                "query": rquery,
+                "pmids_retrieved": int(len(route_pmids_map.get(rname, []))),
+                "docs_parsed": int(len(route_docs_map.get(rname, []))),
+                "top10_pmids": top_pmids,
+            }
+        )
+
+    fused_ranked = reciprocal_rank_fusion(route_ranked_lists, k=60) if route_ranked_lists else []
+    if not fused_ranked:
+        # Fallback for degenerate cases.
+        fused_ranked = bm25_rank(query, all_docs, topk=80)
 
     # 4) stage-2 rerank with embeddings (optional)
-    reranked_docs = rerank_with_embeddings(query, bm25, topk=30)
+    reranked_docs = rerank_with_embeddings(query, fused_ranked, topk=30)
     top_docs = reranked_docs[:10]  # for md display
 
-    write_json(reranked_path, {"query": query, "top_pmids": [d["pmid"] for d in reranked_docs]})
+    top30_pmids = {str(d.get("pmid", "")) for d in reranked_docs[:30]}
+    for rs in route_stats:
+        top_hits = [pmid for pmid in rs.get("top10_pmids", []) if pmid in top30_pmids]
+        rs["hits_in_top30"] = int(len(top_hits))
+
+    write_json(
+        reranked_path,
+        {
+            "query": query,
+            "query_routes": query_routes,
+            "route_stats": route_stats,
+            "top_pmids": [d.get("pmid", "") for d in reranked_docs],
+        },
+    )
 
     # 5) evidence extraction per top docs (LLM + fallback rule)
     supporting: List[Dict[str, Any]] = []
@@ -833,7 +1074,7 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
         extracted: List[Dict[str, Any]] = []
         # try LLM on the most on-topic fragments first
         for frag in frags:
-            items = extract_evidence_with_llm(canonical_name, target_disease, endpoint_type, pmid, frag)
+            items = extract_evidence_with_llm(canonical_name, target_disease, endpoint_type, pmid, frag, aliases=aliases)
             if items:
                 for it in items:
                     it["source"] = "llm"
@@ -950,6 +1191,15 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
     if mismatch:
         qc_reasons.append("topic_mismatch_flag")
 
+    route_coverage = int(sum(1 for rs in route_stats if int(rs.get("docs_parsed", 0)) > 0))
+    cross_disease_hits = int(
+        sum(
+            int(rs.get("hits_in_top30", 0))
+            for rs in route_stats
+            if "cross_disease" in str(rs.get("route", ""))
+        )
+    )
+
     # 7) Build dossier JSON
     dossier = {
         "drug_id": drug_id,
@@ -957,6 +1207,16 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
         "target_disease": target_disease,
         "endpoint_type": endpoint_type,
         "query": query,
+        "query_routes": query_routes,
+        "retrieval": {
+            "strategy": "multi_route_rrf_v1",
+            "route_coverage": route_coverage,
+            "cross_disease_hits": cross_disease_hits,
+            "routes_total": int(len(query_routes)),
+            "route_stats": route_stats,
+            "pmids_total": int(len(pmids)),
+            "docs_total": int(len(all_docs)),
+        },
         "qc": {
             "topic_match_ratio": round(float(tmr_all), 4),
             "topic_mismatch": bool(mismatch),
@@ -1005,6 +1265,14 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
     for k in ["topic_match_ratio","topic_mismatch","removed_evidence_count","supporting_evidence_after_qc","qc_reasons"]:
         md_lines.append(f"- {k}: {qc.get(k)}")
     md_lines.append("")
+    md_lines.append("## Query routes")
+    for route in query_routes:
+        md_lines.append(f"- {route.get('route', '')}: `{route.get('query', '')}`")
+    md_lines.append("")
+    md_lines.append("## Retrieval coverage")
+    md_lines.append(f"- route_coverage: {route_coverage}/{len(query_routes)}")
+    md_lines.append(f"- cross_disease_hits(top30): {cross_disease_hits}")
+    md_lines.append("")
     md_lines.append("## ClinicalTrials negative evidence")
     md_lines.append(trials_md if trials_md else "- (no negative trial row found)")
     md_lines.append("")
@@ -1032,6 +1300,16 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
         md_lines.append(f"- {src} | **{ev.get('direction','')}** | model={ev.get('model','')}")
         md_lines.append(f"  - claim: {ev.get('claim','')}")
     md_lines.append("")
+
+    dossier = stamp_step6_dossier_contract(
+        dossier,
+        producer="scripts/step6_evidence_extraction.py",
+    )
+    contract_issues = validate_step6_dossier(dossier)
+    if contract_issues:
+        raise ValueError(
+            f"Step6 dossier contract validation failed for {drug_id} ({canonical_name}): {contract_issues}"
+        )
 
     write_json(json_path, dossier)
     write_text(md_path, "\n".join(md_lines))
@@ -1095,10 +1373,32 @@ def main():
             continue
 
         endpoint_hint = str(rr.get("endpoint_type","OTHER"))
-        json_path, md_path, dossier = process_one(
-            drug_id, canon, args.target_disease, endpoint_hint,
-            args.neg if args.neg else None, out_dir, cache_dir, all_drug_names
-        )
+        chembl_pref = str(rr.get("chembl_pref_name","")).strip()
+        drug_aliases = [chembl_pref] if chembl_pref and chembl_pref.lower() != canon.lower() else []
+
+        # --- Skip if dossier already exists (restartability) ---
+        dossiers_dir = out_dir / "dossiers"
+        cached_json = dossiers_dir / f"{drug_id}__{safe_filename(canon)}.json"
+        cached_md = dossiers_dir / f"{drug_id}__{safe_filename(canon)}.md"
+        if cached_json.exists() and not FORCE_REBUILD:
+            try:
+                with open(cached_json, "r", encoding="utf-8") as _f:
+                    dossier = json.load(_f)
+                json_path, md_path = cached_json, cached_md
+                log(f"[SKIP] {drug_id} ({canon}) already has dossier, reusing cached version")
+            except Exception as _e:
+                log(f"[WARN] Cached dossier for {drug_id} unreadable ({_e}), reprocessing", "warning")
+                json_path, md_path, dossier = process_one(
+                    drug_id, canon, args.target_disease, endpoint_hint,
+                    args.neg if args.neg else None, out_dir, cache_dir, all_drug_names,
+                    aliases=drug_aliases
+                )
+        else:
+            json_path, md_path, dossier = process_one(
+                drug_id, canon, args.target_disease, endpoint_hint,
+                args.neg if args.neg else None, out_dir, cache_dir, all_drug_names,
+                aliases=drug_aliases
+            )
 
         dossier_json_paths.append(str(json_path))
         dossier_md_paths.append(str(md_path))
@@ -1131,6 +1431,56 @@ def main():
     out_csv = out_dir / "step6_rank_v2.csv"
     out_rank.to_csv(out_csv, index=False, encoding="utf-8-sig")
     log(f"[OK] wrote: {out_csv}")
+
+    repo_root = Path(__file__).resolve().parent.parent
+    input_files = [Path(args.rank_in).resolve()]
+    if args.neg:
+        neg_path = Path(args.neg).resolve()
+        if neg_path.exists():
+            input_files.append(neg_path)
+
+    output_files = [out_csv]
+    output_files.extend(
+        Path(p).resolve()
+        for p in dossier_json_paths
+        if p
+    )
+    output_files.extend(
+        Path(p).resolve()
+        for p in dossier_md_paths
+        if p
+    )
+
+    manifest = build_manifest(
+        pipeline="step6_evidence_extraction",
+        repo_root=repo_root,
+        input_files=input_files,
+        output_files=output_files,
+        config={
+            "rank_in": str(Path(args.rank_in).resolve()),
+            "neg": str(Path(args.neg).resolve()) if args.neg else "",
+            "out": str(out_dir),
+            "target_disease": args.target_disease,
+            "topn": int(args.topn),
+            "max_retries": int(MAX_RETRIES),
+            "retry_sleep": float(RETRY_SLEEP),
+            "ollama_host": OLLAMA_HOST,
+            "ollama_embed_model": OLLAMA_EMBED_MODEL,
+            "ollama_llm_model": OLLAMA_LLM_MODEL,
+        },
+        summary={
+            "drugs_total": int(len(out_rank)),
+            "dossiers_written": int(sum(1 for p in dossier_json_paths if p)),
+            "governed_schema": STEP6_DOSSIER_SCHEMA,
+            "governed_version": STEP6_DOSSIER_VERSION,
+        },
+        contracts={
+            STEP6_DOSSIER_SCHEMA: STEP6_DOSSIER_VERSION,
+        },
+    )
+    manifest_path = out_dir / "step6_manifest.json"
+    write_manifest(manifest_path, manifest)
+    log(f"[OK] wrote: {manifest_path}")
 
 if __name__ == "__main__":
     main()

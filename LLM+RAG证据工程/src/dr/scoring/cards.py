@@ -44,6 +44,9 @@ class HypothesisCard:
     mechanism_hypothesis: str = ""
     next_steps: List[str] = field(default_factory=list)
     dossier_path: str = ""
+    decision_channel: str = "exploit"
+    novelty_score: float = 0.0
+    uncertainty_score: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -57,7 +60,10 @@ class HypothesisCard:
             "key_pmids": self.key_pmids,
             "mechanism_hypothesis": self.mechanism_hypothesis,
             "next_steps": self.next_steps,
-            "dossier_path": self.dossier_path
+            "dossier_path": self.dossier_path,
+            "decision_channel": self.decision_channel,
+            "novelty_score": round(float(self.novelty_score), 4),
+            "uncertainty_score": round(float(self.uncertainty_score), 4),
         }
 
     def to_markdown(self) -> str:
@@ -73,6 +79,10 @@ class HypothesisCard:
         lines.append("")
         lines.append(f"**Drug ID**: {self.drug_id}")
         lines.append(f"**Decision**: {self.gate_decision}")
+        lines.append(
+            f"**Track**: {self.decision_channel} | "
+            f"Novelty={self.novelty_score:.2f} | Uncertainty={self.uncertainty_score:.2f}"
+        )
         if self.gate_reasons:
             lines.append(f"**Reasons**: {'; '.join(self.gate_reasons)}")
         lines.append("")
@@ -180,11 +190,12 @@ class HypothesisCardBuilder:
 
         # Extract evidence summary
         evidence_count = dossier.get("evidence_count", {})
+        unknown_count = evidence_count.get("unknown", 0) + evidence_count.get("unclear", 0)
         evidence_summary = {
             "benefit": evidence_count.get("benefit", 0),
             "harm": evidence_count.get("harm", 0),
             "neutral": evidence_count.get("neutral", 0),
-            "unknown": evidence_count.get("unknown", 0),
+            "unknown": unknown_count,
             "total_pmids": dossier.get("total_pmids", 0)
         }
 
@@ -197,6 +208,7 @@ class HypothesisCardBuilder:
         # Generate next steps
         next_steps = self._generate_next_steps(
             gating_decision.decision.value,
+            getattr(gating_decision, "decision_channel", "exploit"),
             evidence_summary,
             scores
         )
@@ -211,7 +223,10 @@ class HypothesisCardBuilder:
             key_pmids=key_pmids,
             mechanism_hypothesis=mechanism,
             next_steps=next_steps,
-            dossier_path=dossier_path or ""
+            dossier_path=dossier_path or "",
+            decision_channel=getattr(gating_decision, "decision_channel", "exploit"),
+            novelty_score=float(getattr(gating_decision, "novelty_score", 0.0) or 0.0),
+            uncertainty_score=float(getattr(gating_decision, "uncertainty_score", 0.0) or 0.0),
         )
 
         return card
@@ -254,9 +269,13 @@ class HypothesisCardBuilder:
         """
         evidence_count = dossier.get("evidence_count", {})
         benefit = evidence_count.get("benefit", 0)
+        target_disease = self._target_disease(dossier)
 
         if benefit == 0:
-            return f"Limited evidence available for {canonical_name} in atherosclerosis. Mechanism unclear."
+            return (
+                f"Limited evidence available for {canonical_name} in {target_disease}. "
+                "Mechanism unclear."
+            )
 
         # Look at top benefit paper titles for mechanism hints
         evidence_blocks = dossier.get("evidence_blocks", [])
@@ -286,13 +305,35 @@ class HypothesisCardBuilder:
 
         if mechanisms:
             mech_str = ", ".join(mechanisms)
-            return f"{canonical_name.title()} may reduce atherosclerosis through {mech_str}. Based on {benefit} supporting publications, the drug shows potential benefit in preclinical and/or clinical studies."
-        else:
-            return f"{canonical_name.title()} shows evidence of benefit in {benefit} publications. Specific mechanism requires further investigation of literature."
+            return (
+                f"{canonical_name.title()} may reduce {target_disease} through {mech_str}. "
+                f"Based on {benefit} supporting publications, the drug shows potential benefit "
+                "in preclinical and/or clinical studies."
+            )
+        return (
+            f"{canonical_name.title()} shows evidence of benefit in {benefit} publications "
+            f"for {target_disease}. Specific mechanism requires further investigation of "
+            "literature."
+        )
+
+    def _target_disease(self, dossier: Dict[str, Any]) -> str:
+        """Resolve target disease label from dossier metadata."""
+        for key in ("target_disease", "disease", "disease_name"):
+            value = dossier.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        metadata = dossier.get("metadata", {})
+        if isinstance(metadata, dict):
+            for key in ("target_disease", "disease", "disease_name"):
+                value = metadata.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+        return "atherosclerosis"
 
     def _generate_next_steps(
         self,
         gate_decision: str,
+        decision_channel: str,
         evidence_summary: Dict[str, Any],
         scores: Dict[str, float]
     ) -> List[str]:
@@ -316,9 +357,15 @@ class HypothesisCardBuilder:
             steps.append("Assess drug availability and regulatory pathway")
 
         elif gate_decision == "MAYBE":
-            steps.append("⚠️ Borderline candidate - requires additional evidence review")
-            steps.append("Manual review of top 20 papers to confirm benefit/harm classification")
-            steps.append("Search for additional evidence (expanded PubMed queries)")
+            if decision_channel == "explore":
+                steps.append("🔎 Explore-track candidate - preserve for discovery, not immediate rejection")
+                steps.append("Run orthogonal mechanism screens (target engagement + pathway readout)")
+                steps.append("Perform cross-disease plausibility review on top route-derived PMIDs")
+                steps.append("Promote to exploit only after at least one reproducible positive assay")
+            else:
+                steps.append("⚠️ Borderline candidate - requires additional evidence review")
+                steps.append("Manual review of top 20 papers to confirm benefit/harm classification")
+                steps.append("Search for additional evidence (expanded PubMed queries)")
 
             # Specific recommendations based on weak dimensions
             safety_score = scores.get("safety_fit_0_20", 20)

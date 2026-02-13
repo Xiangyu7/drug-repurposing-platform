@@ -542,3 +542,52 @@ class TestLLMEvidenceExtractor:
 
         assert result.total == 10
         assert result.success == 10
+
+    @patch('src.dr.evidence.extractor.OllamaClient')
+    def test_extract_records_monitoring_success(self, mock_ollama_class, monkeypatch):
+        """Successful extraction should report success metric once."""
+        mock_client = Mock()
+        mock_ollama_class.return_value = mock_client
+        mock_client.generate.return_value = json.dumps({
+            "direction": "benefit",
+            "model": "animal",
+            "endpoint": "PLAQUE_IMAGING",
+            "mechanism": "Reduces atherosclerotic plaque",
+            "confidence": "HIGH",
+        })
+
+        calls = []
+
+        def fake_record(success: bool, duration_seconds: float, error_type: str = "unknown"):
+            calls.append((success, duration_seconds, error_type))
+
+        monkeypatch.setattr("src.dr.evidence.extractor.record_llm_extraction", fake_record)
+
+        extractor = LLMEvidenceExtractor(retry_base_delay=0)
+        result = extractor.extract("12345", "Title", "Resveratrol reduces plaque", "resveratrol")
+
+        assert result is not None
+        assert len(calls) == 1
+        assert calls[0][0] is True
+
+    @patch('src.dr.evidence.extractor.OllamaClient')
+    def test_extract_records_monitoring_failure(self, mock_ollama_class, monkeypatch):
+        """Exhausted retries should report failure metric once."""
+        mock_client = Mock()
+        mock_ollama_class.return_value = mock_client
+        mock_client.generate.return_value = None
+
+        calls = []
+
+        def fake_record(success: bool, duration_seconds: float, error_type: str = "unknown"):
+            calls.append((success, duration_seconds, error_type))
+
+        monkeypatch.setattr("src.dr.evidence.extractor.record_llm_extraction", fake_record)
+
+        extractor = LLMEvidenceExtractor(retry_base_delay=0)
+        result = extractor.extract("12345", "Title", "Abstract", "resveratrol")
+
+        assert result is None
+        assert len(calls) == 1
+        assert calls[0][0] is False
+        assert calls[0][2] == "attempts_exhausted"

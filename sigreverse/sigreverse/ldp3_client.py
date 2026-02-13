@@ -201,10 +201,12 @@ class LDP3Client:
                         status_code=status, url=url,
                     )
 
-            except (LDP3NotFoundError, LDP3Error) as e:
-                if not isinstance(e, (LDP3RateLimitError, LDP3ServerError)):
-                    raise  # Non-retryable errors → raise immediately
+            except (LDP3RateLimitError, LDP3ServerError) as e:
+                # Retryable errors — already handled above with sleep+continue
                 last_err = e
+
+            except LDP3Error:
+                raise  # Non-retryable errors (404, other 4xx) → raise immediately
 
             except requests.exceptions.ConnectionError as e:
                 wait_time = min(self.backoff_sec * (2 ** attempt), self.max_backoff_sec)

@@ -2,6 +2,7 @@
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
+from contextlib import contextmanager
 from src.dr.retrieval.pubmed import PubMedClient
 
 
@@ -65,6 +66,30 @@ class TestPubMedClient:
         pmids = client.search("nonexistent drug xyz123", max_results=10)
 
         assert pmids == []
+
+    @patch('src.dr.retrieval.pubmed.request_with_retries')
+    def test_search_tracks_monitoring_operation(self, mock_request, monkeypatch):
+        """Search should execute inside track_pubmed_request('search')."""
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "esearchresult": {"count": "1", "idlist": ["12345678"]}
+        }
+        mock_request.return_value = mock_response
+
+        operations = []
+
+        @contextmanager
+        def fake_track(operation: str):
+            operations.append(operation)
+            yield
+
+        monkeypatch.setattr("src.dr.retrieval.pubmed.track_pubmed_request", fake_track)
+
+        client = PubMedClient(use_cache=False)
+        pmids = client.search("aspirin atherosclerosis", max_results=1)
+
+        assert pmids == ["12345678"]
+        assert operations == ["search"]
 
     @patch('src.dr.retrieval.pubmed.request_with_retries')
     def test_search_with_reldate(self, mock_request):

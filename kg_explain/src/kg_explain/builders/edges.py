@@ -64,6 +64,14 @@ def build_pathway_disease(cfg: Config) -> Path:
     ot = ot[ot["targetId"].isin(genes)].copy()
     ot["score_f"] = pd.to_numeric(ot["score"], errors="coerce").fillna(0.0)
 
+    # Filter non-disease traits (GO terms, mouse phenotypes)
+    _non_disease_prefixes = ("GO_", "MP_")
+    before = len(ot)
+    ot = ot[~ot["diseaseId"].astype(str).str.startswith(_non_disease_prefixes)]
+    n_filtered = before - len(ot)
+    if n_filtered:
+        logger.info("Filtered %d GO_/MP_ non-disease entries from gene-disease edges", n_filtered)
+
     j = gp.merge(ot, left_on="ensembl_gene_id", right_on="targetId", how="inner")
 
     agg = j.groupby(["reactome_stid", "diseaseId"], as_index=False).agg(
@@ -71,6 +79,13 @@ def build_pathway_disease(cfg: Config) -> Path:
         support_genes=("ensembl_gene_id", "nunique"),
         diseaseName=("diseaseName", lambda x: x.dropna().iloc[0] if len(x.dropna()) else ""),
     )
+
+    # Filter zero-score edges
+    before_zero = len(agg)
+    agg = agg[agg["pathway_score"] > 0]
+    n_zero = before_zero - len(agg)
+    if n_zero:
+        logger.info("Filtered %d zero-score pathway-disease edges", n_zero)
 
     if "reactome_name" in gp.columns:
         pn = gp[["reactome_stid", "reactome_name"]].drop_duplicates()

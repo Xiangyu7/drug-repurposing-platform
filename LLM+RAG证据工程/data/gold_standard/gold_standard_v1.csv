@@ -19,12 +19,3 @@ pmid,drug_name,direction,model,endpoint,confidence,source,annotator,notes
 27144581,resveratrol,benefit,animal,PLAQUE_IMAGING,MED,bootstrap,system,Review of cardiovascular effects molecular targets
 33015581,nicotinamide riboside,benefit,animal,BIOMARKER,MED,bootstrap,system,NAD+ precursor cardiovascular effects
 35198234,nicotinamide riboside,neutral,human,BIOMARKER,MED,bootstrap,system,No significant clinical effect in human trial
-34567890,resveratrol,neutral,human,CV_EVENTS,MED,manual,system,Mixed results in secondary prevention
-12345678,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,manual,system,Sample test record - plaque reduction 45%
-11111111,resveratrol,benefit,animal,PLAQUE_IMAGING,HIGH,manual,system,Reduces plaque via SIRT1 activation
-22222222,resveratrol,harm,animal,BIOMARKER,MED,manual,system,High dose liver toxicity observed
-33333333,aspirin,benefit,human,CV_EVENTS,HIGH,manual,system,Reduces MACE in secondary prevention
-44444444,aspirin,neutral,human,PLAQUE_IMAGING,MED,manual,system,No plaque regression observed
-55555555,metformin,benefit,human,BIOMARKER,HIGH,manual,system,Reduces CRP and improves endothelial function
-66666666,metformin,benefit,animal,PLAQUE_IMAGING,HIGH,manual,system,Reduces atherosclerotic plaque in ApoE mice
-77777777,dexamethasone,harm,human,CV_EVENTS,MED,manual,system,Increased cardiovascular risk with long-term use

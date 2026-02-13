@@ -439,6 +439,7 @@ class DrugStandardizer:
         unresolved = df[df["inchikey"].str.len() == 0].copy()
         
         if len(resolved) == 0:
+            logger.warning("No drugs resolved to InChIKey — skipping deduplication")
             return df
         
         # Group by InChIKey, keep best score

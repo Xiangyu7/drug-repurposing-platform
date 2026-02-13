@@ -1,0 +1,81 @@
+drug_raw,canonical_name,chembl_id,chembl_pref_name,target_chembl_id,mechanism_of_action,signature_gene,gene_direction,gene_weight,max_phase,first_approval
+rosiptor,rosiptor,CHEMBL3989954,ROSIPTOR,CHEMBL1781870,"Phosphatidylinositol-3,4,5-trisphosphate 5-phosphatase 1 activator",INPP5D,up,8.191029804779422,3.0,
+odulimomab,odulimomab,CHEMBL2109177,ODULIMOMAB,CHEMBL1803,Leukocyte adhesion glycoprotein LFA-1 alpha inhibitor,ITGAL,up,8.088691321837448,3.0,
+alemtuzumab,alemtuzumab,CHEMBL1201587,ALEMTUZUMAB,CHEMBL1912,CAMPATH-1 antigen inhibitor,CD52,up,8.948270495395494,4.0,2001.0
+alemtuzumab beta,alemtuzumab beta,CHEMBL5314722,ALEMTUZUMAB BETA,CHEMBL1912,CAMPATH-1 antigen binding agent,CD52,up,8.948270495395494,2.0,
+deslanoside,deslanoside,CHEMBL1614,DESLANOSIDE,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor,ATP1A2,down,8.326358023384797,4.0,1982.0
+digitoxin,digitoxin,CHEMBL254219,DIGITOXIN,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor,ATP1A2,down,8.326358023384797,4.0,1982.0
+digoxin,digoxin,CHEMBL1751,DIGOXIN,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor,ATP1A2,down,8.326358023384797,4.0,1975.0
+acetyldigitoxin,acetyldigitoxin,CHEMBL3545057,ACETYLDIGITOXIN,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor,ATP1A2,down,8.326358023384797,4.0,1982.0
+istaroxime,istaroxime,CHEMBL2093999,ISTAROXIME,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor,ATP1A2,down,8.326358023384797,2.0,
+lanatoside c,lanatoside c,CHEMBL506569,LANATOSIDE C,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor,ATP1A2,down,8.326358023384797,2.0,
+rovelizumab,rovelizumab,CHEMBL2109224,ROVELIZUMAB,CHEMBL2111362,Integrin alpha-M/beta-2 antagonist,ITGB2,up,8.047117512940249,2.0,
+cerdulatinib,cerdulatinib,CHEMBL4116008,CERDULATINIB,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,2.0,
+r-348,r-348,CHEMBL5314384,R-348,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,2.0,
+at-9283,at-9283,CHEMBL495727,AT-9283,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,2.0,
+r-333,r-333,CHEMBL3545159,R-333,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,2.0,
+decernotinib,decernotinib,CHEMBL3039513,DECERNOTINIB,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,2.0,
+ritlecitinib,ritlecitinib,CHEMBL4085457,RITLECITINIB,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,4.0,2023.0
+ritlecitinib tosylate,ritlecitinib tosylate,CHEMBL5314649,RITLECITINIB TOSYLATE,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,4.0,2023.0
+filgotinib,filgotinib,CHEMBL3301607,FILGOTINIB,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,4.0,2020.0
+filgotinib maleate,filgotinib maleate,CHEMBL4298167,FILGOTINIB MALEATE,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,4.0,2020.0
+upadacitinib hemihydrate,upadacitinib hemihydrate,CHEMBL5315119,UPADACITINIB HEMIHYDRATE,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,4.0,2019.0
+deuruxolitinib phosphate,deuruxolitinib phosphate,CHEMBL4594382,DEURUXOLITINIB PHOSPHATE,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor,JAK3,up,8.85967623361188,4.0,2024.0
+brensocatib,brensocatib,CHEMBL3900409,BRENSOCATIB,CHEMBL2252,Dipeptidyl peptidase I inhibitor,CTSC,up,8.724182365973343,3.0,
+tofacitinib citrate,tofacitinib citrate,CHEMBL2103743,TOFACITINIB CITRATE,CHEMBL2363062,Janus Kinase (JAK) inhibitor,JAK3,up,8.85967623361188,4.0,2012.0
+peficitinib,peficitinib,CHEMBL3137308,PEFICITINIB,CHEMBL2363062,Janus Kinase (JAK) inhibitor,JAK3,up,8.85967623361188,4.0,2019.0
+delgocitinib,delgocitinib,CHEMBL4297507,DELGOCITINIB,CHEMBL2363062,Janus Kinase (JAK) inhibitor,JAK3,up,8.85967623361188,3.0,
+gusacitinib,gusacitinib,CHEMBL4594275,GUSACITINIB,CHEMBL2363062,Janus Kinase (JAK) inhibitor,JAK3,up,8.85967623361188,2.0,
+izencitinib,izencitinib,CHEMBL4650343,IZENCITINIB,CHEMBL2363062,Janus Kinase (JAK) inhibitor,JAK3,up,8.85967623361188,2.0,
+nezulcitinib,nezulcitinib,CHEMBL4802163,NEZULCITINIB,CHEMBL2363062,Janus Kinase (JAK) inhibitor,JAK3,up,8.85967623361188,2.0,
+interferon alfa-n3,interferon alfa-n3,CHEMBL2109047,INTERFERON ALFA-N3,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,1989.0
+interferon alfa-2a,interferon alfa-2a,CHEMBL2108508,INTERFERON ALFA-2A,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,1986.0
+interferon alfa-2b,interferon alfa-2b,CHEMBL1201558,INTERFERON ALFA-2B,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,1986.0
+interferon beta-1a,interferon beta-1a,CHEMBL1201562,INTERFERON BETA-1A,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,1996.0
+peginterferon alfa-2a,peginterferon alfa-2a,CHEMBL1201560,PEGINTERFERON ALFA-2A,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,2002.0
+peginterferon alfa-2b,peginterferon alfa-2b,CHEMBL1201561,PEGINTERFERON ALFA-2B,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,2000.0
+interferon beta-1b,interferon beta-1b,CHEMBL1201563,INTERFERON BETA-1B,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,1993.0
+interferon alfacon-1,interferon alfacon-1,CHEMBL1201557,INTERFERON ALFACON-1,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,1997.0
+peginterferon beta-1a,peginterferon beta-1a,CHEMBL2108677,PEGINTERFERON BETA-1A,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,4.0,2014.0
+albinterferon alfa-2b,albinterferon alfa-2b,CHEMBL2107842,ALBINTERFERON ALFA-2B,CHEMBL2364170,Interferon alpha/beta receptor agonist,IFNAR2,up,8.666572355703755,3.0,
+ropeginterferon alfa-2b,ropeginterferon alfa-2b,CHEMBL4297819,ROPEGINTERFERON ALFA-2B,CHEMBL2364170,Interferon alpha/beta receptor positive modulator,IFNAR2,up,8.666572355703755,4.0,2019.0
+efalizumab,efalizumab,CHEMBL1201575,EFALIZUMAB,CHEMBL2364172,Integrin alpha-L/beta-2 (LFA-1) inhibitor,ITGAL,up,8.088691321837448,4.0,2003.0
+lifitegrast,lifitegrast,CHEMBL2048028,LIFITEGRAST,CHEMBL2364172,Integrin alpha-L/beta-2 (LFA-1) antagonist,ITGAL,up,8.088691321837448,4.0,2016.0
+rovelizumab,rovelizumab,CHEMBL2109224,ROVELIZUMAB,CHEMBL2364172,Integrin alpha-L/beta-2 (LFA-1) antagonist,ITGAL,up,8.088691321837448,2.0,
+ccx354,ccx354,CHEMBL4444976,CCX354,CHEMBL2413,C-C chemokine receptor type 1 antagonist,CCR1,up,8.816257383587562,2.0,
+azd4818,azd4818,CHEMBL2178570,AZD4818,CHEMBL2413,C-C chemokine receptor type 1 antagonist,CCR1,up,8.816257383587562,2.0,
+bms-817399,bms-817399,CHEMBL3334824,BMS-817399,CHEMBL2413,C-C chemokine receptor type 1 antagonist,CCR1,up,8.816257383587562,2.0,
+erlizumab,erlizumab,CHEMBL2109095,ERLIZUMAB,CHEMBL3631,Integrin beta-2 negative modulator,ITGB2,up,8.047117512940249,2.0,
+mlnm-2201,mlnm-2201,CHEMBL2109332,MLNM-2201,CHEMBL3631,Integrin beta-2 inhibitor,ITGB2,up,8.047117512940249,2.0,
+bms-986020,bms-986020,CHEMBL4297270,BMS-986020,CHEMBL3819,Lysophosphatidic acid receptor Edg-2 antagonist,LPAR1,down,7.991238881034864,2.0,
+emricasan,emricasan,CHEMBL197672,EMRICASAN,CHEMBL3831289,Caspase inhibitor,CASP1,up,8.185956092854678,2.0,
+ritlecitinib,ritlecitinib,CHEMBL4085457,RITLECITINIB,CHEMBL4296642,TEC family kinase inhibitor,BTK,up,9.320440467826222,4.0,2023.0
+ritlecitinib tosylate,ritlecitinib tosylate,CHEMBL5314649,RITLECITINIB TOSYLATE,CHEMBL4296642,TEC family kinase inhibitor,BTK,up,9.320440467826222,4.0,2023.0
+sabatolimab,sabatolimab,CHEMBL4594575,SABATOLIMAB,CHEMBL4630879,Hepatitis A virus cellular receptor 2 inhibitor,HAVCR2,up,8.094639353168755,3.0,
+cobolimab,cobolimab,CHEMBL4298123,COBOLIMAB,CHEMBL4630879,Hepatitis A virus cellular receptor 2 inhibitor,HAVCR2,up,8.094639353168755,2.0,
+lomvastomig,lomvastomig,CHEMBL4594602,LOMVASTOMIG,CHEMBL4630879,Hepatitis A virus cellular receptor 2 inhibitor,HAVCR2,up,8.094639353168755,2.0,
+nivocasan,nivocasan,CHEMBL2105721,NIVOCASAN,CHEMBL4801,Caspase-1 inhibitor,CASP1,up,8.185956092854678,2.0,
+belnacasan,belnacasan,CHEMBL2107819,BELNACASAN,CHEMBL4801,Caspase-1 inhibitor,CASP1,up,8.185956092854678,2.0,
+azd9056,azd9056,CHEMBL3545108,AZD9056,CHEMBL4805,P2X purinoceptor 7 antagonist,P2RX7,up,8.975308944579393,2.0,
+ce-224535,ce-224535,CHEMBL1823817,CE-224535,CHEMBL4805,P2X purinoceptor 7 antagonist,P2RX7,up,8.975308944579393,2.0,
+jnj-54175446,jnj-54175446,CHEMBL4079239,JNJ-54175446,CHEMBL4805,P2X purinoceptor 7 antagonist,P2RX7,up,8.975308944579393,2.0,
+ibrutinib,ibrutinib,CHEMBL1873475,IBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,4.0,2013.0
+spebrutinib besylate,spebrutinib besylate,CHEMBL3301600,SPEBRUTINIB BESYLATE,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,2.0,
+poseltinib,poseltinib,CHEMBL4163691,POSELTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,2.0,
+tirabrutinib,tirabrutinib,CHEMBL4071161,TIRABRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,4.0,2020.0
+acalabrutinib,acalabrutinib,CHEMBL3707348,ACALABRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,4.0,2017.0
+zanubrutinib,zanubrutinib,CHEMBL3936761,ZANUBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,4.0,2019.0
+branebrutinib,branebrutinib,CHEMBL4297674,BRANEBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,2.0,
+bms-986142,bms-986142,CHEMBL3900554,BMS-986142,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,2.0,
+evobrutinib,evobrutinib,CHEMBL4072833,EVOBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,3.0,
+elsubrutinib,elsubrutinib,CHEMBL4594348,ELSUBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,2.0,
+fenebrutinib,fenebrutinib,CHEMBL4065122,FENEBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,3.0,
+rilzabrutinib,rilzabrutinib,CHEMBL3702854,RILZABRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,3.0,
+abivertinib maleate,abivertinib maleate,CHEMBL4297866,ABIVERTINIB MALEATE,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,3.0,
+abivertinib,abivertinib,CHEMBL4297865,ABIVERTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,3.0,
+vecabrutinib,vecabrutinib,CHEMBL4297640,VECABRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,2.0,
+orelabrutinib,orelabrutinib,CHEMBL4650321,ORELABRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,3.0,
+pirtobrutinib,pirtobrutinib,CHEMBL4650485,PIRTOBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,4.0,2023.0
+edralbrutinib,edralbrutinib,CHEMBL4650338,EDRALBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,2.0,
+tolebrutinib,tolebrutinib,CHEMBL4650323,TOLEBRUTINIB,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,3.0,
+acalabrutinib maleate,acalabrutinib maleate,CHEMBL4594293,ACALABRUTINIB MALEATE,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor,BTK,up,9.320440467826222,4.0,2020.0

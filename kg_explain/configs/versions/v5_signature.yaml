@@ -1,0 +1,69 @@
+# ============================================
+# V5 Signature 模式配置
+# ============================================
+#
+# 与 v5.yaml 相同的排序参数, 额外增加 signature 配置
+#
+# 用法:
+#   python -m kg_explain pipeline \
+#     --disease atherosclerosis --version v5 \
+#     --drug-source signature \
+#     --signature-path ../dsmeta_signature_pipeline/outputs/signature/disease_signature_meta.json
+#
+# 路径类型:
+#   1. DTPD: Drug → Target → Pathway → Disease (机制路径)
+#   2. Drug → AE (FAERS安全信号)
+#   3. Disease → Phenotype (表型关联)
+#
+# 评分公式:
+#   final = mechanism × exp(-w1*safety_pen) × (1 + w3*log1p(n_phenotype))
+#
+# 注意: signature 模式没有 trial_penalty (因为药物不来自失败试验)
+# ============================================
+
+mode: v5
+
+# 基因签名配置
+signature:
+  max_phase: 2          # Phase II+ 药物 (2=Phase II, 3=Phase III, 4=Approved)
+  max_genes: 100        # 使用签名中前100个基因 (按 weight 降序)
+  gene_source: both     # "up" / "down" / "both"
+
+rank:
+  # 基础参数
+  topk_paths_per_pair: 10
+  topk_pairs_per_drug: 50
+  hub_penalty_lambda: 1.0
+  support_gene_boost: 0.15
+
+  # V5 安全相关权重
+  safety_penalty_weight: 0.3    # FAERS不良事件惩罚权重
+  trial_failure_penalty: 0.0    # 设为0: signature模式无试验数据
+  phenotype_overlap_boost: 0.1  # 表型重叠加分
+
+# CT.gov配置 (signature模式不使用, 但保留兼容性)
+ctgov:
+  also_completed: false
+
+# FAERS配置
+faers:
+  min_report_count: 5
+  min_prr: 1.5
+  max_drugs: 500
+  top_ae_per_drug: 50
+
+# 表型配置
+phenotype:
+  source: opentargets
+  min_score: 0.3
+  max_phenotypes_per_disease: 30
+
+# 严重不良事件关键词 (用于惩罚加倍)
+serious_ae_keywords:
+  - death
+  - fatal
+  - life-threatening
+  - hospitalisation
+  - hospitalization
+  - disability
+  - congenital anomaly

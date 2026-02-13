@@ -134,3 +134,47 @@
 - 每季度审查 `safety_blacklist_patterns`（新的安全信号可能出现）
 - 每次更新 LLM 模型后重新跑 Gold Standard 评估
 - 新增大量文献后重新评估 BM25/embedding 参数
+- 每次调整 Release Gate 阈值后重跑 Step8 验证 shortlist 变化
+- 每次修改 Bootstrap CI 阈值后检查 confidence_tier 分布是否合理
+
+---
+
+## 7. 质量保障模块决策点 (2026-02-12 新增)
+
+### 7.1 Release Gate 配置
+
+| 参数 | 默认值 | 配置位置 | 判断依据 |
+|------|-------|---------|---------|
+| block_nogo | True | `ReleaseGateConfig.block_nogo` | 是否自动移除 NO-GO 药物。设为 False 允许 NO-GO 进入 shortlist (需人工审核) |
+| min_go_ratio | 0.0 | `ReleaseGateConfig.min_go_ratio` | shortlist 中 GO 药物最低比例。设 0.5 要求至少一半是 GO |
+| require_dual_review | True | `ReleaseGateConfig.require_dual_review` | 是否要求双人独立审核。正式 run 必须 True |
+| min_irr_kappa | 0.60 | `ReleaseGateConfig.min_irr_kappa` | 审核者间一致性最低 Kappa 值。<0.6 说明评审标准不一致 |
+| max_kill_rate | 0.20 | `ReleaseGateConfig.max_kill_rate` | 人审否决率上限。>20% 说明自动评分太松 |
+| max_miss_rate | 0.15 | `ReleaseGateConfig.max_miss_rate` | 人审漏报率上限。>15% 说明自动评分太严 |
+| strict | True | `ReleaseGateConfig.strict` | True=blocker 阻断输出, False=warn only |
+
+### 7.2 Schema 强制执行 (ContractEnforcer)
+
+| 参数 | 默认值 | 配置位置 | 判断依据 |
+|------|-------|---------|---------|
+| strict_contract | 1 | Step7/8/9 CLI `--strict_contract` | 1=列名不匹配即报错; 0=warn 继续。开发调试设 0，正式 run 必须设 1 |
+
+### 7.3 Bootstrap CI 不确定性
+
+| 参数 | 默认值 | 配置位置 | 判断依据 |
+|------|-------|---------|---------|
+| n_bootstrap | 1000 | `uncertainty.py bootstrap_ci()` | 重采样次数。5000 更精确但更慢 |
+| ci | 0.95 | `uncertainty.py bootstrap_ci()` | 置信水平。0.99 更保守但 CI 更宽 |
+| HIGH 阈值 | ci_width < 0.10 | `assign_confidence_tier()` | CI 宽度决定置信标签 |
+| MEDIUM 阈值 | ci_width < 0.25 | `assign_confidence_tier()` | 0.10-0.25 为中等置信 |
+
+**需要人工确认**: confidence_tier 阈值 (0.10/0.25) 是否合理？取决于你对"排名可信度"的期望。
+
+### 7.4 数据泄漏审计
+
+| 决策点 | 判断依据 |
+|--------|---------|
+| Drug overlap 是否可接受 | 训练/测试集有相同药物但不同疾病 → 通常可接受 |
+| Disease overlap 是否可接受 | 相同疾病出现在训练/测试集 → 通常可接受 |
+| Pair overlap 是否可接受 | 完全相同的 (drug, disease) 对 → **不可接受**，说明数据泄漏 |
+| seen_drug_test_fraction 阈值 | 测试集中药物在训练集出现比例。>80% 可能意味着评估过于乐观 |

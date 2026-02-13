@@ -22,6 +22,10 @@ VALID_ENDPOINTS = {
     "clinical trial primary outcome", "reduces monocyte adhesion to endothelial cells",
 }
 VALID_CONFIDENCES = {"HIGH", "MED", "LOW"}
+PLACEHOLDER_NOTE_MARKERS = ("sample test", "placeholder", "synthetic", "dummy")
+
+# Difficulty tiers for stratified evaluation
+DIFFICULTY_TIERS = {"easy", "medium", "hard"}
 
 
 @dataclass
@@ -60,8 +64,13 @@ class GoldStandardRecord:
             issues.append(f"invalid direction: {self.direction}")
         if self.model not in VALID_MODELS:
             issues.append(f"invalid model: {self.model}")
+        if self.endpoint not in VALID_ENDPOINTS:
+            issues.append(f"invalid endpoint: {self.endpoint}")
         if self.confidence and self.confidence not in VALID_CONFIDENCES:
             issues.append(f"invalid confidence: {self.confidence}")
+        notes_lower = (self.notes or "").lower()
+        if any(marker in notes_lower for marker in PLACEHOLDER_NOTE_MARKERS):
+            issues.append("placeholder annotation note")
         return issues
 
 
@@ -265,3 +274,173 @@ def bootstrap_from_dossiers(
         len(unique), len(json_files), min_confidence
     )
     return unique
+
+
+# ============================================================
+# V2: Dual-annotation support
+# ============================================================
+
+@dataclass
+class GoldStandardRecordV2:
+    """V2 gold-standard record with dual-annotation support.
+
+    Extends GoldStandardRecord with fields for a second annotator,
+    difficulty tier, and annotation round tracking.
+
+    Attributes:
+        pmid, drug_name, direction, model, endpoint: Same as V1
+        confidence, source, annotator, notes: Same as V1
+        annotation_round: Which annotation round (1, 2, ...)
+        difficulty_tier: easy/medium/hard classification
+        annotator_b: Second annotator name (empty if not dual-annotated)
+        direction_b: Second annotator's direction label
+        model_b: Second annotator's model label
+        endpoint_b: Second annotator's endpoint label
+        adjudicated: Whether disagreements were resolved by a third party
+    """
+    pmid: str
+    drug_name: str
+    direction: str
+    model: str
+    endpoint: str
+    confidence: str = "MED"
+    source: str = "bootstrap"
+    annotator: str = "system"
+    notes: str = ""
+    annotation_round: int = 1
+    difficulty_tier: str = "medium"
+    annotator_b: str = ""
+    direction_b: str = ""
+    model_b: str = ""
+    endpoint_b: str = ""
+    adjudicated: str = ""
+
+    def validate(self) -> List[str]:
+        """Validate record fields, return list of issues (empty = valid)."""
+        issues = []
+        if not self.pmid or not self.pmid.strip():
+            issues.append("pmid is empty")
+        if not self.drug_name or not self.drug_name.strip():
+            issues.append("drug_name is empty")
+        if self.direction not in VALID_DIRECTIONS:
+            issues.append(f"invalid direction: {self.direction}")
+        if self.model not in VALID_MODELS:
+            issues.append(f"invalid model: {self.model}")
+        if self.endpoint not in VALID_ENDPOINTS:
+            issues.append(f"invalid endpoint: {self.endpoint}")
+        if self.confidence and self.confidence not in VALID_CONFIDENCES:
+            issues.append(f"invalid confidence: {self.confidence}")
+        if self.difficulty_tier and self.difficulty_tier not in DIFFICULTY_TIERS:
+            issues.append(f"invalid difficulty_tier: {self.difficulty_tier}")
+        # Validate annotator_b fields if present
+        if self.direction_b and self.direction_b not in VALID_DIRECTIONS:
+            issues.append(f"invalid direction_b: {self.direction_b}")
+        if self.model_b and self.model_b not in VALID_MODELS:
+            issues.append(f"invalid model_b: {self.model_b}")
+        notes_lower = (self.notes or "").lower()
+        if any(marker in notes_lower for marker in PLACEHOLDER_NOTE_MARKERS):
+            issues.append("placeholder annotation note")
+        return issues
+
+    def to_v1(self) -> GoldStandardRecord:
+        """Convert to V1 record (drops V2-only fields)."""
+        return GoldStandardRecord(
+            pmid=self.pmid,
+            drug_name=self.drug_name,
+            direction=self.direction,
+            model=self.model,
+            endpoint=self.endpoint,
+            confidence=self.confidence,
+            source=self.source,
+            annotator=self.annotator,
+            notes=self.notes,
+        )
+
+    @property
+    def is_dual_annotated(self) -> bool:
+        """Check if this record has a second annotation."""
+        return bool(self.annotator_b and self.direction_b)
+
+
+V2_FIELDNAMES = [
+    "pmid", "drug_name", "direction", "model", "endpoint",
+    "confidence", "source", "annotator", "notes",
+    "annotation_round", "difficulty_tier",
+    "annotator_b", "direction_b", "model_b", "endpoint_b", "adjudicated",
+]
+
+
+def load_gold_standard_v2(path: str) -> List[GoldStandardRecordV2]:
+    """Load V2 gold-standard annotations from CSV.
+
+    Backward-compatible: if V2-only columns are missing, fills with defaults.
+
+    Args:
+        path: Path to gold_standard_v2.csv
+
+    Returns:
+        List of validated GoldStandardRecordV2 objects
+    """
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"Gold standard v2 file not found: {path}")
+
+    records = []
+    invalid_count = 0
+
+    with open(p, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError(f"Empty CSV file: {path}")
+
+        required = {"pmid", "drug_name", "direction", "model", "endpoint"}
+        missing = required - set(reader.fieldnames)
+        if missing:
+            raise ValueError(f"Missing required columns: {missing}")
+
+        for i, row in enumerate(reader, 1):
+            record = GoldStandardRecordV2(
+                pmid=row.get("pmid", "").strip(),
+                drug_name=row.get("drug_name", "").strip(),
+                direction=row.get("direction", "").strip().lower(),
+                model=row.get("model", "").strip().lower(),
+                endpoint=row.get("endpoint", "").strip(),
+                confidence=row.get("confidence", "MED").strip().upper(),
+                source=row.get("source", "manual").strip(),
+                annotator=row.get("annotator", "unknown").strip(),
+                notes=row.get("notes", "").strip(),
+                annotation_round=int(row.get("annotation_round", "1") or "1"),
+                difficulty_tier=row.get("difficulty_tier", "medium").strip().lower(),
+                annotator_b=row.get("annotator_b", "").strip(),
+                direction_b=row.get("direction_b", "").strip().lower(),
+                model_b=row.get("model_b", "").strip().lower(),
+                endpoint_b=row.get("endpoint_b", "").strip(),
+                adjudicated=row.get("adjudicated", "").strip(),
+            )
+
+            issues = record.validate()
+            if issues:
+                logger.warning("Row %d has issues: %s", i, issues)
+                invalid_count += 1
+            else:
+                records.append(record)
+
+    logger.info(
+        "Loaded %d v2 gold-standard records (%d invalid skipped) from %s",
+        len(records), invalid_count, path
+    )
+    return records
+
+
+def save_gold_standard_v2(records: List[GoldStandardRecordV2], path: str) -> None:
+    """Save V2 gold-standard records to CSV."""
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(p, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=V2_FIELDNAMES)
+        writer.writeheader()
+        for record in records:
+            writer.writerow(asdict(record))
+
+    logger.info("Saved %d v2 gold-standard records to %s", len(records), path)

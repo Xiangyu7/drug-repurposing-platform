@@ -224,7 +224,7 @@ def compute_wtcs(enrichments: List[EnrichmentResult]) -> List[WTCSResult]:
             direction = "reverser"
         elif er.es_up > 0 and er.es_down > 0:
             direction = "mimicker"
-        elif er.es_up == 0 and er.es_down == 0:
+        elif abs(er.es_up) < 1e-10 and abs(er.es_down) < 1e-10:
             direction = "orthogonal"
         else:
             direction = "partial"
@@ -401,6 +401,9 @@ def compute_tau(
     for nr in ncs_results:
         # Percentile rank of |NCS| in |NCS_ref|
         abs_ncs = abs(nr.ncs)
+        if len(ref_abs_sorted) == 0:
+            logger.warning("Empty reference distribution, skipping Tau for %s", nr.pert_name)
+            continue
         rank = np.searchsorted(ref_abs_sorted, abs_ncs, side="right")
         percentile = 100.0 * rank / len(ref_abs_sorted)
 
@@ -434,6 +437,8 @@ def _compute_tau_loo(
         if ref is None or len(ref) < 5:
             continue
         ref_abs_sorted = np.sort(np.abs(ref))
+        if len(ref_abs_sorted) == 0:
+            continue
         abs_ncs = abs(nr.ncs)
         rank = np.searchsorted(ref_abs_sorted, abs_ncs, side="right")
         percentile = 100.0 * rank / len(ref_abs_sorted)
@@ -676,7 +681,7 @@ def build_bootstrap_reference(
     bootstrap = rng.choice(all_ncs, size=n_bootstrap, replace=True)
 
     # Add small Gaussian noise to smooth (avoid ties in percentile computation)
-    noise_scale = np.std(all_ncs) * 0.02  # 2% of SD
+    noise_scale = max(np.std(all_ncs) * 0.02, 1e-6)  # 2% of SD, floor at 1e-6
     noise = rng.normal(0, noise_scale, size=n_bootstrap)
     bootstrap = bootstrap + noise
 

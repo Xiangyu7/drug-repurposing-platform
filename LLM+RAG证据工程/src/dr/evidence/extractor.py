@@ -25,6 +25,11 @@ import json
 
 from .ollama import OllamaClient
 from ..logger import get_logger
+try:
+    from ..monitoring import record_llm_extraction
+except Exception:  # pragma: no cover - monitoring is optional at runtime
+    def record_llm_extraction(success: bool, duration_seconds: float, error_type: str = "unknown"):
+        return None
 
 logger = get_logger(__name__)
 
@@ -271,11 +276,34 @@ def coerce_extraction(data: Dict[str, Any]) -> Dict[str, Any]:
 # Hallucination Detection
 # ============================================================
 
+def _normalize_drug(name: str) -> str:
+    """Normalize drug name: lowercase, strip ®™, replace /- with space."""
+    s = name.lower().strip()
+    s = re.sub(r"[®™()\[\]]", "", s)
+    s = re.sub(r"[/\-–—]", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+# Known synonyms that PubMed abstracts may use instead of the canonical name
+_DRUG_SYNONYMS: Dict[str, List[str]] = {
+    "cholecalciferol": ["vitamin d", "vitamin d3", "calciferol", "25(oh)d"],
+    "sirolimus": ["rapamycin"],
+    "tacrolimus": ["fk506", "fk-506"],
+    "nitroglycerin": ["nitrate", "glyceryl trinitrate", "gtn"],
+    "mycophenolate": ["mmf", "mycophenolic acid", "cellcept"],
+    "aspirin": ["acetylsalicylic acid", "asa"],
+    "repatha": ["evolocumab"],
+    "rimonabant": ["sr141716"],
+    "cangrelor": ["ar-c69931"],
+}
+
+
 def detect_hallucination(
     extraction_data: Dict[str, Any],
     expected_pmid: str,
     abstract: str,
     drug_name: str,
+    aliases: Optional[List[str]] = None,
 ) -> List[str]:
     """Detect potential hallucinations in LLM extraction.
 
@@ -289,6 +317,7 @@ def detect_hallucination(
         expected_pmid: The PMID we provided to the LLM
         abstract: The original abstract text
         drug_name: The drug name we queried
+        aliases: Optional extra names to check (e.g. chembl_pref_name)
 
     Returns:
         List of warning strings (empty means no hallucination detected)
@@ -306,15 +335,37 @@ def detect_hallucination(
 
     # 2. Drug grounding - check if drug name appears in abstract
     if drug_lower and abstract_lower:
-        # Try exact match first, then token-level
-        drug_tokens = [t for t in drug_lower.split() if len(t) >= 4]
-        if drug_lower not in abstract_lower:
-            # Check if at least one significant token matches
-            token_found = any(t in abstract_lower for t in drug_tokens)
-            if not token_found and drug_tokens:
-                warnings.append(
-                    f"drug_not_grounded: '{drug_name}' not found in abstract"
-                )
+        # Build candidate names: canonical + aliases + known synonyms
+        abstract_norm = _normalize_drug(abstract_lower)
+        candidates = [_normalize_drug(drug_lower)]
+        # Add caller-provided aliases (e.g. chembl_pref_name)
+        for a in (aliases or []):
+            if a and a.strip():
+                candidates.append(_normalize_drug(a))
+        # Add hard-coded synonym table
+        for cand in list(candidates):
+            for base_name, syns in _DRUG_SYNONYMS.items():
+                if base_name in cand:
+                    candidates.extend(syns)
+        # Deduplicate
+        candidates = list(dict.fromkeys(c for c in candidates if c))
+
+        grounded = False
+        for cand in candidates:
+            # Exact substring match
+            if cand in abstract_norm:
+                grounded = True
+                break
+            # Token-level: any significant token (≥4 chars) present
+            tokens = [t for t in cand.split() if len(t) >= 4]
+            if tokens and any(t in abstract_norm for t in tokens):
+                grounded = True
+                break
+
+        if not grounded:
+            warnings.append(
+                f"drug_not_grounded: '{drug_name}' not found in abstract"
+            )
 
     # 3. Mechanism anchoring - check if mechanism has basis in abstract
     mechanism = str(extraction_data.get("mechanism", "")).lower()
@@ -437,12 +488,14 @@ class LLMEvidenceExtractor:
         temperatures: Optional[List[float]] = None,
         retry_base_delay: float = DEFAULT_RETRY_BASE_DELAY,
         hallucination_check: bool = True,
+        target_disease: str = "atherosclerosis",
     ):
         self.client = ollama_client or OllamaClient()
         self.model = model
         self.temperatures = temperatures or list(DEFAULT_TEMPERATURES)
         self.retry_base_delay = retry_base_delay
         self.hallucination_check = hallucination_check
+        self.target_disease = target_disease.strip() if target_disease else "atherosclerosis"
         logger.info("LLMEvidenceExtractor initialized (model=%s, retries=%d)",
                      model, len(self.temperatures))
 
@@ -452,6 +505,7 @@ class LLMEvidenceExtractor:
         title: str,
         abstract: str,
         drug_name: str,
+        target_disease: Optional[str] = None,
     ) -> Optional[EvidenceExtraction]:
         """Extract structured evidence with retry, repair, and validation.
 
@@ -462,7 +516,13 @@ class LLMEvidenceExtractor:
 
         Each attempt includes JSON repair and field coercion.
         """
-        prompt = self._build_prompt(title, abstract, drug_name)
+        t0 = time.time()
+        prompt = self._build_prompt(
+            title=title,
+            abstract=abstract,
+            drug_name=drug_name,
+            target_disease=target_disease or self.target_disease,
+        )
 
         for attempt, temp in enumerate(self.temperatures):
             try:
@@ -523,6 +583,7 @@ class LLMEvidenceExtractor:
                     extraction.endpoint, extraction.confidence,
                     attempt + 1, len(warnings)
                 )
+                record_llm_extraction(success=True, duration_seconds=time.time() - t0)
                 return extraction
 
             except Exception as e:
@@ -532,6 +593,11 @@ class LLMEvidenceExtractor:
                 self._backoff(attempt)
 
         logger.warning("PMID:%s - all %d attempts exhausted", pmid, len(self.temperatures))
+        record_llm_extraction(
+            success=False,
+            duration_seconds=time.time() - t0,
+            error_type="attempts_exhausted",
+        )
         return None
 
     def extract_batch(
@@ -539,6 +605,7 @@ class LLMEvidenceExtractor:
         papers: List[Dict[str, Any]],
         drug_name: str,
         max_papers: int = 20,
+        target_disease: Optional[str] = None,
     ) -> BatchResult:
         """Extract evidence from multiple papers with statistics.
 
@@ -565,7 +632,13 @@ class LLMEvidenceExtractor:
                 result.skipped += 1
                 continue
 
-            extraction = self.extract(pmid, title, abstract, drug_name)
+            extraction = self.extract(
+                pmid=pmid,
+                title=title,
+                abstract=abstract,
+                drug_name=drug_name,
+                target_disease=target_disease or self.target_disease,
+            )
             if extraction:
                 result.extractions.append(extraction)
                 result.success += 1
@@ -602,8 +675,11 @@ class LLMEvidenceExtractor:
             delay = self.retry_base_delay * (2 ** attempt)
             time.sleep(delay)
 
-    def _build_prompt(self, title: str, abstract: str, drug_name: str) -> str:
-        return f"""You are a medical evidence extraction expert. Extract structured information from this atherosclerosis research paper about {drug_name}.
+    def _build_prompt(
+        self, title: str, abstract: str, drug_name: str, target_disease: str
+    ) -> str:
+        disease = target_disease.strip() if target_disease else "atherosclerosis"
+        return f"""You are a medical evidence extraction expert. Extract structured information from this {disease} research paper about {drug_name}.
 
 **Paper Title**: {title}
 
@@ -611,9 +687,9 @@ class LLMEvidenceExtractor:
 
 **Task**: Extract the following structured information:
 
-1. **direction**: Does this paper suggest the drug has a beneficial, harmful, or neutral effect on atherosclerosis?
-   - "benefit": Reduces atherosclerosis, plaque, CV events, or improves related biomarkers
-   - "harm": Increases atherosclerosis, plaque, CV events, or worsens biomarkers
+1. **direction**: Does this paper suggest the drug has a beneficial, harmful, or neutral effect on {disease}?
+   - "benefit": Reduces {disease}, plaque, CV events, or improves related biomarkers
+   - "harm": Increases {disease}, plaque, CV events, or worsens biomarkers
    - "neutral": No significant effect, or mixed results
    - "unclear": Insufficient information, purely mechanistic study, or ambiguous results
 
@@ -631,7 +707,7 @@ class LLMEvidenceExtractor:
    - "BIOMARKER": LDL, HDL, CRP, IL-6, or biochemical markers
    - "OTHER": Other endpoints or multiple categories
 
-4. **mechanism**: Briefly describe (1-2 sentences) how the drug affects atherosclerosis based on this paper. Focus on mechanism of action if stated, or primary finding if mechanism unclear.
+4. **mechanism**: Briefly describe (1-2 sentences) how the drug affects {disease} based on this paper. Focus on mechanism of action if stated, or primary finding if mechanism unclear.
 
 5. **confidence**: How confident are you in the direction classification?
    - "HIGH": Clear outcome stated with statistical significance

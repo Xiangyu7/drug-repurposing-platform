@@ -60,6 +60,15 @@ de:
     remove_outliers: true
     pca_outlier_z: 3.5
 
+# Probe ID → Gene Symbol mapping
+# CRITICAL: Different microarray platforms use different probe IDs.
+# Without mapping to gene symbols, cross-platform meta-analysis gets ZERO overlap.
+# This step runs after DE and before meta-analysis.
+probe_to_gene:
+  enable: true
+  # Skip mapping if feature IDs already look like gene symbols (e.g., RNA-seq data)
+  skip_if_gene_symbols: true
+
 meta:
   # Cross-study meta-analysis
   # - model: "random" (recommended) or "fixed"

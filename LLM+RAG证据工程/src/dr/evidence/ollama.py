@@ -7,6 +7,7 @@
 Ollama是一个本地LLM服务框架，支持多种开源模型。
 API文档：https://github.com/ollama/ollama/blob/main/docs/api.md
 """
+import json
 import math
 from typing import List, Optional, Dict, Any
 
@@ -228,7 +229,7 @@ class OllamaClient:
             format: 输出格式（"json"或None）
             schema: JSON schema（如果format="json"且USE_CHAT_SCHEMA=1）
             temperature: 采样温度（0-1，0最确定）
-            stream: 是否流式输出（当前不支持）
+            stream: 是否流式输出（True时聚合流式片段后返回）
 
         Returns:
             响应字典，格式{"message": {"role": "assistant", "content": "..."}}
@@ -244,16 +245,13 @@ class OllamaClient:
             logger.debug("LLM disabled by config")
             return None
 
-        if stream:
-            raise NotImplementedError("Streaming not yet supported")
-
         model = model or self.llm_model
         url = f"{self.host}/api/chat"
 
         payload = {
             "model": model,
             "messages": messages,
-            "stream": False,
+            "stream": bool(stream),
             "options": {
                 "temperature": temperature,
             }
@@ -269,6 +267,9 @@ class OllamaClient:
                 # 使用简单的json format
                 payload["format"] = "json"
                 logger.debug("Using simple JSON format")
+
+        if stream:
+            return self._chat_streaming(url=url, payload=payload, model=model)
 
         try:
             resp = request_with_retries(
@@ -291,6 +292,86 @@ class OllamaClient:
         except Exception as e:
             logger.error("LLM chat failed: %s", e)
             return None
+
+    def _chat_streaming(
+        self,
+        url: str,
+        payload: Dict[str, Any],
+        model: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Handle streaming chat responses and aggregate into a standard payload."""
+        try:
+            resp = request_with_retries(
+                method="POST",
+                url=url,
+                json=payload,
+                timeout=self.timeout,
+                trust_env=False,
+                stream=True,
+            )
+        except Exception as e:
+            logger.error("LLM streaming request failed: %s", e)
+            return None
+
+        chunks: List[Dict[str, Any]] = []
+        content_parts: List[str] = []
+        final_chunk: Dict[str, Any] = {}
+
+        try:
+            for raw_line in resp.iter_lines(decode_unicode=True):
+                if not raw_line:
+                    continue
+                try:
+                    chunk = json.loads(raw_line)
+                except json.JSONDecodeError:
+                    logger.warning("Skipping invalid streaming chunk: %s", str(raw_line)[:120])
+                    continue
+
+                if not isinstance(chunk, dict):
+                    continue
+                chunks.append(chunk)
+
+                message = chunk.get("message")
+                if isinstance(message, dict):
+                    part = message.get("content")
+                    if isinstance(part, str) and part:
+                        content_parts.append(part)
+
+                if chunk.get("done") is True:
+                    final_chunk = chunk
+        except Exception as e:
+            logger.error("LLM streaming read failed: %s", e)
+            return None
+
+        if not chunks:
+            logger.error("LLM streaming returned no chunks")
+            return None
+
+        last_chunk = final_chunk or chunks[-1]
+        merged: Dict[str, Any] = {
+            "model": last_chunk.get("model", model),
+            "created_at": last_chunk.get("created_at"),
+            "message": {
+                "role": "assistant",
+                "content": "".join(content_parts),
+            },
+            "done": bool(last_chunk.get("done", bool(final_chunk))),
+        }
+
+        # Preserve common generation stats when present on final chunk.
+        for key in (
+            "total_duration",
+            "load_duration",
+            "prompt_eval_count",
+            "prompt_eval_duration",
+            "eval_count",
+            "eval_duration",
+        ):
+            if key in last_chunk:
+                merged[key] = last_chunk[key]
+
+        logger.debug("LLM streaming completed using %s", model)
+        return merged
 
     def generate(
         self,

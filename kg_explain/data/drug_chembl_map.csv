@@ -1,166 +1,78 @@
-drug_raw,canonical_name,rxnorm_term,chembl_id,chembl_pref_name
-0.9% sodium chloride injection solution,0.9% sodium chloride injection solution,,CHEMBL2108860,SODIUM PSYLLIATE [INJECTION]
-10 x 10^6 cells,10 x 10^6 cells,,CHEMBL39541,DOLASTATIN-10
-18F-FPPRGD2,18f-fpprgd2,,CHEMBL2023193,[18F]FLUORORASAGILINE
-3 x 10^6 cells,3 x 10^6 cells,,CHEMBL253548,6-Deoxymanzamine X
-30 x 10^6 cells,30 x 10^6 cells,,CHEMBL253548,6-Deoxymanzamine X
-6% Hydroxyethylstarch,6% hydroxyethylstarch,,CHEMBL1298,NORVERAPAMIL
-Acetylsalicylic Acid,acetylsalicylic acid,,CHEMBL2429949,ACETYLSALICYLIC-LYSINE
-Alirocumab,alirocumab,,CHEMBL2109540,ALIROCUMAB
-Alirocumab 150 MG/ML subcutaneous injection,alirocumab,,CHEMBL2109540,ALIROCUMAB
-Aliskiren,aliskiren,,CHEMBL1639,ALISKIREN
-Angiotensin 1-7,angiotensin 1-7,,CHEMBL3545347,TALFIRASTIDE
-Aspirin,acetylsalicylic acid,,CHEMBL2429949,ACETYLSALICYLIC-LYSINE
-Aspirin + Ticagrelor,aspirin + ticagrelor,,CHEMBL398435,TICAGRELOR
-Aspirin 25 mg bid,aspirin,,CHEMBL25,ASPIRIN
-Aspirin tablet,aspirin,,CHEMBL25,ASPIRIN
-Atenolol,atenolol,,CHEMBL24,ATENOLOL
-Atorvastatin,atorvastatin,,CHEMBL1487,ATORVASTATIN
-Atorvastatin 20 mg + Pioglitazone 30 mg,atorvastatin,,CHEMBL1487,ATORVASTATIN
-Atorvastatin 20mg,atorvastatin,,CHEMBL1487,ATORVASTATIN
-Autologous ASC (for Adipose-derived Stem/Stroma Cell),autologous asc (for adipose-derived stem/stroma cell),,CHEMBL6068572,AUTOLOGOUS ADIPOSE-DERIVED STROMAL VASCULAR FRACTION
-BIWH 3,biwh 3,,CHEMBL1835901,
-BMS-823778,bms-823778,,CHEMBL4297457,BMS-823778
-BMS-844421,bms-823778,,CHEMBL4297457,BMS-823778
-Biktarvy,biktarvy,,CHEMBL3989867,BICTEGRAVIR SODIUM
-Bupivacaine liposome,bupivacaine liposome,,CHEMBL1098,BUPIVACAINE
-Canakinumab (ACZ885),canakinumab (acz885),,CHEMBL1201834,CANAKINUMAB
-Cangrelor,cangrelor,,CHEMBL334966,CANGRELOR
-Cellgram-CLI,cellgram-cli,,CHEMBL225157,RESATORVID
-Cholecalciferol,cholecalciferol,,CHEMBL1042,CHOLECALCIFEROL
-Cilostazol,cilostazol,,CHEMBL799,CILOSTAZOL
-Cilostazol 100 mg,cilostazol,,CHEMBL799,CILOSTAZOL
-Cilostazol 200 mg,cilostazol,,CHEMBL799,CILOSTAZOL
-Clopidogrel,clopidogrel,,CHEMBL1771,CLOPIDOGREL
-Colchicine,colchicine,,CHEMBL107,COLCHICINE
-Comparator,comparator,,CHEMBL3983509,
-Contrast-Enhanced Ultrasound,contrast-enhanced ultrasound,,CHEMBL6042476,
-Cord blood stem cell injection,cord blood stem cell,,CHEMBL4594461,AUTOLOGOUS CORD BLOOD
-DLBS1033,dlbs1033,,,
-Dabigatran,dabigatran,,CHEMBL539697,DABIGATRAN ETEXILATE
-Dipyridamole 200 mg bid,dipyridamole,,CHEMBL932,DIPYRIDAMOLE
-Dipyridamole 200mg and Aspirin 25mg bid:,dipyridamole + aspirin,,CHEMBL25,ASPIRIN
-Double Atorvastatin,atorvastatin,,CHEMBL1487,ATORVASTATIN
-Dual Antiplatelet (DAPT) Therapy,dual antiplatelet (dapt) therapy,,CHEMBL5984914,
-Entresto,entresto,,CHEMBL5315276,
-Evolocumab,evolocumab,,CHEMBL2364655,EVOLOCUMAB
-Extended Release Nicotinic Acid (Niaspan),extended release nicotinic acid (niaspan),,CHEMBL573,NIACIN
-Extended release niacin,extended release niacin,,CHEMBL573,NIACIN
-Ezetimibe,ezetimibe,,CHEMBL1138,EZETIMIBE
-Ezetimibe + Atorvastatin,ezetimibe + atorvastatin,,CHEMBL1487,ATORVASTATIN
-Ezetimibe + Simvastatin,ezetimibe + simvastatin,,CHEMBL1201391,TENIVASTATIN
-Ezetimibe 10mg,ezetimibe,,CHEMBL1138,EZETIMIBE
-Ezetrol (Ezetimibe),ezetimibe,,CHEMBL1138,EZETIMIBE
-Fasudil Hydrochloride,fasudil hydrochloride,,CHEMBL541388,FASUDIL HYDROCHLORIDE
-Fentanyl Injection,fentanyl,,CHEMBL1201159,FENTANYL HYDROCHLORIDE
-GFH312,gfh312,,,
-Gemfibrozil,gemfibrozil,,CHEMBL457,GEMFIBROZIL
-HGF Plasmid (AMG0001),hgf plasmid (amg0001),,CHEMBL4594561,"INVAC-1, A DOUBLE STRANDED DNA PLASMID VACCINE CONSTRUCT ENCODING UBIQUITIN-HUMAN TELOMERASE REVERSE TRANSCRIPTASE (HTERT) FUSION PROTEIN"
-Heme arginate + L-arginine,heme arginate + l-arginine,,CHEMBL4297285,HEME ARGINATE
-Hemoglobin glutamer 250 - bovine,hemoglobin glutamer 250 - bovine,,CHEMBL2108603,HEMOGLOBIN GLUTAMER-250 (BOVINE)
-Heparin,heparin,,CHEMBL4650299,HEPARIN
-High dose erythropoietin,high dose erythropoietin,,CHEMBL664,
-Icosapent ethyl,icosapent ethyl,,CHEMBL2095209,ICOSAPENT ETHYL
-Isovue,isovue,,CHEMBL1200932,IOPAMIDOL
-Jardiance,jardiance,,CHEMBL2107830,EMPAGLIFLOZIN
-L-arginine + heme arginate,heme arginate + l-arginine,,CHEMBL4297285,HEME ARGINATE
-LEQVIO,leqvio,,CHEMBL5095052,INCLISIRAN SODIUM
-Lomitapide,lomitapide,,CHEMBL2105662,LOMITAPIDE MESYLATE
-Low dose erythropoietin,low dose erythropoietin,,CHEMBL2108580,"CARBOXYMETHYLCELLULOSE SODIUM, LOW-SUBSTITUTED"
-MEDI6012,medi6012,,CHEMBL4297868,RECOMBINANT HUMAN LECITHIN:CHOLESTEROL ACYLTRANSFERASE
-MESENDO,mesendo,,,
-MLN1202,mln1202,,CHEMBL3707228,PLOZALIZUMAB
-Matching Placebo,matching placebo,,CHEMBL5590462,
-Matching Placebo subcutaneous injection,matching placebo,,CHEMBL5590462,
-Matching placebo,matching placebo,,CHEMBL5590462,
-Metformin,metformin,,CHEMBL1431,METFORMIN
-Metformin 1000 mg,metformin,,CHEMBL1431,METFORMIN
-Metoprolol,metoprolol,,CHEMBL2356097,METOPROLOL SUCCINATE
-Midazolam injection,midazolam,,CHEMBL655,MIDAZOLAM
-Montelukast Sodium,montelukast sodium,,CHEMBL1200681,MONTELUKAST SODIUM
-N-acetylcysteine,n-acetylcysteine,,CHEMBL600,ACETYLCYSTEINE
-Natural source Vitamin E 400IU/day,natural source vitamin e,,CHEMBL1790520,BACITRACIN A 
-Nexlizet,nexlizet,,CHEMBL3545313,BEMPEDOIC ACID
-Niacin/Laropiprant combination,niacin/laropiprant combination,,CHEMBL426559,LAROPIPRANT
-Nitroglycerin,nitroglycerin,,CHEMBL730,NITROGLYCERIN
-Nitroglycerin 0.4 mg sublingual,nitroglycerin,,CHEMBL730,NITROGLYCERIN
-Optimal Medical Care,optimal medical care,,CHEMBL2108889,"AIR, MEDICAL"
-PDA-002,pda-002,,CHEMBL4303334,
-PMR 135 mg,pmr,,CHEMBL5314922,MG-S-2525
-Pactimibe sulfate,pactimibe sulfate,,CHEMBL478858,PACTIMIBE
-Phenprocoumon,phenprocoumon,,CHEMBL3589649,
-Placebo,matching placebo,,CHEMBL5590462,
-Placebo (for Rimonabant),matching placebo,,CHEMBL5590462,
-Placebo Oral Tablet,placebo oral,,CHEMBL2108778,POLIOVIRUS VACCINE LIVE ORAL
-Placebo bolus & placebo infusion,matching placebo,,CHEMBL5590462,
-Placebo capsules - end of PCI,matching placebo,,CHEMBL5590462,
-Placebo capsules - end of infusion,matching placebo,,CHEMBL5590462,
-Placebo group,matching placebo,,CHEMBL5590462,
-Placebo matching with BMS-823778,placebo matching with bms-823778,,CHEMBL4297457,BMS-823778
-Placebos,matching placebo,,CHEMBL5590462,
-Plerixafor,plerixafor,,CHEMBL5402188,
-Polypill: Red Heart Pill,polypill: red heart pill,,CHEMBL210287,BROMOPYROGALLOL RED
-REX-001,rex-001,,CHEMBL4303484,
-RV-P1501,rv-p1501,,CHEMBL3753868,
-Ranolazine,ranolazine,,CHEMBL1404,RANOLAZINE
-Remodulin (treprostinil sodium) Injection,remodulin (treprostinil sodium),,CHEMBL561157,TREPROSTINIL SODIUM
-Remodulin® (treprostinil sodium) Injection,remodulin (treprostinil sodium),,CHEMBL561157,TREPROSTINIL SODIUM
-Repatha,repatha,,CHEMBL2364655,EVOLOCUMAB
-Rimonabant,rimonabant,,CHEMBL111,RIMONABANT
-Rosiglitazone,rosiglitazone,,CHEMBL121,ROSIGLITAZONE
-Rosuvastatin,rosuvastatin,,CHEMBL1744447,ROSUVASTATIN CALCIUM
-SLV342,slv342,,,
-SP-8356,sp-8356,,CHEMBL2426707,SP-8356
-Saline,saline,,CHEMBL2108783,"POTASSIC SALINE [INJECTION], LACTATED"
-"Sapropterin Dihydrochloride (BH4, tetrahydrobiopterin)",sapropterin dihydrochloride (bh4 + tetrahydrobiopterin),,CHEMBL1201774,SAPROPTERIN
-Serine proteinase-1 (Serp-1),serine proteinase-1 (serp-1),,CHEMBL4297879,.ALPHA.1-PROTEINASE INHIBITOR HUMAN
-Sevelamer Carbonate (Renvela),sevelamer carbonate (renvela),,CHEMBL5314347,SEVELAMER CARBONATE
-Sildenafil,sildenafil,,CHEMBL1737,SILDENAFIL CITRATE
-Simvastatin,simvastatin,,CHEMBL1201391,TENIVASTATIN
-Simvastatin 40mg,simvastatin,,CHEMBL1201391,TENIVASTATIN
-Spironolactone,spironolactone,,CHEMBL1393,SPIRONOLACTONE
-Statin,statin,,CHEMBL286958,
-Statin therapy,statin,,CHEMBL286958,
-Statseal,statseal,,,
-Stem cell infusion,stem cell,,CHEMBL4298054,STEM BROMELAIN
-Sugar pill,sugar pill,,CHEMBL1201647,"SUGAR, INVERT"
-Temsirolimus,temsirolimus,,CHEMBL1201182,TEMSIROLIMUS
-Temsirolimus and dexamethasone sodium phosphate,temsirolimus + dexamethasone sodium phosphate,,CHEMBL2021430,DEXAMETHASONE SODIUM PHOSPHATE
-Ticagrelor,aspirin + ticagrelor,,CHEMBL398435,TICAGRELOR
-Ticagrelor 90mg,ticagrelor,,CHEMBL398435,TICAGRELOR
-TriLipix,trilipix,,CHEMBL981,FENOFIBRIC ACID
-Urinary Kallikrein,urinary kallikrein,,CHEMBL4298121,KALLIKREIN-1
-Usual medication,usual medication,,CHEMBL2108889,"AIR, MEDICAL"
-Vascepa,vascepa,,CHEMBL2095209,ICOSAPENT ETHYL
-Vitamin C,vitamin c,,CHEMBL196,ASCORBIC ACID
-Vitamin E,vitamin e,,CHEMBL3989727,VITAMIN E
-Vorapaxar,vorapaxar,,CHEMBL493982,VORAPAXAR
-Vytorin (Ezetimibe + Simvastatin),vytorin (ezetimibe + simvastatin),,CHEMBL1201391,TENIVASTATIN
-Warfarin,warfarin,,CHEMBL1464,WARFARIN
-YQ23,yq23,,,
-Yamani-15/5 chemical solution,yamani-15/5 chemical solution,,CHEMBL5818489,
-adenosine infusion treatment,adenosine infusion treatment,,CHEMBL606298,
-ascorbic acid,vitamin c,,CHEMBL196,ASCORBIC ACID
-atorvastatin,atorvastatin,,CHEMBL1487,ATORVASTATIN
-"atorvastatin, aspirin, losartan, amlodipine",atorvastatin + aspirin + losartan + amlodipine,,CHEMBL1200402,AMLODIPINE BESYLATE
-autologous CD133+ cells,stem cell,,CHEMBL4298054,STEM BROMELAIN
-clopidogrel,clopidogrel,,CHEMBL1771,CLOPIDOGREL
-control systolic blood pressure less than 120 mmHg,control systolic blood pressure less than 120 mmhg,,CHEMBL1643772,CRTH2-negative-control
-control systolic blood pressure less than 140 mmHg,control systolic blood pressure less than 120 mmhg,,CHEMBL1643772,CRTH2-negative-control
-extended release niacin,extended release niacin,,CHEMBL573,NIACIN
-ezetimibe,ezetimibe,,CHEMBL1138,EZETIMIBE
-injection of 68Ga-DOTATATE,injection of 68ga-dotatate,,CHEMBL2108490,"INSULIN, NEUTRAL [INJECTION] OF PURIFIED PORCINE"
-lovaza,lovaza,,CHEMBL1200711,OMEGA-3-ACID ETHYL ESTERS
-mycophenolate mofetil,mycophenolate mofetil,,CHEMBL1456,MYCOPHENOLATE MOFETIL
-niacin/laropiprant,niacin/laropiprant,,CHEMBL426559,LAROPIPRANT
-olmesartan medoxomil,olmesartan medoxomil,,CHEMBL1200692,OLMESARTAN MEDOXOMIL
-placebo,matching placebo,,CHEMBL5590462,
-prednisone,prednisone,,CHEMBL15720,
-pregabalin,pregabalin,,CHEMBL1059,PREGABALIN
-rosiglitazone/placebo,matching placebo,,CHEMBL5590462,
-rosuvastatin,rosuvastatin,,CHEMBL1744447,ROSUVASTATIN CALCIUM
-sirolimus,sirolimus,,CHEMBL263427,
-tacrolimus,tacrolimus,,CHEMBL3989887,TACROLIMUS
-urokinase,urokinase,,CHEMBL1201420,UROKINASE
-veliflapon (DG-031),veliflapon (dg-031),,CHEMBL88712,VELIFLAPON
-vonapanitase,vonapanitase,,CHEMBL3545070,VONAPANITASE
+drug_raw,canonical_name,chembl_id,chembl_pref_name,rxnorm_term
+rosiptor,rosiptor,CHEMBL3989954,ROSIPTOR,
+odulimomab,odulimomab,CHEMBL2109177,ODULIMOMAB,
+alemtuzumab,alemtuzumab,CHEMBL1201587,ALEMTUZUMAB,
+alemtuzumab beta,alemtuzumab beta,CHEMBL5314722,ALEMTUZUMAB BETA,
+deslanoside,deslanoside,CHEMBL1614,DESLANOSIDE,
+digitoxin,digitoxin,CHEMBL254219,DIGITOXIN,
+digoxin,digoxin,CHEMBL1751,DIGOXIN,
+acetyldigitoxin,acetyldigitoxin,CHEMBL3545057,ACETYLDIGITOXIN,
+istaroxime,istaroxime,CHEMBL2093999,ISTAROXIME,
+lanatoside c,lanatoside c,CHEMBL506569,LANATOSIDE C,
+rovelizumab,rovelizumab,CHEMBL2109224,ROVELIZUMAB,
+cerdulatinib,cerdulatinib,CHEMBL4116008,CERDULATINIB,
+r-348,r-348,CHEMBL5314384,R-348,
+at-9283,at-9283,CHEMBL495727,AT-9283,
+r-333,r-333,CHEMBL3545159,R-333,
+decernotinib,decernotinib,CHEMBL3039513,DECERNOTINIB,
+ritlecitinib,ritlecitinib,CHEMBL4085457,RITLECITINIB,
+ritlecitinib tosylate,ritlecitinib tosylate,CHEMBL5314649,RITLECITINIB TOSYLATE,
+filgotinib,filgotinib,CHEMBL3301607,FILGOTINIB,
+filgotinib maleate,filgotinib maleate,CHEMBL4298167,FILGOTINIB MALEATE,
+upadacitinib hemihydrate,upadacitinib hemihydrate,CHEMBL5315119,UPADACITINIB HEMIHYDRATE,
+deuruxolitinib phosphate,deuruxolitinib phosphate,CHEMBL4594382,DEURUXOLITINIB PHOSPHATE,
+brensocatib,brensocatib,CHEMBL3900409,BRENSOCATIB,
+tofacitinib citrate,tofacitinib citrate,CHEMBL2103743,TOFACITINIB CITRATE,
+peficitinib,peficitinib,CHEMBL3137308,PEFICITINIB,
+delgocitinib,delgocitinib,CHEMBL4297507,DELGOCITINIB,
+gusacitinib,gusacitinib,CHEMBL4594275,GUSACITINIB,
+izencitinib,izencitinib,CHEMBL4650343,IZENCITINIB,
+nezulcitinib,nezulcitinib,CHEMBL4802163,NEZULCITINIB,
+interferon alfa-n3,interferon alfa-n3,CHEMBL2109047,INTERFERON ALFA-N3,
+interferon alfa-2a,interferon alfa-2a,CHEMBL2108508,INTERFERON ALFA-2A,
+interferon alfa-2b,interferon alfa-2b,CHEMBL1201558,INTERFERON ALFA-2B,
+interferon beta-1a,interferon beta-1a,CHEMBL1201562,INTERFERON BETA-1A,
+peginterferon alfa-2a,peginterferon alfa-2a,CHEMBL1201560,PEGINTERFERON ALFA-2A,
+peginterferon alfa-2b,peginterferon alfa-2b,CHEMBL1201561,PEGINTERFERON ALFA-2B,
+interferon beta-1b,interferon beta-1b,CHEMBL1201563,INTERFERON BETA-1B,
+interferon alfacon-1,interferon alfacon-1,CHEMBL1201557,INTERFERON ALFACON-1,
+peginterferon beta-1a,peginterferon beta-1a,CHEMBL2108677,PEGINTERFERON BETA-1A,
+albinterferon alfa-2b,albinterferon alfa-2b,CHEMBL2107842,ALBINTERFERON ALFA-2B,
+ropeginterferon alfa-2b,ropeginterferon alfa-2b,CHEMBL4297819,ROPEGINTERFERON ALFA-2B,
+efalizumab,efalizumab,CHEMBL1201575,EFALIZUMAB,
+lifitegrast,lifitegrast,CHEMBL2048028,LIFITEGRAST,
+ccx354,ccx354,CHEMBL4444976,CCX354,
+azd4818,azd4818,CHEMBL2178570,AZD4818,
+bms-817399,bms-817399,CHEMBL3334824,BMS-817399,
+erlizumab,erlizumab,CHEMBL2109095,ERLIZUMAB,
+mlnm-2201,mlnm-2201,CHEMBL2109332,MLNM-2201,
+bms-986020,bms-986020,CHEMBL4297270,BMS-986020,
+emricasan,emricasan,CHEMBL197672,EMRICASAN,
+sabatolimab,sabatolimab,CHEMBL4594575,SABATOLIMAB,
+cobolimab,cobolimab,CHEMBL4298123,COBOLIMAB,
+lomvastomig,lomvastomig,CHEMBL4594602,LOMVASTOMIG,
+nivocasan,nivocasan,CHEMBL2105721,NIVOCASAN,
+belnacasan,belnacasan,CHEMBL2107819,BELNACASAN,
+azd9056,azd9056,CHEMBL3545108,AZD9056,
+ce-224535,ce-224535,CHEMBL1823817,CE-224535,
+jnj-54175446,jnj-54175446,CHEMBL4079239,JNJ-54175446,
+ibrutinib,ibrutinib,CHEMBL1873475,IBRUTINIB,
+spebrutinib besylate,spebrutinib besylate,CHEMBL3301600,SPEBRUTINIB BESYLATE,
+poseltinib,poseltinib,CHEMBL4163691,POSELTINIB,
+tirabrutinib,tirabrutinib,CHEMBL4071161,TIRABRUTINIB,
+acalabrutinib,acalabrutinib,CHEMBL3707348,ACALABRUTINIB,
+zanubrutinib,zanubrutinib,CHEMBL3936761,ZANUBRUTINIB,
+branebrutinib,branebrutinib,CHEMBL4297674,BRANEBRUTINIB,
+bms-986142,bms-986142,CHEMBL3900554,BMS-986142,
+evobrutinib,evobrutinib,CHEMBL4072833,EVOBRUTINIB,
+elsubrutinib,elsubrutinib,CHEMBL4594348,ELSUBRUTINIB,
+fenebrutinib,fenebrutinib,CHEMBL4065122,FENEBRUTINIB,
+rilzabrutinib,rilzabrutinib,CHEMBL3702854,RILZABRUTINIB,
+abivertinib maleate,abivertinib maleate,CHEMBL4297866,ABIVERTINIB MALEATE,
+abivertinib,abivertinib,CHEMBL4297865,ABIVERTINIB,
+vecabrutinib,vecabrutinib,CHEMBL4297640,VECABRUTINIB,
+orelabrutinib,orelabrutinib,CHEMBL4650321,ORELABRUTINIB,
+pirtobrutinib,pirtobrutinib,CHEMBL4650485,PIRTOBRUTINIB,
+edralbrutinib,edralbrutinib,CHEMBL4650338,EDRALBRUTINIB,
+tolebrutinib,tolebrutinib,CHEMBL4650323,TOLEBRUTINIB,
+acalabrutinib maleate,acalabrutinib maleate,CHEMBL4594293,ACALABRUTINIB MALEATE,

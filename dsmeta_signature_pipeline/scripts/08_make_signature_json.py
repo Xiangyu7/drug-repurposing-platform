@@ -37,23 +37,37 @@ def main():
     min_sign = float(cfg["meta"]["min_sign_concordance"])
 
     # --- Load gene data ---
+    # Try ensemble (combined meta + RRA) first; fall back to gene_meta
     ens_path = outdir / "signature" / "gene_meta_ensemble.tsv"
+    meta_path = outdir / "signature" / "gene_meta.tsv"
+
+    df = None
+    source_table = None
+
     if ens_path.exists():
-        df = pd.read_csv(ens_path, sep="\t")
-        df = df.dropna(subset=["meta_logFC", "meta_z", "fdr"]).copy()
-        source_table = "gene_meta_ensemble"
-        if "ensemble_rank_up" in df.columns:
-            df["signed_score"] = np.where(df["meta_logFC"] > 0, -df["ensemble_rank_up"], df["ensemble_rank_up"])
+        df_ens = pd.read_csv(ens_path, sep="\t")
+        df_ens = df_ens.dropna(subset=["meta_logFC", "meta_z", "fdr"]).copy()
+        if len(df_ens) > 0:
+            df = df_ens
+            source_table = "gene_meta_ensemble"
+            if "ensemble_rank_up" in df.columns:
+                df["signed_score"] = np.where(df["meta_logFC"] > 0,
+                                              -df["ensemble_rank_up"],
+                                              df["ensemble_rank_up"])
+            else:
+                df["signed_score"] = -df["meta_z"]
+            print(f"[cyan]Using ensemble table: {len(df)} genes[/cyan]")
         else:
-            df["signed_score"] = -df["meta_z"]
-    else:
-        meta_path = outdir / "signature" / "gene_meta.tsv"
+            print("[yellow]Ensemble file exists but is empty, falling back to gene_meta[/yellow]")
+
+    if df is None:
         if not meta_path.exists():
             raise SystemExit(f"Neither ensemble nor gene_meta file found in {outdir / 'signature'}")
         df = pd.read_csv(meta_path, sep="\t")
         df = df.dropna(subset=["meta_logFC", "meta_z", "fdr"]).copy()
         source_table = "gene_meta"
         df["signed_score"] = -df["meta_z"]
+        print(f"[cyan]Using gene_meta table: {len(df)} genes[/cyan]")
 
     # --- Validate we have data ---
     if len(df) == 0:
@@ -89,11 +103,27 @@ def main():
     genes_after_filter = len(df)
 
     # --- Select top genes ---
+    # signed_score: negative values = UP in disease, positive values = DOWN in disease
+    # (because signed_score = -meta_z, and meta_z > 0 means up in disease)
+    # So: sort ascending → head = most negative = most UP-regulated
+    #     tail = most positive = most DOWN-regulated
     df = df.sort_values("signed_score")
     actual_top_n = min(top_n, len(df) // 2) if len(df) >= 2 else len(df)
 
+    # head() = most negative signed_score = most positive meta_z = UP-regulated in disease
     up = df.head(actual_top_n).copy()
+    # tail() = most positive signed_score = most negative meta_z = DOWN-regulated in disease
     down = df.tail(actual_top_n).copy()
+
+    # Validate direction
+    if len(up) > 0 and len(down) > 0:
+        if "meta_logFC" in up.columns:
+            up_mean_lfc = up["meta_logFC"].mean()
+            down_mean_lfc = down["meta_logFC"].mean()
+            if up_mean_lfc < down_mean_lfc:
+                print("[yellow]WARNING: Up-gene mean logFC < Down-gene mean logFC. "
+                      "Swapping directions.[/yellow]")
+                up, down = down, up
 
     sig_dir = outdir / "signature"
     sig_dir.mkdir(parents=True, exist_ok=True)

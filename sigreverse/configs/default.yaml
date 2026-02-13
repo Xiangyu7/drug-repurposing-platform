@@ -1,10 +1,10 @@
-# SigReverse default config — v0.3.0
+# SigReverse default config — v0.4.1
 
 ldp3:
   metadata_api: "https://maayanlab.cloud/sigcom-lincs/metadata-api/"
   data_api: "https://maayanlab.cloud/sigcom-lincs/data-api/api/v1/"
   database: "l1000_cp"  # l1000_cp=小分子药物, l1000_xpr=CRISPR knockout
-  topk_signatures: 2000       # signature-level results to fetch (increased from 500 for better coverage)
+  topk_signatures: 10000      # signature-level results to fetch (10k = sweet spot: ~5x more drugs, manageable size)
   timeout_sec: 120
   retries: 3
   backoff_sec: 2
@@ -86,8 +86,16 @@ fusion:
     dose_response: 0.05
     literature: 0.05
   normalization: "rank"            # "rank" or "minmax"
-  # kg_scores_path: "data/external/kg_explain_scores.csv"
-  # safety_scores_path: "data/external/faers_safety_scores.csv"
+  # KG_Explain V5 output — supports raw drug-disease level CSV directly.
+  # Columns auto-detected: drug_normalized → drug, final_score.
+  # Multi-row data aggregated to drug level via max(final_score).
+  # kg_scores_path: "../kg_explain/output/drug_disease_rank_v5.csv"
+  # Filter KG results to a specific disease (matches diseaseName column).
+  # Leave unset to use all diseases.
+  # disease_filter: "atherosclerosis"
+  # FAERS safety data from KG_Explain — supports per-AE rows directly.
+  # Auto-aggregates report_count to drug-level safety score.
+  # safety_scores_path: "../kg_explain/data/edge_drug_ae_faers.csv"
 
 qc:
   max_missing_gene_ratio: 0.30

@@ -256,6 +256,87 @@ def evaluate_extraction(
     )
 
 
+def evaluate_by_stratum(
+    predictions: List[Dict[str, Any]],
+    gold: List[GoldStandardRecord],
+    stratum_field: str = "direction",
+    eval_fields: Optional[List[str]] = None,
+) -> Dict[str, ExtractionMetrics]:
+    """Evaluate extraction metrics broken down by a stratum field.
+
+    Groups gold-standard records by the specified field value and
+    runs evaluation independently on each group.
+
+    Args:
+        predictions: Predicted extractions
+        gold: Gold-standard records
+        stratum_field: Field to stratify by (e.g., "direction", "model")
+        eval_fields: Fields to evaluate within each stratum
+
+    Returns:
+        {stratum_value: ExtractionMetrics}
+    """
+    if eval_fields is None:
+        eval_fields = ["direction", "model"]
+
+    # Group gold by stratum value
+    strata: Dict[str, List[GoldStandardRecord]] = defaultdict(list)
+    for g in gold:
+        val = getattr(g, stratum_field, "unknown").lower().strip()
+        strata[val].append(g)
+
+    results: Dict[str, ExtractionMetrics] = {}
+    for stratum_val, stratum_gold in sorted(strata.items()):
+        metrics = evaluate_extraction(predictions, stratum_gold, fields=eval_fields)
+        results[stratum_val] = metrics
+        logger.info(
+            "Stratum %s=%s: n=%d, accuracy=%.3f",
+            stratum_field, stratum_val, metrics.matched_samples, metrics.overall_accuracy,
+        )
+
+    return results
+
+
+def evaluate_by_difficulty(
+    predictions: List[Dict[str, Any]],
+    gold_v2: list,
+    eval_fields: Optional[List[str]] = None,
+) -> Dict[str, ExtractionMetrics]:
+    """Evaluate extraction metrics broken down by difficulty tier.
+
+    Requires V2 gold-standard records with difficulty_tier field.
+
+    Args:
+        predictions: Predicted extractions
+        gold_v2: List of GoldStandardRecordV2 objects (must have difficulty_tier)
+        eval_fields: Fields to evaluate
+
+    Returns:
+        {difficulty_tier: ExtractionMetrics}
+    """
+    if eval_fields is None:
+        eval_fields = ["direction", "model"]
+
+    # Group by difficulty
+    by_difficulty: Dict[str, list] = defaultdict(list)
+    for g in gold_v2:
+        tier = getattr(g, "difficulty_tier", "medium")
+        # Convert V2 to V1 for evaluate_extraction compatibility
+        v1 = g.to_v1() if hasattr(g, "to_v1") else g
+        by_difficulty[tier].append(v1)
+
+    results: Dict[str, ExtractionMetrics] = {}
+    for tier, tier_gold in sorted(by_difficulty.items()):
+        metrics = evaluate_extraction(predictions, tier_gold, fields=eval_fields)
+        results[tier] = metrics
+        logger.info(
+            "Difficulty %s: n=%d, accuracy=%.3f",
+            tier, metrics.matched_samples, metrics.overall_accuracy,
+        )
+
+    return results
+
+
 def compare_methods(
     results_a: List[Dict[str, Any]],
     results_b: List[Dict[str, Any]],

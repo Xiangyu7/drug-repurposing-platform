@@ -11,11 +11,32 @@ Writes:
   - <outdir>/step8_shortlist_topK.csv
   - <outdir>/step8_candidate_pack_from_step7.xlsx
   - <outdir>/step8_one_pagers_topK.md
+  - <outdir>/step8_manifest.json
 """
 
-import os, re, json, argparse
-from typing import Any, Dict, List, Optional
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from src.dr.common.provenance import build_manifest, write_manifest
+from src.dr.contracts import (
+    STEP7_CARDS_SCHEMA,
+    STEP7_CARDS_VERSION,
+    STEP8_SHORTLIST_SCHEMA,
+    STEP8_SHORTLIST_VERSION,
+    validate_step7_cards,
+    validate_step8_shortlist_columns,
+)
+from src.dr.contracts_enforcer import ContractEnforcer
+from src.dr.scoring.release_gate import ReleaseGate, ReleaseGateConfig
 
 STOP_WORDS = {
     "tablet","tablets","capsule","capsules","injection","injectable","infusion","oral",
@@ -43,7 +64,7 @@ def canonicalize_name(x: str) -> str:
     joined = " ".join(toks).replace("α","alpha").replace("β","beta")
     return re.sub(r"\s+", " ", joined).strip()
 
-def safe_sheet_name(s: str, used: set) -> str:
+def safe_sheet_name(s: str, used: Set[str]) -> str:
     s = re.sub(r"[\[\]\*:/\\\?]", "_", str(s)).strip() or "candidate"
     s = s[:31]
     base = s
@@ -61,6 +82,11 @@ def resolve_path(base_dir: str, p: str) -> str:
         return ""
     if os.path.isabs(p):
         return p
+    # Try relative to cwd first (step7 cards store paths relative to project root)
+    cwd_resolved = os.path.abspath(p)
+    if os.path.exists(cwd_resolved):
+        return cwd_resolved
+    # Fallback: relative to base_dir
     return os.path.join(base_dir, p)
 
 def read_json(path: str) -> Optional[Dict[str, Any]]:
@@ -110,6 +136,16 @@ def top_evidence_lines(items: List[Dict[str, Any]], n: int = 10) -> List[str]:
             out.append(f"PMID:{pmid} | {claim[:220]}")
     return out
 
+
+def _handle_contract_issues(issues: List[str], strict_contract: bool, context: str) -> None:
+    if not issues:
+        return
+    message = f"{context}: {issues}"
+    if strict_contract:
+        raise ValueError(message)
+    print(f"[WARN] {message}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--step7_dir", default="output/step7")
@@ -118,22 +154,49 @@ def main():
     ap.add_argument("--target_disease", default="atherosclerosis")
     ap.add_argument("--topk", type=int, default=3)
     ap.add_argument("--prefer_go", type=int, default=1, help="1: GO优先；0: 纯按rank_key排序")
+    ap.add_argument(
+        "--include_explore",
+        type=int,
+        default=1,
+        help="1=shortlist预留探索通道候选位, 0=不预留",
+    )
+    ap.add_argument(
+        "--min_explore_slots",
+        type=int,
+        default=1,
+        help="当 include_explore=1 时保留的最小探索位",
+    )
+    ap.add_argument(
+        "--strict_contract",
+        type=int,
+        default=1,
+        help="1=fail on contract mismatch, 0=warn only",
+    )
     args = ap.parse_args()
 
-    os.makedirs(args.outdir, exist_ok=True)
-    step7_cards_path = os.path.join(args.step7_dir, "step7_cards.json")
-    if not os.path.exists(step7_cards_path):
+    strict_contract = bool(args.strict_contract)
+    outdir = Path(args.outdir).resolve()
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    step7_dir = Path(args.step7_dir).resolve()
+    step7_cards_path = step7_dir / "step7_cards.json"
+    if not step7_cards_path.exists():
         raise FileNotFoundError(f"Missing {step7_cards_path}. Please run Step7 first.")
 
-    with open(step7_cards_path, "r", encoding="utf-8") as f:
+    with step7_cards_path.open("r", encoding="utf-8") as f:
         cards = json.load(f)
-    if not isinstance(cards, list):
-        raise ValueError("step7_cards.json should be a list")
+    card_contract_issues = validate_step7_cards(cards)
+    _handle_contract_issues(
+        card_contract_issues,
+        strict_contract,
+        f"Step7 cards contract mismatch ({STEP7_CARDS_SCHEMA}@{STEP7_CARDS_VERSION})",
+    )
 
-    base_dir = os.path.abspath(args.step7_dir)
+    base_dir = str(step7_dir)
 
     # neg trials
-    neg = pd.read_csv(args.neg) if args.neg and os.path.exists(args.neg) else pd.DataFrame()
+    neg_path = Path(args.neg).resolve() if args.neg else None
+    neg = pd.read_csv(neg_path) if neg_path and neg_path.exists() else pd.DataFrame()
     if len(neg):
         if "drug_raw" in neg.columns:
             neg["_canon"] = neg["drug_raw"].astype(str).apply(canonicalize_name)
@@ -145,8 +208,13 @@ def main():
     rows = []
     for c in cards:
         canon = str(c.get("canonical_name","")).strip()
-        dossier_json = resolve_path(base_dir, c.get("dossier_json",""))
-        dossier_md   = resolve_path(base_dir, c.get("dossier_md",""))
+        # Cards may use "dossier_path" or "dossier_json" depending on version
+        raw_dossier_path = c.get("dossier_json") or c.get("dossier_path") or ""
+        dossier_json = resolve_path(base_dir, raw_dossier_path)
+        raw_md_path = c.get("dossier_md") or ""
+        if not raw_md_path and dossier_json:
+            raw_md_path = dossier_json.replace(".json", ".md")
+        dossier_md = raw_md_path
         dossier = read_json(dossier_json) or {}
         m = dossier_metrics(dossier)
 
@@ -170,9 +238,12 @@ def main():
         rows.append({
             "canonical_name": canon,
             "drug_id": c.get("drug_id",""),
-            "gate": c.get("gate",""),
+            "gate": c.get("gate") or c.get("gate_decision",""),
+            "decision_channel": c.get("decision_channel", "exploit"),
             "endpoint_type": c.get("endpoint_type",""),
             "total_score_0_100": total,
+            "novelty_score": float(c.get("novelty_score", 0.0) or 0.0),
+            "uncertainty_score": float(c.get("uncertainty_score", 0.0) or 0.0),
             "safety_blacklist_hit": bool(c.get("safety_blacklist_hit", False)),
             **m,
             "neg_trials_n": neg_trials_n,
@@ -182,6 +253,8 @@ def main():
         })
 
     df = pd.DataFrame(rows)
+    if df.empty:
+        raise ValueError("No candidates found in step7_cards.json")
 
     # 自动排序（更像真实平台）：unique PMIDs > topic > total > (harm/neg trials/safety)惩罚
     df["topic_match_ratio_filled"] = df["topic_match_ratio"].fillna(0.0).astype(float)
@@ -189,22 +262,66 @@ def main():
         df["unique_supporting_pmids_count"].fillna(0).astype(float) * 10.0
         + df["topic_match_ratio_filled"] * 5.0
         + df["total_score_0_100"].fillna(0).astype(float)
+        + df["novelty_score"].fillna(0).astype(float) * 8.0
+        - df["uncertainty_score"].fillna(0).astype(float) * 4.0
         - df["harm_or_neutral_sentence_count"].fillna(0).astype(float) * 0.5
         - df["neg_trials_n"].fillna(0).astype(float) * 1.0
         - df["safety_blacklist_hit"].astype(int) * 8.0
     )
 
+    sorted_all = df.sort_values(["rank_key", "canonical_name"], ascending=[False, True]).copy()
     if args.prefer_go == 1 and (df["gate"] == "GO").any():
-        shortlist = df[df["gate"] == "GO"].sort_values("rank_key", ascending=False).head(args.topk)
+        go_pool = sorted_all[sorted_all["gate"] == "GO"].copy()
+        explore_pool = sorted_all[
+            (sorted_all["gate"] == "MAYBE") & (sorted_all["decision_channel"] == "explore")
+        ].copy()
+
+        reserve = 0
+        if args.include_explore == 1 and not explore_pool.empty:
+            reserve = max(0, min(int(args.min_explore_slots), int(args.topk)))
+
+        go_take = max(0, int(args.topk) - reserve)
+        shortlist_parts = [go_pool.head(go_take)]
+        if reserve > 0:
+            shortlist_parts.append(explore_pool.head(reserve))
+        shortlist = (
+            pd.concat(shortlist_parts, ignore_index=True)
+            .drop_duplicates(subset=["drug_id"], keep="first")
+            .copy()
+        )
+        if len(shortlist) < args.topk:
+            fill = sorted_all[~sorted_all["drug_id"].isin(shortlist["drug_id"])].head(args.topk - len(shortlist))
+            shortlist = pd.concat([shortlist, fill], ignore_index=True)
     else:
-        shortlist = df.sort_values("rank_key", ascending=False).head(args.topk)
+        shortlist = sorted_all.head(args.topk).copy()
+
+    # ===== Release Gate: block if NO-GO drugs in shortlist =====
+    try:
+        gate_cfg = ReleaseGateConfig(block_nogo=True, min_go_ratio=0.0, strict=True)
+        release_gate = ReleaseGate(gate_cfg)
+        gate_result = release_gate.check_shortlist_composition(shortlist)
+        if not gate_result.passed:
+            print(f"[RELEASE GATE BLOCKED] {gate_result.summary()}")
+            nogo_drugs = shortlist[shortlist["gate"] == "NO-GO"]["canonical_name"].tolist()
+            shortlist = shortlist[shortlist["gate"] != "NO-GO"].copy()
+            print(f"  Removed {len(nogo_drugs)} NO-GO drug(s): {nogo_drugs}")
+            if shortlist.empty:
+                raise ValueError("Release gate: all candidates were NO-GO. Cannot produce shortlist.")
+        else:
+            print(f"[RELEASE GATE PASSED] {gate_result.summary()}")
+    except ImportError:
+        print("[WARN] Release gate not available, skipping")
+
+    shortlist["contract_version"] = STEP8_SHORTLIST_VERSION
+    enforcer = ContractEnforcer(strict=strict_contract)
+    enforcer.check_step8_shortlist(shortlist)
 
     # outputs
-    shortlist_csv = os.path.join(args.outdir, f"step8_shortlist_top{args.topk}.csv")
+    shortlist_csv = outdir / f"step8_shortlist_top{args.topk}.csv"
     shortlist.to_csv(shortlist_csv, index=False, encoding="utf-8-sig")
 
-    xlsx_path = os.path.join(args.outdir, "step8_candidate_pack_from_step7.xlsx")
-    md_path = os.path.join(args.outdir, f"step8_one_pagers_top{args.topk}.md")
+    xlsx_path = outdir / "step8_candidate_pack_from_step7.xlsx"
+    md_path = outdir / f"step8_one_pagers_top{args.topk}.md"
 
     used_sheets = set()
     md_lines = [f"# Step8 Candidate One-Pagers (target={args.target_disease})", ""]
@@ -212,7 +329,8 @@ def main():
     with pd.ExcelWriter(xlsx_path, engine="openpyxl") as writer:
         # summary
         cols = [
-            "canonical_name","drug_id","gate","endpoint_type","total_score_0_100","rank_key",
+            "canonical_name","drug_id","gate","decision_channel","endpoint_type","total_score_0_100","rank_key",
+            "novelty_score","uncertainty_score",
             "unique_supporting_pmids_count","supporting_sentence_count",
             "unique_harm_pmids_count","harm_or_neutral_sentence_count",
             "topic_match_ratio","neg_trials_n","neg_trial_summary","safety_blacklist_hit","dossier_md"
@@ -245,9 +363,12 @@ def main():
             meta_df = pd.DataFrame([{
                 "drug": name,
                 "gate": r.get("gate",""),
+                "decision_channel": r.get("decision_channel", "exploit"),
                 "endpoint_type": r.get("endpoint_type",""),
                 "total_score_0_100": r.get("total_score_0_100",""),
                 "rank_key": round(float(r.get("rank_key",0.0)), 2),
+                "novelty_score": round(float(r.get("novelty_score", 0.0) or 0.0), 4),
+                "uncertainty_score": round(float(r.get("uncertainty_score", 0.0) or 0.0), 4),
                 "topic_match_ratio": r.get("topic_match_ratio",""),
                 "unique_supporting_pmids_count": r.get("unique_supporting_pmids_count",""),
                 "harm_or_neutral_sentence_count": r.get("harm_or_neutral_sentence_count",""),
@@ -272,9 +393,9 @@ def main():
             # MD one-pager
             md_lines += [
                 f"## {name}",
-                f"- Gate: **{r.get('gate','')}** | Score: {r.get('total_score_0_100','')} | Endpoint: {r.get('endpoint_type','')}",
+                f"- Gate: **{r.get('gate','')}** ({r.get('decision_channel','exploit')}) | Score: {r.get('total_score_0_100','')} | Endpoint: {r.get('endpoint_type','')}",
                 f"- Unique supporting PMIDs: **{r.get('unique_supporting_pmids_count','')}** | Harm sentences: {r.get('harm_or_neutral_sentence_count','')}",
-                f"- Topic match ratio: {r.get('topic_match_ratio','')}",
+                f"- Topic match ratio: {r.get('topic_match_ratio','')} | Novelty: {r.get('novelty_score', 0.0)} | Uncertainty: {r.get('uncertainty_score', 0.0)}",
                 "",
                 "### Mechanism hypotheses (auto)",
                 *( [f"- {x}" for x in mech[:6]] if mech else ["- (missing; see dossier)"] ),
@@ -304,10 +425,51 @@ def main():
     with open(md_path, "w", encoding="utf-8") as f:
         f.write("\n".join(md_lines))
 
+    input_files = [step7_cards_path]
+    if neg_path and neg_path.exists():
+        input_files.append(neg_path)
+    input_files.extend(
+        Path(p).resolve()
+        for p in df["dossier_json"].astype(str).tolist()
+        if p and Path(p).exists()
+    )
+    output_files = [shortlist_csv, xlsx_path, md_path]
+
+    manifest = build_manifest(
+        pipeline="step8_candidate_pack",
+        repo_root=Path(__file__).resolve().parent.parent,
+        input_files=input_files,
+        output_files=output_files,
+        config={
+            "step7_dir": str(step7_dir),
+            "neg": str(neg_path) if neg_path else "",
+            "outdir": str(outdir),
+            "target_disease": args.target_disease,
+            "topk": int(args.topk),
+            "prefer_go": int(args.prefer_go),
+            "include_explore": int(args.include_explore),
+            "min_explore_slots": int(args.min_explore_slots),
+            "strict_contract": strict_contract,
+        },
+        summary={
+            "candidates_total": int(len(df)),
+            "shortlist_count": int(len(shortlist)),
+            "go_candidates": int((df["gate"] == "GO").sum()),
+            "explore_candidates": int(((df["gate"] == "MAYBE") & (df["decision_channel"] == "explore")).sum()),
+        },
+        contracts={
+            STEP7_CARDS_SCHEMA: STEP7_CARDS_VERSION,
+            STEP8_SHORTLIST_SCHEMA: STEP8_SHORTLIST_VERSION,
+        },
+    )
+    manifest_path = outdir / "step8_manifest.json"
+    write_manifest(manifest_path, manifest)
+
     print("DONE Step8:", args.outdir)
-    print(" -", os.path.basename(shortlist_csv))
-    print(" -", os.path.basename(xlsx_path))
-    print(" -", os.path.basename(md_path))
+    print(" -", shortlist_csv.name)
+    print(" -", xlsx_path.name)
+    print(" -", md_path.name)
+    print(" -", manifest_path.name)
 
 if __name__ == "__main__":
     main()

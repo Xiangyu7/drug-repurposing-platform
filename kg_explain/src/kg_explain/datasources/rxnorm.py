@@ -123,6 +123,31 @@ _FORMULATION_SUFFIXES = re.compile(
     re.I,
 )
 
+# 非药物名称模式: 细胞剂量、安慰剂、生理盐水等
+_NON_DRUG_PATTERNS = [
+    re.compile(r"^\d+\s*x\s*\d+.*cells?$", re.I),             # "10 x 10^6 cells"
+    re.compile(r"\bcells?\b", re.I),                            # any "cell(s)" mention
+    re.compile(r"(^|/)placebo", re.I),                          # "placebo", "matching placebo", "X/placebo"
+    re.compile(r"^(matching\s+)?placebo", re.I),                # "placebo", "matching placebo ..."
+    re.compile(r"^saline$", re.I),                              # "saline"
+    re.compile(r"^normal\s+saline", re.I),                      # "normal saline"
+    re.compile(r"^\d+(\.\d+)?%\s+sodium\s+chloride", re.I),    # "0.9% sodium chloride ..."
+    re.compile(r"\bcomparator\b", re.I),                        # "Comparator", "active comparator"
+    re.compile(r"\bsugar\s+pill\b", re.I),                      # "sugar pill"
+    re.compile(r"\boptimal\s+medical\b", re.I),                 # "optimal medical care/therapy"
+    re.compile(r"\bcontrol\s+(systolic\s+)?blood\s+pressure\b", re.I),  # "control blood pressure..."
+    re.compile(r"\bcontrast[- ]enhanced\b", re.I),              # "contrast-enhanced ultrasound"
+    re.compile(r"\bstandard\s+of\s+care\b", re.I),             # "standard of care"
+    re.compile(r"^sham\b", re.I),                               # "sham" procedure
+    re.compile(r"^observation$", re.I),                         # "observation" (watchful waiting)
+]
+
+
+def _is_non_drug(name: str) -> bool:
+    """判断是否为非药物名称 (安慰剂、细胞剂量等)"""
+    s = name.strip().lower()
+    return any(pat.search(s) for pat in _NON_DRUG_PATTERNS)
+
 
 def _strip_dosage(s: str) -> str:
     """去除单个成分的剂量和剂型后缀"""
@@ -171,8 +196,21 @@ def build_drug_canonical(data_dir: Path) -> Path:
 
     out_df = pd.DataFrame(rows).drop_duplicates()
 
+    # 过滤非药物条目 (安慰剂、细胞剂量等)
+    before = len(out_df)
+    out_df = out_df[~out_df["drug_raw"].apply(_is_non_drug)].copy()
+    n_filtered = before - len(out_df)
+    if n_filtered > 0:
+        logger.info("过滤了 %d 个非药物条目 (安慰剂/细胞剂量等)", n_filtered)
+
     # 统一清洗: 去除剂量/剂型后缀
     out_df["canonical_name"] = out_df["canonical_name"].apply(_clean_drug_name)
+
+    # Strip " combination" suffix to avoid duplicates like
+    # "niacin/laropiprant" vs "niacin/laropiprant combination"
+    out_df["canonical_name"] = out_df["canonical_name"].str.replace(
+        r"\s+combination$", "", regex=True
+    )
 
     n_canonical = out_df["canonical_name"].nunique()
     n_merged = len(out_df) - n_canonical

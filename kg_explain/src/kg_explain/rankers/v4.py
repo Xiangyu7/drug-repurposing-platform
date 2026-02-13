@@ -37,7 +37,11 @@ def run_v4(cfg: Config) -> dict[str, Path]:
 
     # 加载V3结果
     pair = read_csv(output_dir / "drug_disease_rank_v3.csv", dtype=str)
-    paths = pd.read_json(output_dir / "evidence_paths_v3.jsonl", lines=True)
+    ev_jsonl = output_dir / "evidence_paths_v3.jsonl"
+    if ev_jsonl.exists() and ev_jsonl.stat().st_size > 0:
+        paths = pd.read_json(ev_jsonl, lines=True)
+    else:
+        paths = pd.DataFrame(columns=["drug", "diseaseId", "path_score", "nodes", "edges"])
 
     # 为每对生成证据包
     for _, pr in pair.iterrows():

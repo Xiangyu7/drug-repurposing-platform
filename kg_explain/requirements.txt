@@ -5,3 +5,4 @@ tqdm>=4.66
 requests>=2.31
 tenacity>=8.2
 python-dotenv>=1.0
+networkx>=3.0

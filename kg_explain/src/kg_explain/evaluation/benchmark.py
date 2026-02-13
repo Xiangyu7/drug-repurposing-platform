@@ -143,5 +143,98 @@ def format_report(result: dict) -> str:
                 hits = " ".join(f"{k}={m[k]:.2f}" for k in hit_keys)
                 lines.append(f"    {hits}")
 
+
+    # Uncertainty summary (if available)
+    unc = result.get("uncertainty_summary")
+    if unc:
+        lines.append("")
+        lines.append("Uncertainty Summary (Bootstrap CI):")
+        lines.append("-" * 40)
+        for k, v in sorted(unc.items()):
+            if isinstance(v, float):
+                lines.append(f"  {k:20s}: {v:.4f}")
+            else:
+                lines.append(f"  {k:20s}: {v}")
+
+    # Leakage audit (if available)
+    leak = result.get("leakage_audit")
+    if leak:
+        lines.append("")
+        lines.append("Data Leakage Audit:")
+        lines.append("-" * 40)
+        lines.append(f"  split: {leak.get('split_name', 'N/A')}")
+        lines.append(f"  passed: {leak.get('passed', 'N/A')}")
+        drug_info = leak.get("drug_overlap", {})
+        lines.append(f"  drug_overlap: {drug_info.get('count', 0)} ({drug_info.get('ratio', 0):.2%})")
+        disease_info = leak.get("disease_overlap", {})
+        lines.append(f"  disease_overlap: {disease_info.get('count', 0)} ({disease_info.get('ratio', 0):.2%})")
+        pair_info = leak.get("pair_overlap", {})
+        lines.append(f"  pair_leakage: {pair_info.get('count', 0)} (clean={pair_info.get('clean', True)})")
+
+
     lines.append("=" * 60)
     return "\n".join(lines)
+
+
+def run_external_benchmark(
+    rank_csv: Path,
+    cache_dir: Path,
+    mapping_path: Path | None = None,
+    disease_filter: list[str] | None = None,
+    ks: list[int] | None = None,
+) -> dict:
+    """Run benchmark against Hetionet external gold standard.
+
+    Downloads Hetionet CtD edges, maps to EFO IDs, then runs standard benchmark.
+
+    Returns:
+        Same structure as run_benchmark() plus external source info.
+    """
+    from .external_benchmarks import build_external_gold
+    import tempfile
+
+    if ks is None:
+        ks = [5, 10, 20]
+
+    gold_df = build_external_gold(cache_dir, mapping_path, disease_filter)
+    if gold_df.empty:
+        logger.warning("No external gold standard pairs after filtering")
+        return {"per_disease": {}, "aggregate": {}, "n_diseases_evaluated": 0,
+                "n_gold_pairs": 0, "n_gold_found": 0, "source": "hetionet"}
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        gold_df.to_csv(f, index=False)
+        gold_path = Path(f.name)
+
+    try:
+        result = run_benchmark(rank_csv, gold_path, ks=ks)
+    finally:
+        try:
+            gold_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    result["source"] = "hetionet"
+    return result
+
+
+def run_temporal_benchmark(
+    rank_csv: Path,
+    gold_csv: Path,
+    cutoff_year: int = 2020,
+    ks: list[int] | None = None,
+) -> dict:
+    """Run temporal split benchmark.
+
+    Splits gold standard by year and evaluates on both splits.
+
+    Returns:
+        Temporal validation results with gap analysis.
+    """
+    from .temporal_split import run_temporal_validation
+
+    if ks is None:
+        ks = [5, 10, 20]
+
+    gold_df = pd.read_csv(gold_csv, dtype=str)
+    return run_temporal_validation(rank_csv, gold_df, cutoff_year, ks)

@@ -21,6 +21,14 @@ from ..common.text import normalize_pmid
 from ..config import Config
 from ..logger import get_logger
 from .cache import CacheManager
+try:
+    from ..monitoring import track_pubmed_request
+except Exception:  # pragma: no cover - monitoring is optional at runtime
+    from contextlib import contextmanager
+
+    @contextmanager
+    def track_pubmed_request(operation: str):
+        yield
 
 logger = get_logger(__name__)
 
@@ -105,15 +113,16 @@ class PubMedClient:
         logger.info("Searching PubMed: %s (max=%d)", query[:100], max_results)
 
         try:
-            resp = request_with_retries(
-                method="GET",
-                url=url,
-                params=params,
-                timeout=30,
-                max_retries=3,
-                retry_sleep=1.0
-            )
-            data = resp.json()
+            with track_pubmed_request("search"):
+                resp = request_with_retries(
+                    method="GET",
+                    url=url,
+                    params=params,
+                    timeout=30,
+                    max_retries=3,
+                    retry_sleep=1.0
+                )
+                data = resp.json()
         except Exception as e:
             logger.error("PubMed search failed: %s", e)
             raise RuntimeError(f"PubMed search failed: {e}")
@@ -229,15 +238,16 @@ class PubMedClient:
 
         logger.debug("Batch fetching %d PMIDs: %s...", len(pmids), ",".join(pmids[:3]))
 
-        resp = request_with_retries(
-            method="GET",
-            url=url,
-            params=params,
-            timeout=60,
-            max_retries=3,
-            retry_sleep=2.0
-        )
-        xml_text = resp.text
+        with track_pubmed_request("fetch_batch"):
+            resp = request_with_retries(
+                method="GET",
+                url=url,
+                params=params,
+                timeout=60,
+                max_retries=3,
+                retry_sleep=2.0
+            )
+            xml_text = resp.text
         self._rate_limit()
 
         # Parse all <PubmedArticle> blocks from the batch response
@@ -275,15 +285,16 @@ class PubMedClient:
         logger.debug("Fetching PMID %s from PubMed", pmid)
 
         try:
-            resp = request_with_retries(
-                method="GET",
-                url=url,
-                params=params,
-                timeout=30,
-                max_retries=3,
-                retry_sleep=1.0
-            )
-            xml_text = resp.text
+            with track_pubmed_request("fetch_single"):
+                resp = request_with_retries(
+                    method="GET",
+                    url=url,
+                    params=params,
+                    timeout=30,
+                    max_retries=3,
+                    retry_sleep=1.0
+                )
+                xml_text = resp.text
         except Exception as e:
             logger.error("PubMed fetch failed for PMID %s: %s", pmid, e)
             raise RuntimeError(f"PubMed fetch failed for {pmid}: {e}")

@@ -142,6 +142,15 @@ class Config:
     def phenotype(self) -> dict:
         return self.raw.get("phenotype", {})
 
+    # ── 质量门控 ──
+    @property
+    def quality_gate(self) -> dict:
+        return self.raw.get("quality_gate", {})
+
+    @property
+    def registry_path(self) -> Path:
+        return Path(self.quality_gate.get("registry_path", "./output/model_registry.json"))
+
     # ── 严重AE关键词 ──
     @property
     def serious_ae_keywords(self) -> list[str]:

@@ -23,6 +23,12 @@ import pandas as pd
 from .config import Config
 from .utils import safe_str
 
+
+def _safe_numeric(val, default=0.0):
+    """安全转换为数值, NaN/无法解析时返回 default"""
+    v = pd.to_numeric(val, errors="coerce")
+    return float(v) if pd.notna(v) else default
+
 logger = logging.getLogger(__name__)
 
 
@@ -83,8 +89,8 @@ def build_kg(cfg: Config) -> nx.DiGraph:
                    name=safe_str(r.get("reactome_name")))
         G.add_node(disease, type="Disease",
                    name=safe_str(r.get("diseaseName")))
-        score = float(pd.to_numeric(r.get("pathway_score", 0), errors="coerce") or 0)
-        support = int(float(pd.to_numeric(r.get("support_genes", 1), errors="coerce") or 1))
+        score = _safe_numeric(r.get("pathway_score", 0))
+        support = int(_safe_numeric(r.get("support_genes", 1), default=1.0))
         G.add_edge(pathway, disease, type="PATHWAY_DISEASE",
                    pathway_score=score, support_genes=support)
 
@@ -97,8 +103,8 @@ def build_kg(cfg: Config) -> nx.DiGraph:
             continue
         G.add_node(drug, type="Drug")
         G.add_node(ae_term, type="AE")
-        count = int(float(pd.to_numeric(r.get("report_count", 0), errors="coerce") or 0))
-        prr = float(pd.to_numeric(r.get("prr", 0), errors="coerce") or 0)
+        count = int(_safe_numeric(r.get("report_count", 0)))
+        prr = _safe_numeric(r.get("prr", 0))
         G.add_edge(drug, ae_term, type="DRUG_AE",
                    report_count=count, prr=round(prr, 4))
 
@@ -113,7 +119,7 @@ def build_kg(cfg: Config) -> nx.DiGraph:
                    name=safe_str(r.get("diseaseName")))
         G.add_node(pheno, type="Phenotype",
                    name=safe_str(r.get("phenotypeName")))
-        score = float(pd.to_numeric(r.get("score", 0), errors="coerce") or 0)
+        score = _safe_numeric(r.get("score", 0))
         G.add_edge(disease, pheno, type="DISEASE_PHENOTYPE", score=score)
 
     # ── Drug → Trial (safety/efficacy stops) ──

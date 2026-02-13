@@ -41,7 +41,7 @@ def run_v3(cfg: Config) -> dict[str, Path]:
     pd_edge = read_csv(data_dir / files.get("pathway_disease", "edge_pathway_disease.csv"), dtype=str)
 
     require_cols(dt, {"drug_normalized", "target_chembl_id"}, "edge_drug_target")
-    require_cols(tp, {"target_chembl_id", "reactome_stid"}, "edge_target_pathway")
+    require_cols(tp, {"target_chembl_id", "reactome_stid", "reactome_name"}, "edge_target_pathway")
     require_cols(pd_edge, {"reactome_stid", "diseaseId", "pathway_score", "support_genes"}, "edge_pathway_disease")
 
     pd_edge["pathway_score_f"] = pd.to_numeric(pd_edge["pathway_score"], errors="coerce").fillna(0.0)
@@ -50,7 +50,13 @@ def run_v3(cfg: Config) -> dict[str, Path]:
     # 合并路径
     # 只保留路径核心列, 避免 drug_raw/mechanism_of_action 等额外列造成假性重复
     dt_core = dt[["drug_normalized", "target_chembl_id"]].drop_duplicates()
-    dtp = dt_core.merge(tp, on="target_chembl_id", how="inner").dropna(
+    # tp 可能因多个 UniProt accession 导致 (target, pathway) 重复, 先去重
+    if "reactome_name" not in tp.columns:
+        tp["reactome_name"] = ""
+    tp_core = tp[["target_chembl_id", "reactome_stid", "reactome_name"]].drop_duplicates(
+        subset=["target_chembl_id", "reactome_stid"]
+    )
+    dtp = dt_core.merge(tp_core, on="target_chembl_id", how="inner").dropna(
         subset=["drug_normalized", "target_chembl_id", "reactome_stid"]
     ).drop_duplicates()
 
@@ -85,7 +91,12 @@ def run_v3(cfg: Config) -> dict[str, Path]:
         mechanism_score=("path_score", "sum"),
         diseaseName=("diseaseName", lambda x: x.dropna().iloc[0] if len(x.dropna()) else ""),
     )
+    # Normalize combo drug scores: "drug_a+drug_b+drug_c" has 3x more targets,
+    # so divide mechanism_score by component count to keep scores comparable.
+    pair["n_components"] = pair["drug_normalized"].str.count(r"\+") + 1
+    pair["mechanism_score"] = pair["mechanism_score"] / pair["n_components"]
     pair["final_score"] = pair["mechanism_score"]
+    pair.drop(columns=["n_components"], inplace=True)
     pair = pair.sort_values(["drug_normalized", "final_score"], ascending=[True, False])
 
     # 输出

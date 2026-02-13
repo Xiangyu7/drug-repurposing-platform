@@ -62,7 +62,8 @@ def main():
     ap.add_argument("--config", required=True)
     ap.add_argument("--workdir", default="work")
     args = ap.parse_args()
-    cfg = yaml.safe_load(open(args.config, "r", encoding="utf-8"))
+    with open(args.config, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
     outdir = Path(cfg["project"]["outdir"])
     repdir = outdir / "reports"
     repdir.mkdir(parents=True, exist_ok=True)

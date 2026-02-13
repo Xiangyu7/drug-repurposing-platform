@@ -250,22 +250,21 @@ def write_gold_inputs(data_dir: Path) -> None:
 # safety_penalty for DrugB: 0.0
 # trial_penalty for DrugB: 0.0
 #
-# phenotypes for D001: 2 phenotypes → phenotype_score = 0.1 * 2 = 0.2
-# phenotypes for D002: 0 phenotypes → phenotype_score = 0.0
+# phenotypes for D001: 2 phenotypes → phenotype_multiplier = 1 + 0.1 * log(1+2) ≈ 1.10986
+# phenotypes for D002: 0 phenotypes → phenotype_multiplier = 1 + 0.1 * log(1+0) = 1.0
 #
-# V5 formula: final = mechanism * (1 - 0.3*safety_pen - 0.2*trial_pen) + phenotype_score
+# V5 formula:
+#   final = mechanism * exp(-0.3*safety_pen - 0.2*trial_pen) * phenotype_multiplier
 #
-# (druga, D001): 2.22917 * (1 - 0.3*0.60890 - 0.2*0.10) + 0.2
-#              = 2.22917 * (1 - 0.18267 - 0.02) + 0.2
-#              = 2.22917 * 0.79733 + 0.2
-#              ≈ 1.77729 + 0.2 = 1.97729
+# (druga, D001): 2.22917 * exp(-0.3*0.60890 - 0.2*0.10) * 1.10986
+#              = 2.22917 * exp(-0.20267) * 1.10986
+#              ≈ 2.02074
 #
-# (druga, D002): 0.63691 * (1 - 0.3*0.60890 - 0.2*0.10) + 0.0
-#              = 0.63691 * 0.79733
-#              ≈ 0.50786
+# (druga, D002): 0.63691 * exp(-0.20267) * 1.0
+#              ≈ 0.52020
 #
-# (drugb, D001): 1.43304 * (1 - 0 - 0) + 0.2
-#              = 1.43304 + 0.2 = 1.63304
+# (drugb, D001): 1.43304 * exp(0) * 1.10986
+#              ≈ 1.59090
 
 
 # ============================================================
@@ -413,14 +412,16 @@ class TestGold:
         trial_pen_a = min(0.1 * 1 + 0.05 * 0, 1.0)
         trial_pen_b = 0.0
 
-        # phenotype counts: D001=2, D002=0
-        pheno_d001 = 0.1 * 2
-        pheno_d002 = 0.0
+        # phenotype multipliers: D001=2, D002=0
+        pheno_m_d001 = 1.0 + 0.1 * np.log1p(2)
+        pheno_m_d002 = 1.0 + 0.1 * np.log1p(0)
 
         # V5 formula
-        exp_a_d001 = mech_a_d001 * (1 - 0.3 * safety_pen_a - 0.2 * trial_pen_a) + pheno_d001
-        exp_a_d002 = mech_a_d002 * (1 - 0.3 * safety_pen_a - 0.2 * trial_pen_a) + pheno_d002
-        exp_b_d001 = mech_b_d001 * (1 - 0.3 * safety_pen_b - 0.2 * trial_pen_b) + pheno_d001
+        risk_a = np.exp(-0.3 * safety_pen_a - 0.2 * trial_pen_a)
+        risk_b = np.exp(-0.3 * safety_pen_b - 0.2 * trial_pen_b)
+        exp_a_d001 = mech_a_d001 * risk_a * pheno_m_d001
+        exp_a_d002 = mech_a_d002 * risk_a * pheno_m_d002
+        exp_b_d001 = mech_b_d001 * risk_b * pheno_m_d001
 
         row_a_d001 = v5[(v5["drug_normalized"] == "druga") & (v5["diseaseId"] == "EFO_D001")]
         row_a_d002 = v5[(v5["drug_normalized"] == "druga") & (v5["diseaseId"] == "EFO_D002")]
@@ -434,9 +435,9 @@ class TestGold:
             f"V5 DrugB-D001: got {float(row_b_d001.iloc[0]['final_score']):.5f}, expected {exp_b_d001:.5f}"
 
         print(f"\nV5 期望值:")
-        print(f"  DrugA-D001: mech={mech_a_d001:.5f}, safety_pen={safety_pen_a:.5f}, trial_pen={trial_pen_a:.5f}, pheno={pheno_d001}, final={exp_a_d001:.5f}")
-        print(f"  DrugA-D002: mech={mech_a_d002:.5f}, safety_pen={safety_pen_a:.5f}, trial_pen={trial_pen_a:.5f}, pheno={pheno_d002}, final={exp_a_d002:.5f}")
-        print(f"  DrugB-D001: mech={mech_b_d001:.5f}, safety_pen={safety_pen_b:.5f}, trial_pen={trial_pen_b:.5f}, pheno={pheno_d001}, final={exp_b_d001:.5f}")
+        print(f"  DrugA-D001: mech={mech_a_d001:.5f}, safety_pen={safety_pen_a:.5f}, trial_pen={trial_pen_a:.5f}, pheno_m={pheno_m_d001:.5f}, final={exp_a_d001:.5f}")
+        print(f"  DrugA-D002: mech={mech_a_d002:.5f}, safety_pen={safety_pen_a:.5f}, trial_pen={trial_pen_a:.5f}, pheno_m={pheno_m_d002:.5f}, final={exp_a_d002:.5f}")
+        print(f"  DrugB-D001: mech={mech_b_d001:.5f}, safety_pen={safety_pen_b:.5f}, trial_pen={trial_pen_b:.5f}, pheno_m={pheno_m_d001:.5f}, final={exp_b_d001:.5f}")
 
         # 检查排序逻辑:
         # DrugA-D001 (mech=2.23) 虽然有 safety penalty, 但基础分远高于 DrugB-D001 (mech=1.43)
@@ -881,7 +882,7 @@ class TestBenchmarkE2E:
         m = result["per_disease"]["EFO_D001"]
         assert m["n_positive"] == 1
         # drugb 在 V5 D001 排序中排第几取决于分数
-        # V5: druga-D001 final ≈ 1.977, drugb-D001 final ≈ 1.633
+        # V5: druga-D001 final ≈ 2.021, drugb-D001 final ≈ 1.591
         # → druga 排第一, drugb 排第二
         assert m["hit@1"] == 0.0, "drugb 不在 top-1"
         assert m["hit@2"] == 1.0, "drugb 在 top-2"

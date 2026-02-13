@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import argparse
+import zipfile
+import io
 from pathlib import Path
 import yaml
 import requests
@@ -22,7 +24,16 @@ def download_first(urls, out_path: Path):
             print(f"[cyan]Downloading {url}[/cyan]")
             r = requests.get(url, timeout=60)
             r.raise_for_status()
-            out_path.write_bytes(r.content)
+            # Auto-detect and unzip if the response is a zip archive
+            if r.content[:4] == b'PK\x03\x04':
+                print(f"[yellow]Detected zip archive, extracting...[/yellow]")
+                with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
+                    gmt_names = [n for n in zf.namelist() if n.endswith('.gmt')]
+                    if not gmt_names:
+                        raise RuntimeError(f"Zip has no .gmt file: {zf.namelist()}")
+                    out_path.write_bytes(zf.read(gmt_names[0]))
+            else:
+                out_path.write_bytes(r.content)
             return
         except Exception as e:
             last = e
@@ -34,7 +45,8 @@ def main():
     ap.add_argument("--config", required=True)
     ap.add_argument("--workdir", default="work")
     args = ap.parse_args()
-    cfg = yaml.safe_load(open(args.config, "r", encoding="utf-8"))
+    with open(args.config, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
 
     workdir = Path(args.workdir)
     gdir = workdir / "genesets"

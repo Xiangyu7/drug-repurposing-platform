@@ -1,8 +1,6 @@
 """Integration tests for Step6 pipeline"""
 
 import pytest
-import tempfile
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 
@@ -150,10 +148,11 @@ class TestStep6Pipeline:
         ]
         
         results = extractor.extract_batch(papers, drug_name="resveratrol", max_papers=10)
-        
-        assert len(results) == 2
-        assert all(r.direction == "benefit" for r in results)
-        assert all(r.pmid in ["12345", "67890"] for r in results)
+
+        assert results.success == 2
+        assert len(results.extractions) == 2
+        assert all(r.direction == "benefit" for r in results.extractions)
+        assert all(r.pmid in ["12345", "67890"] for r in results.extractions)
 
     def test_dossier_structure(self, sample_dossier):
         """Test dossier has expected structure for scoring"""

@@ -1,0 +1,2 @@
+run_id,step,item_id,drug_id,canonical_name,source_ref,reviewer_a,verdict_a,severity_a,issue_code_a,notes_a,reviewer_b,verdict_b,severity_b,issue_code_b,notes_b,final_verdict,final_severity,final_issue_code,adjudicator,adjudication_notes,status,reviewed_at
+RUN_YYYYMMDD_001,step6,PMID_12345678,D001,resveratrol,output/step6/dossiers/D001__resveratrol.json,Alice,fail,Critical,EVID_PMID_MISMATCH,PMID not found in source,Bob,fail,Critical,EVID_PMID_MISMATCH,Same finding,fail,Critical,EVID_PMID_MISMATCH,Senior_1,Confirmed mismatch,closed,2026-02-11T00:00:00Z

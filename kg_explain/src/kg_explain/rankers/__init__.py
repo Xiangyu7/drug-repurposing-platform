@@ -14,8 +14,12 @@ from .v2 import run_v2
 from .v3 import run_v3
 from .v4 import run_v4
 from .v5 import run_v5
+from .uncertainty import bootstrap_ci, assign_confidence_tier, add_uncertainty_to_ranking
 
-__all__ = ["hub_penalty", "run_v1", "run_v2", "run_v3", "run_v4", "run_v5"]
+__all__ = [
+    "hub_penalty", "run_v1", "run_v2", "run_v3", "run_v4", "run_v5",
+    "bootstrap_ci", "assign_confidence_tier", "add_uncertainty_to_ranking",
+]
 
 
 def run_pipeline(cfg) -> dict:

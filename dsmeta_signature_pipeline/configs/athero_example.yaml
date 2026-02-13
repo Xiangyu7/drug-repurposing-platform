@@ -31,6 +31,14 @@ de:
     remove_outliers: true
     pca_outlier_z: 3.5
 
+# Probe-to-gene symbol mapping (CRITICAL for cross-platform studies)
+# Automatically downloads GPL annotations from GEO and maps probe IDs
+# to HGNC gene symbols. Without this, studies using different platforms
+# (e.g., GPL570 vs GPL6244) will have ZERO feature overlap in meta-analysis.
+probe_to_gene:
+  enable: true
+  skip_if_gene_symbols: true  # Skip if IDs already look like gene symbols
+
 meta:
   model: "random"
   min_sign_concordance: 0.7

@@ -115,3 +115,18 @@ class TestDrugScorer:
         score = scorer.score_drug(dossier)
         assert isinstance(score, dict)
         assert "total_score_0_100" in score
+
+    def test_score_reports_monitoring(self, sample_dossier, monkeypatch):
+        """Scoring should publish one monitoring event with score payload."""
+        recorded = []
+
+        def fake_track(scores):
+            recorded.append(scores)
+
+        monkeypatch.setattr("src.dr.scoring.scorer.track_drug_scoring", fake_track)
+
+        scorer = DrugScorer()
+        score = scorer.score_drug(sample_dossier)
+
+        assert len(recorded) == 1
+        assert recorded[0]["total_score_0_100"] == score["total_score_0_100"]

@@ -16,6 +16,7 @@ import pandas as pd
 
 from ..cache import HTTPCache, cached_get_json
 from ..utils import read_csv, safe_str, load_canonical_map, concurrent_map
+from .rxnorm import _is_non_drug
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,30 @@ def _chembl_molecule_search(cache: HTTPCache, q: str, max_hits: int = 5) -> list
     url = f"{CHEMBL_API}/molecule/search.json"
     js = cached_get_json(cache, url, params={"q": q, "limit": int(max_hits)})
     return js.get("molecules") or []
+
+
+def _chembl_molecule_by_pref_name(cache: HTTPCache, name: str) -> dict | None:
+    """通过 pref_name 精确查找分子 (比 search 更准确)"""
+    url = f"{CHEMBL_API}/molecule.json"
+    js = cached_get_json(cache, url, params={"pref_name__iexact": name, "limit": 5})
+    mols = js.get("molecules") or []
+    if mols:
+        return mols[0]
+    return None
+
+
+def _chembl_parent_molecule(cache: HTTPCache, molecule_chembl_id: str) -> str | None:
+    """获取分子的 parent molecule (用于盐→活性分子回退)"""
+    url = f"{CHEMBL_API}/molecule/{molecule_chembl_id}.json"
+    try:
+        js = cached_get_json(cache, url)
+    except Exception:
+        return None
+    hier = js.get("molecule_hierarchy") or {}
+    parent = hier.get("parent_chembl_id")
+    if parent and parent != molecule_chembl_id:
+        return parent
+    return None
 
 
 def chembl_map(
@@ -64,11 +89,28 @@ def chembl_map(
         canon, q = item
         if not q:
             return canon, None, None
+
+        # Strategy 1: exact pref_name match (most reliable)
+        try:
+            exact = _chembl_molecule_by_pref_name(cache, q)
+            if exact and exact.get("molecule_chembl_id"):
+                return canon, exact["molecule_chembl_id"], exact.get("pref_name")
+        except Exception:
+            pass
+
+        # Strategy 2: fuzzy search, but validate pref_name similarity
         try:
             hits = _chembl_molecule_search(cache, q, max_hits=max_hits)
+            q_lower = q.lower().strip()
+            # prefer hit whose pref_name matches query
+            for h in hits:
+                pn = (h.get("pref_name") or "").lower().strip()
+                if pn == q_lower and h.get("molecule_chembl_id"):
+                    return canon, h["molecule_chembl_id"], h.get("pref_name")
+            # fallback: accept first hit that has a chembl_id
             for h in hits:
                 if h.get("molecule_chembl_id"):
-                    return canon, h.get("molecule_chembl_id"), h.get("pref_name")
+                    return canon, h["molecule_chembl_id"], h.get("pref_name")
         except Exception as e:
             logger.warning("ChEMBL 分子搜索失败, query=%s: %s", q, e)
         return canon, None, None
@@ -77,7 +119,7 @@ def chembl_map(
         _search_one, list(unique_queries.items()),
         max_workers=cache.max_workers, desc="ChEMBL mapping",
     )
-    chembl_lookup = {canon: (cid, pname) for canon, cid, pname in results}
+    chembl_lookup = {canon: (cid, pname) for r in results if r is not None for canon, cid, pname in [r]}
 
     # 展开到所有药物行
     rows = []
@@ -133,7 +175,15 @@ def fetch_drug_targets(
 
     def _fetch_mech(mol):
         try:
-            return mol, _chembl_mechanisms(cache, mol)
+            mechs = _chembl_mechanisms(cache, mol)
+            # Parent fallback: if no mechanisms, try parent molecule
+            if not mechs:
+                parent = _chembl_parent_molecule(cache, mol)
+                if parent:
+                    mechs = _chembl_mechanisms(cache, parent)
+                    if mechs:
+                        logger.info("ChEMBL parent fallback: %s → %s (%d mechanisms)", mol, parent, len(mechs))
+            return mol, mechs
         except Exception as e:
             logger.warning("ChEMBL mechanism 查询失败, molecule=%s: %s", mol, e)
             return mol, []
@@ -142,14 +192,16 @@ def fetch_drug_targets(
         _fetch_mech, unique_mols,
         max_workers=cache.max_workers, desc="ChEMBL Drug→Target",
     )
-    mech_lookup = {mol: mechs for mol, mechs in mech_results}
+    mech_lookup = {mol: mechs for r in mech_results if r is not None for mol, mechs in [r]}
 
-    # 展开到所有药物行
+    # 展开到所有药物行 (跳过非药物条目)
     rows = []
     for _, r in mp.iterrows():
         mol = safe_str(r.get("chembl_id"))
         drug_raw = safe_str(r.get("drug_raw"))
         if not mol or not drug_raw:
+            continue
+        if _is_non_drug(drug_raw):
             continue
 
         drug_norm = safe_str(r.get("canonical_name")) or drug_raw.lower()
@@ -162,7 +214,9 @@ def fetch_drug_targets(
                 "mechanism_of_action": m.get("mechanism_of_action"),
             })
 
-    out_df = pd.DataFrame(rows).dropna(subset=["drug_normalized", "target_chembl_id"]).drop_duplicates()
+    out_df = pd.DataFrame(rows).dropna(subset=["drug_normalized", "target_chembl_id"]).drop_duplicates(
+        subset=["drug_normalized", "molecule_chembl_id", "target_chembl_id"]
+    )
     logger.info("Drug→Target 关系: %d 条边, %d 个药物, %d 个靶点",
                 len(out_df), out_df["drug_normalized"].nunique(), out_df["target_chembl_id"].nunique())
 
@@ -229,8 +283,8 @@ def fetch_target_xrefs(
         max_workers=cache.max_workers, desc="ChEMBL Target Xref",
     )
 
-    node_rows = [node for node, _ in results if node is not None]
-    xref_rows = [xr for _, xrefs in results for xr in xrefs]
+    node_rows = [node for r in results if r is not None for node, _ in [r] if node is not None]
+    xref_rows = [xr for r in results if r is not None for _, xrefs in [r] for xr in xrefs]
 
     node_path = data_dir / "node_target.csv"
     xref_path = data_dir / "target_xref.csv"
@@ -309,7 +363,8 @@ def target_to_ensembl(data_dir: Path, cache: HTTPCache | None = None) -> Path:
             max_workers=cache.max_workers, desc="UniProt→Ensembl",
         )
         for result_rows in results:
-            rows.extend(result_rows)
+            if result_rows is not None:
+                rows.extend(result_rows)
 
     if rows:
         out = pd.DataFrame(rows).drop_duplicates()

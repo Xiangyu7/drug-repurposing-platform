@@ -9,7 +9,9 @@
 #   4. Disease → Phenotype (表型关联)
 #
 # 评分公式 (Drug Repurposing场景):
-#   final = mechanism × (1 - safety_pen - trial_pen) + phenotype_boost
+#   final = mechanism
+#           × exp(-w1*safety_pen - w2*trial_pen)
+#           × (1 + w3*log1p(min(n_phenotype, 10)))
 #
 # 说明:
 #   - 安全惩罚: FAERS中报告的不良事件越多，惩罚越高
@@ -30,6 +32,10 @@ rank:
   safety_penalty_weight: 0.3    # FAERS不良事件惩罚权重
   trial_failure_penalty: 0.2    # 试验失败惩罚
   phenotype_overlap_boost: 0.1  # 表型重叠加分
+
+# CT.gov配置
+ctgov:
+  also_completed: true   # 同时获取 COMPLETED+negative 试验
 
 # FAERS配置
 faers:

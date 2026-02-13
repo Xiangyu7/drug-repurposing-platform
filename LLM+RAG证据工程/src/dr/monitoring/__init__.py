@@ -6,8 +6,10 @@ from .metrics import (
     track_pubmed_request,
     track_llm_extraction,
     track_drug_scoring,
-    track_gating_decision
+    track_gating_decision,
+    record_llm_extraction,
 )
+from .alerts import AlertEngine, Alert, AlertRule, AlertSeverity
 
 __all__ = [
     'metrics',
@@ -15,5 +17,10 @@ __all__ = [
     'track_pubmed_request',
     'track_llm_extraction',
     'track_drug_scoring',
-    'track_gating_decision'
+    'track_gating_decision',
+    'record_llm_extraction',
+    'AlertEngine',
+    'Alert',
+    'AlertRule',
+    'AlertSeverity',
 ]

@@ -97,11 +97,11 @@ class TestStep7Pipeline:
         dossier = {
             "drug_id": "D003",
             "canonical_name": "okay_drug",
-            "total_pmids": 50,
+            "total_pmids": 20,
             "evidence_count": {
-                "benefit": 5,
+                "benefit": 3,
                 "harm": 2,
-                "neutral": 2,
+                "neutral": 4,
                 "unknown": 10
             },
             "mechanism_keywords": ["antioxidant"],

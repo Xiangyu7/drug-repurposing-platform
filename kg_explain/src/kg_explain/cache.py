@@ -103,7 +103,7 @@ class HTTPCache:
         except OSError:
             return True
 
-    def get(self, key: str) -> Optional[dict]:
+    def get(self, key: str) -> Optional[dict | list]:
         """获取缓存 (过期条目视为未命中)."""
         p = self._path(key)
         with self._lock:
@@ -125,7 +125,7 @@ class HTTPCache:
             self._misses += 1
         return None
 
-    def set(self, key: str, value: dict) -> None:
+    def set(self, key: str, value: dict | list) -> None:
         """设置缓存."""
         with self._lock:
             try:
@@ -188,7 +188,7 @@ def http_get_json(
     params: dict | None = None,
     headers: dict | None = None,
     timeout: int = 60,
-) -> dict:
+) -> dict | list:
     """带重试的GET请求.
 
     Raises:
@@ -245,7 +245,7 @@ def cached_get_json(
     params: dict | None = None,
     headers: dict | None = None,
     timeout: int = 60,
-) -> dict:
+) -> dict | list:
     """带缓存的GET请求."""
     key = url if not params else url + "?" + "&".join(
         [f"{k}={params[k]}" for k in sorted(params.keys())]

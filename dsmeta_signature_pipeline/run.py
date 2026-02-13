@@ -37,15 +37,16 @@ PYTHON  = sys.executable
 # Pipeline step definitions (ordered)
 # ---------------------------------------------------------------------------
 STEPS = [
-    {"num": 1,  "name": "fetch_geo",          "cmd": [RSCRIPT, "scripts/01_fetch_geo.R"]},
-    {"num": 2,  "name": "de_limma",            "cmd": [RSCRIPT, "scripts/02_de_limma.R"]},
-    {"num": 3,  "name": "meta_effects",        "cmd": [RSCRIPT, "scripts/03_meta_effects.R"]},
-    {"num": 4,  "name": "rank_aggregate",      "cmd": [PYTHON,  "scripts/04_rank_aggregate.py"]},
-    {"num": 5,  "name": "fetch_genesets",      "cmd": [PYTHON,  "scripts/05_fetch_genesets.py"]},
-    {"num": 6,  "name": "gsea_fgsea",          "cmd": [RSCRIPT, "scripts/06_gsea_fgsea.R"]},
-    {"num": 7,  "name": "pathway_meta",        "cmd": [PYTHON,  "scripts/07_pathway_meta.py"]},
-    {"num": 8,  "name": "make_signature_json",  "cmd": [PYTHON,  "scripts/08_make_signature_json.py"]},
-    {"num": 9,  "name": "make_report",         "cmd": [PYTHON,  "scripts/09_make_report.py"]},
+    {"num": 1,  "name": "fetch_geo",           "cmd": [RSCRIPT, "scripts/01_fetch_geo.R"]},
+    {"num": 2,  "name": "de_limma",             "cmd": [RSCRIPT, "scripts/02_de_limma.R"]},
+    {"num": 3,  "name": "probe_to_gene",        "cmd": [PYTHON,  "scripts/02b_probe_to_gene.py"]},
+    {"num": 4,  "name": "meta_effects",         "cmd": [RSCRIPT, "scripts/03_meta_effects.R"]},
+    {"num": 5,  "name": "rank_aggregate",       "cmd": [PYTHON,  "scripts/04_rank_aggregate.py"]},
+    {"num": 6,  "name": "fetch_genesets",       "cmd": [PYTHON,  "scripts/05_fetch_genesets.py"]},
+    {"num": 7,  "name": "gsea_fgsea",           "cmd": [RSCRIPT, "scripts/06_gsea_fgsea.R"]},
+    {"num": 8,  "name": "pathway_meta",         "cmd": [PYTHON,  "scripts/07_pathway_meta.py"]},
+    {"num": 9,  "name": "make_signature_json",   "cmd": [PYTHON,  "scripts/08_make_signature_json.py"]},
+    {"num": 10, "name": "make_report",           "cmd": [PYTHON,  "scripts/09_make_report.py"]},
 ]
 
 # ---------------------------------------------------------------------------
@@ -181,9 +182,9 @@ def main():
     )
     ap.add_argument("--config", required=True, help="Path to config YAML")
     ap.add_argument("--from-step", type=int, default=1,
-                    help="Start from this step number (1-9, default: 1)")
-    ap.add_argument("--to-step", type=int, default=9,
-                    help="Stop after this step number (1-9, default: 9)")
+                    help="Start from this step number (1-10, default: 1)")
+    ap.add_argument("--to-step", type=int, default=10,
+                    help="Stop after this step number (1-10, default: 10)")
     ap.add_argument("--dry-run", action="store_true",
                     help="Show steps that would run without executing")
     args = ap.parse_args()
@@ -218,6 +219,10 @@ def main():
     # Handle rank_aggregation enable/disable
     if not cfg.get("rank_aggregation", {}).get("enable", True):
         steps_to_run = [s for s in steps_to_run if s["name"] != "rank_aggregate"]
+
+    # Handle probe_to_gene enable/disable (default: enabled)
+    if not cfg.get("probe_to_gene", {}).get("enable", True):
+        steps_to_run = [s for s in steps_to_run if s["name"] != "probe_to_gene"]
 
     if args.dry_run:
         console.print("[bold yellow]DRY RUN — steps that would execute:[/bold yellow]")

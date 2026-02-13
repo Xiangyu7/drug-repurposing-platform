@@ -15,6 +15,11 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 
 from ..logger import get_logger
+try:
+    from ..monitoring import track_drug_scoring
+except Exception:  # pragma: no cover - monitoring is optional at runtime
+    def track_drug_scoring(scores: Dict[str, float]):
+        return None
 
 logger = get_logger(__name__)
 
@@ -129,6 +134,7 @@ class DrugScorer:
                     canonical, total, evidence_score, mechanism_score,
                     translatability_score, safety_score, practicality_score)
 
+        track_drug_scoring(scores)
         return scores
 
     def _score_evidence_strength(self, dossier: Dict[str, Any]) -> float:

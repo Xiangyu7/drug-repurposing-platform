@@ -1,0 +1,91 @@
+name: Monorepo Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: llm_rag
+            workdir: "LLM+RAG证据工程"
+            pytest_cmd: "pytest -q -m 'not pubmed and not llm'"
+          - project: sigreverse
+            workdir: "sigreverse"
+            pytest_cmd: "pytest -q"
+          - project: kg_explain
+            workdir: "kg_explain"
+            pytest_cmd: "pytest -q"
+          - project: dsmeta_signature_pipeline
+            workdir: "dsmeta_signature_pipeline"
+            pytest_cmd: "pytest -q"
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.workdir }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            ${{ matrix.workdir }}/requirements.txt
+            ${{ matrix.workdir }}/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Run tests
+        run: |
+          ${{ matrix.pytest_cmd }}
+
+  quality-llm-rag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: LLM+RAG证据工程
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            LLM+RAG证据工程/requirements.txt
+            LLM+RAG证据工程/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Compile check
+        run: |
+          python -m compileall src/dr scripts
+
+      - name: Lint (critical errors only)
+        run: |
+          flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics

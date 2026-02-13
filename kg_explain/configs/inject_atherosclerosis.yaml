@@ -1,0 +1,30 @@
+# Literature-inject drugs for atherosclerosis origin-disease reassessment.
+# These are clinically important drugs with published trial evidence
+# that may not appear in the KG-derived V3 ranking.
+#
+# Format: name (lowercase canonical), endpoint_type, optional note.
+# endpoint_type: CV_EVENTS | PLAQUE_IMAGING | LIPID | INFLAMMATION | OTHER
+
+- name: colchicine
+  endpoint_type: CV_EVENTS
+  note: "COLCOT/LoDoCo2 — MACE reduction, FDA 2023"
+
+- name: canakinumab
+  endpoint_type: CV_EVENTS
+  note: "CANTOS — anti-IL-1β, MACE reduction"
+
+- name: methotrexate
+  endpoint_type: CV_EVENTS
+  note: "CIRT — anti-inflammatory, negative result"
+
+- name: losmapimod
+  endpoint_type: PLAQUE_IMAGING
+  note: "p38 MAPK inhibitor, plaque imaging endpoints"
+
+- name: evolocumab
+  endpoint_type: CV_EVENTS
+  note: "FOURIER — PCSK9 inhibitor, LDL + CV events"
+
+- name: tocilizumab
+  endpoint_type: CV_EVENTS
+  note: "Anti-IL-6R, cardiovascular inflammation"

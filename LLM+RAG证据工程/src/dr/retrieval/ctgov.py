@@ -254,20 +254,83 @@ class CTGovClient:
     ) -> List[str]:
         """按疾病条件搜索试验（返回NCT ID列表）
 
-        注意：此功能需要调用CT.gov搜索API，当前版本仅实现单试验获取。
-        如需批量搜索，建议使用官方搜索页面导出CSV。
+        使用ClinicalTrials.gov API v2分页检索，并从返回的studies中提取NCT ID。
 
         Args:
             condition: 疾病条件（如"Atherosclerosis"）
-            max_results: 最大返回数
+            max_results: 最大返回数（<=0时返回空列表）
 
         Returns:
-            NCT ID列表
+            去重后的NCT ID列表
 
         Raises:
-            NotImplementedError: 当前版本未实现搜索功能
+            RuntimeError: API请求失败
         """
-        raise NotImplementedError(
-            "Batch search not implemented. "
-            "Please use https://clinicaltrials.gov/search to export NCT IDs."
+        condition = str(condition or "").strip()
+        if not condition:
+            logger.warning("search_by_condition called with empty condition")
+            return []
+        if max_results <= 0:
+            return []
+
+        search_url = "https://clinicaltrials.gov/api/v2/studies"
+        max_page_size = 100  # API v2 pageSize建议使用较小批次稳定分页
+
+        results: List[str] = []
+        seen = set()
+        next_page_token = ""
+
+        while len(results) < max_results:
+            page_size = min(max_page_size, max_results - len(results))
+            params = {
+                "query.cond": condition,
+                "pageSize": page_size,
+                "countTotal": "false",
+            }
+            if next_page_token:
+                params["pageToken"] = next_page_token
+
+            try:
+                resp = request_with_retries(
+                    method="GET",
+                    url=search_url,
+                    params=params,
+                    timeout=self.config.TIMEOUT,
+                    max_retries=self.config.MAX_RETRIES,
+                    retry_sleep=self.config.RETRY_DELAY,
+                )
+                payload = resp.json()
+            except Exception as e:
+                logger.error("CT.gov condition search failed (%s): %s", condition, e)
+                raise RuntimeError(f"CT.gov search failed for condition '{condition}': {e}")
+
+            studies = payload.get("studies", [])
+            if not isinstance(studies, list):
+                logger.warning("Unexpected CT.gov search payload: studies is not a list")
+                studies = []
+
+            for study in studies:
+                nct_id = (
+                    safe_get(study, "protocolSection", "identificationModule", "nctId", default="")
+                    or safe_get(study, "nctId", default="")
+                )
+                nct_id = str(nct_id).strip().upper()
+                if not nct_id or nct_id in seen:
+                    continue
+                if not nct_id.startswith("NCT"):
+                    continue
+                seen.add(nct_id)
+                results.append(nct_id)
+                if len(results) >= max_results:
+                    break
+
+            next_page_token = str(payload.get("nextPageToken", "") or "").strip()
+            if not next_page_token or not studies:
+                break
+
+        logger.info(
+            "CT.gov search_by_condition: condition=%s -> %d studies",
+            condition,
+            len(results),
         )
+        return results

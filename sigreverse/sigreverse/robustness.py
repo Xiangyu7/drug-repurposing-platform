@@ -280,7 +280,7 @@ def aggregate_to_drug(
         has_cl_conflict = False
         if n_cell_lines >= 2 and "meta.cell_line" in g_filtered.columns and "direction_category" in g_filtered.columns:
             cl_directions = g_filtered.groupby("meta.cell_line")["direction_category"].agg(
-                lambda x: x.mode().iloc[0] if len(x) > 0 else "unknown"
+                lambda x: x.mode().iloc[0] if len(x.mode()) > 0 else "unknown"
             )
             unique_dirs = set(cl_directions.values) - {"partial", "orthogonal"}
             has_cl_conflict = len(unique_dirs) >= 2  # e.g., both reverser AND mimicker

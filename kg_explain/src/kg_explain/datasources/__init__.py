@@ -8,6 +8,7 @@
   - Reactome: 通路数据
   - OpenTargets: 基因-疾病关联
   - FAERS: FDA不良事件报告
+  - Signature: 基因签名驱动的药物反查 (跨疾病 repurposing)
 """
 from .ctgov import fetch_failed_trials
 from .rxnorm import rxnorm_map, build_drug_canonical
@@ -15,6 +16,7 @@ from .chembl import chembl_map, fetch_drug_targets, fetch_target_xrefs, target_t
 from .reactome import fetch_target_pathways
 from .opentargets import fetch_gene_diseases, fetch_disease_phenotypes
 from .faers import fetch_drug_ae
+from .signature import fetch_drugs_from_signature, fetch_known_indications
 
 __all__ = [
     "fetch_failed_trials",
@@ -28,4 +30,6 @@ __all__ = [
     "fetch_gene_diseases",
     "fetch_disease_phenotypes",
     "fetch_drug_ae",
+    "fetch_drugs_from_signature",
+    "fetch_known_indications",
 ]

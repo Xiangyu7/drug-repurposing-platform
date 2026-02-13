@@ -47,7 +47,7 @@ def stouffer_signed(pvals, signs, weights=None):
         weights = np.ones_like(z)
 
     denom = np.sqrt(np.sum(weights**2))
-    if denom == 0:
+    if denom < 1e-15:
         return np.nan, np.nan
 
     zc = np.sum(weights * z) / denom

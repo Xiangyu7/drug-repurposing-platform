@@ -1,12 +1,9 @@
 """Pytest configuration and shared fixtures for DR project"""
 
 import pytest
-import tempfile
-import shutil
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 import pandas as pd
-import json
 
 # ============================================================
 # Fixtures: Temp directory
@@ -16,6 +13,23 @@ import json
 def temp_dir(tmp_path):
     """Provide a temporary directory that is cleaned up after the test."""
     return tmp_path
+
+
+@pytest.fixture
+def mock_data_dir(temp_dir, sample_drug_master) -> Path:
+    """Create a mock data directory with minimal pipeline inputs."""
+    data_dir = temp_dir / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    sample_drug_master.to_csv(data_dir / "drug_master.csv", index=False)
+    return data_dir
+
+
+@pytest.fixture
+def mock_output_dir(temp_dir) -> Path:
+    """Create a mock output directory for integration tests."""
+    out_dir = temp_dir / "output"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    return out_dir
 
 
 # ============================================================
@@ -80,7 +94,7 @@ def sample_dossier() -> Dict[str, Any]:
             "benefit": 15,
             "harm": 2,
             "neutral": 3,
-            "unclear": 5
+            "unknown": 5
         },
         "evidence_extractions": [
             {

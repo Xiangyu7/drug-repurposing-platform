@@ -47,6 +47,9 @@ files:
   disease_phenotype: edge_disease_phenotype.csv
   drug_ae: edge_drug_ae_faers.csv
   trial_ae: edge_trial_ae.csv
+  # Signature 模式新增
+  drug_from_signature: drug_from_signature.csv
+  drug_known_indications: drug_known_indications.csv
 
 # 默认排序参数
 rank:
@@ -54,3 +57,13 @@ rank:
   topk_pairs_per_drug: 50
   hub_penalty_lambda: 1.0
   support_gene_boost: 0.15
+
+# 质量门控
+quality_gate:
+  thresholds:
+    "hit@10": 0.50
+    mrr: 0.25
+    "ndcg@10": 0.30
+  regression_tolerance: 0.05
+  warning_margin: 0.03
+  registry_path: ./output/model_registry.json

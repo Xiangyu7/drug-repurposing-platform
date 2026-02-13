@@ -8,13 +8,15 @@ V5 排序器: 完整可解释路径
   4. Disease → Phenotype (表型关联)
 
 评分公式 (Drug Repurposing场景):
-  final_score = mechanism_score * (1 - safety_penalty - trial_penalty) + phenotype_boost
+  final_score = mechanism_score
+                * exp(-w1 * safety_penalty - w2 * trial_penalty)
+                * (1 + w3 * log1p(n_phenotype))
 
 其中:
   - mechanism_score: V3的路径分数
   - safety_penalty: FAERS不良事件惩罚 (严重AE权重更高)
   - trial_penalty: 因安全原因停止的试验惩罚
-  - phenotype_boost: 疾病表型数量加分
+  - phenotype_boost: 疾病表型数量带来的乘法加成项(非线性、边际递减)
 
 输出:
   - drug_disease_rank_v5.csv: 排序结果
@@ -22,6 +24,7 @@ V5 排序器: 完整可解释路径
   - evidence_pack_v5/: 每对的完整证据包JSON
 """
 from __future__ import annotations
+import hashlib
 import json
 from pathlib import Path
 
@@ -31,7 +34,12 @@ from tqdm import tqdm
 
 from ..config import Config, ensure_dir
 from ..utils import read_csv, write_jsonl, safe_str
+from ..cache import HTTPCache
 from .v3 import run_v3
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _is_serious_ae(ae_term: str, serious_keywords: list[str]) -> bool:
@@ -80,7 +88,11 @@ def run_v5(cfg: Config) -> dict[str, Path]:
 
     # 加载V3结果
     pair_v3 = read_csv(output_dir / "drug_disease_rank_v3.csv", dtype=str)
-    paths_v3 = pd.read_json(output_dir / "evidence_paths_v3.jsonl", lines=True)
+    ev_jsonl = output_dir / "evidence_paths_v3.jsonl"
+    if ev_jsonl.exists() and ev_jsonl.stat().st_size > 0:
+        paths_v3 = pd.read_json(ev_jsonl, lines=True)
+    else:
+        paths_v3 = pd.DataFrame(columns=["drug", "diseaseId", "path_score", "nodes", "edges"])
 
     # 加载FAERS数据 (可选)
     ae_df = None
@@ -137,7 +149,9 @@ def run_v5(cfg: Config) -> dict[str, Path]:
                 "is_serious": is_serious,
             })
 
-        return min(penalty, 1.0), ae_evidence
+        # 用平均惩罚而非累加, 避免高AE数量的药物全部饱和到 1.0
+        n_aes = len(ae_evidence) if ae_evidence else 1
+        return min(penalty / max(n_aes, 1), 1.0), ae_evidence
 
     def calc_trial_penalty(drug: str) -> tuple[float, list[dict]]:
         """计算试验失败惩罚"""
@@ -172,27 +186,38 @@ def run_v5(cfg: Config) -> dict[str, Path]:
             for _, p in disease_phes.head(10).iterrows()
         ]
 
-    # 计算最终分数
+    # ===== Pass 1: compute scores for ALL pairs =====
     final_rows = []
-    evidence_packs = []
 
-    for _, pr in tqdm(pair_v3.iterrows(), total=len(pair_v3), desc="V5 ranking"):
+    # Cache penalties per drug to avoid redundant computation
+    _safety_cache: dict[str, tuple[float, list[dict]]] = {}
+    _trial_cache: dict[str, tuple[float, list[dict]]] = {}
+    _pheno_cache: dict[str, list[dict]] = {}
+
+    for _, pr in tqdm(pair_v3.iterrows(), total=len(pair_v3), desc="V5 scoring"):
         drug = safe_str(pr.get("drug_normalized"))
         disease_id = safe_str(pr.get("diseaseId"))
         disease_name = safe_str(pr.get("diseaseName"))
         base_score = float(pd.to_numeric(pr.get("final_score", 0), errors="coerce") or 0)
 
-        # 获取机制路径
-        sub_paths = paths_v3[(paths_v3["drug"] == drug) & (paths_v3["diseaseId"] == disease_id)]
+        # Cached penalty lookups
+        if drug not in _safety_cache:
+            _safety_cache[drug] = calc_safety_penalty(drug)
+        if drug not in _trial_cache:
+            _trial_cache[drug] = calc_trial_penalty(drug)
+        if disease_id not in _pheno_cache:
+            _pheno_cache[disease_id] = get_phenotypes(disease_id)
 
-        # 计算惩罚
-        safety_pen, ae_evidence = calc_safety_penalty(drug)
-        trial_pen, trial_evidence = calc_trial_penalty(drug)
-        phenotypes = get_phenotypes(disease_id)
+        safety_pen = _safety_cache[drug][0]
+        trial_pen = _trial_cache[drug][0]
+        phenotypes = _pheno_cache[disease_id]
 
-        # 最终分数
-        phenotype_score = phenotype_boost_w * len(phenotypes) if phenotypes else 0
-        final_score = base_score * (1 - safety_penalty_w * safety_pen - trial_penalty_w * trial_pen) + phenotype_score
+        # Risk decay keeps score positive and monotonic w.r.t. penalties.
+        risk_multiplier = np.exp(-safety_penalty_w * safety_pen - trial_penalty_w * trial_pen)
+        n_pheno = min(len(phenotypes), 10) if phenotypes else 0
+        phenotype_boost = phenotype_boost_w * np.log1p(n_pheno)
+        phenotype_multiplier = 1.0 + phenotype_boost
+        final_score = base_score * risk_multiplier * phenotype_multiplier
 
         final_rows.append({
             "drug_normalized": drug,
@@ -201,11 +226,138 @@ def run_v5(cfg: Config) -> dict[str, Path]:
             "mechanism_score": base_score,
             "safety_penalty": round(safety_pen, 4),
             "trial_penalty": round(trial_pen, 4),
-            "phenotype_boost": round(phenotype_score, 4),
+            "risk_multiplier": round(float(risk_multiplier), 4),
+            "phenotype_boost": round(float(phenotype_boost), 4),
+            "phenotype_multiplier": round(float(phenotype_multiplier), 4),
             "final_score": round(final_score, 4),
         })
 
-        # 构建证据包
+    # ===== Top-K filtering =====
+    final_df = pd.DataFrame(final_rows)
+    final_df = final_df.sort_values(["drug_normalized", "final_score"], ascending=[True, False])
+    topk = int(rank_cfg.get("topk_pairs_per_drug", 50))
+    final_df = final_df.groupby("drug_normalized", as_index=False).head(topk)
+
+    # ===== Join trial info for user context =====
+    summ_path = data_dir / "failed_drugs_summary.csv"
+    if summ_path.exists() and summ_path.stat().st_size > 1:
+        summ = read_csv(summ_path, dtype=str)
+        trial_cols = []
+        for col in ["n_trials", "trial_statuses", "trial_source", "example_condition", "example_whyStopped"]:
+            if col in summ.columns:
+                trial_cols.append(col)
+        if trial_cols and "drug_normalized" in summ.columns:
+            final_df = final_df.merge(
+                summ[["drug_normalized"] + trial_cols],
+                on="drug_normalized", how="left",
+            )
+
+    # ===== Tag known indications (from drug_from_signature.csv or ChEMBL indications) =====
+    ind_path = data_dir / "drug_known_indications.csv"
+    if ind_path.exists() and ind_path.stat().st_size > 1:
+        ind_df = read_csv(ind_path, dtype=str)
+        # Build a set of (drug, efo_id) pairs that are known indications
+        # Normalize efo_id: ChEMBL uses "EFO:0000616", OpenTargets uses "EFO_0000616"
+        # Store both formats for matching
+        known_pairs = set()
+        drug_indications = {}  # drug → list of indication names
+        for _, r in ind_df.iterrows():
+            mol_id = safe_str(r.get("molecule_chembl_id"))
+            efo_id = safe_str(r.get("efo_id"))
+            indication = safe_str(r.get("indication"))
+            if efo_id:
+                # Add both colon and underscore formats for matching
+                known_pairs.add((mol_id, efo_id))
+                known_pairs.add((mol_id, efo_id.replace(":", "_")))
+                known_pairs.add((mol_id, efo_id.replace("_", ":")))
+            if mol_id not in drug_indications:
+                drug_indications[mol_id] = []
+            if indication:
+                drug_indications[mol_id].append(indication)
+
+        # Map drug_normalized → molecule_chembl_id
+        chembl_map_path = data_dir / "drug_chembl_map.csv"
+        drug_to_mol = {}
+        if chembl_map_path.exists():
+            cm = read_csv(chembl_map_path, dtype=str)
+            for _, r in cm.iterrows():
+                canon = safe_str(r.get("canonical_name"))
+                mol = safe_str(r.get("chembl_id"))
+                if canon and mol:
+                    drug_to_mol[canon] = mol
+
+        is_known = []
+        orig_indication = []
+        for _, r in final_df.iterrows():
+            drug = safe_str(r.get("drug_normalized"))
+            disease_id = safe_str(r.get("diseaseId"))
+            mol_id = drug_to_mol.get(drug, "")
+
+            # Check if this disease is a known indication for this drug
+            if mol_id and (mol_id, disease_id) in known_pairs:
+                is_known.append(True)
+            else:
+                is_known.append(False)
+
+            # Get all known indications for this drug
+            inds = drug_indications.get(mol_id, [])
+            orig_indication.append("; ".join(sorted(set(inds))[:5]) if inds else "")
+
+        final_df["is_known_indication"] = is_known
+        final_df["original_indications"] = orig_indication
+        n_known = sum(is_known)
+        logger.info("已知适应症标记: %d/%d 对为已知适应症", n_known, len(final_df))
+    else:
+        # No indication data available, add empty columns
+        final_df["is_known_indication"] = False
+        final_df["original_indications"] = ""
+
+    # ===== Join signature source info if available =====
+    sig_path = data_dir / "drug_from_signature.csv"
+    if sig_path.exists() and sig_path.stat().st_size > 1:
+        sig_df = read_csv(sig_path, dtype=str)
+        if not sig_df.empty and "signature_gene" in sig_df.columns:
+            # Aggregate: per drug, list top signature genes
+            sig_agg = sig_df.groupby("canonical_name", as_index=False).agg(
+                signature_genes=("signature_gene", lambda x: "; ".join(sorted(set(x.dropna()))[:5])),
+                n_signature_targets=("target_chembl_id", "nunique"),
+            ).rename(columns={"canonical_name": "drug_normalized"})
+            final_df = final_df.merge(sig_agg, on="drug_normalized", how="left")
+
+    out_csv = output_dir / "drug_disease_rank_v5.csv"
+    final_df.to_csv(out_csv, index=False)
+
+    # ===== G1: Add uncertainty quantification (Bootstrap CI) =====
+    try:
+        from .uncertainty import add_uncertainty_to_ranking
+        ev_records = paths_v3[["drug", "diseaseId", "path_score"]].to_dict("records")
+        final_df = add_uncertainty_to_ranking(final_df, ev_records)
+        final_df.to_csv(out_csv, index=False)
+        logger.info("Uncertainty quantification added: %d pairs", len(final_df))
+    except Exception as e:
+        logger.warning("Uncertainty quantification skipped: %s", e)
+
+    # ===== Pass 2: build evidence packs ONLY for top-K pairs =====
+    surviving_pairs = set(
+        final_df["drug_normalized"].astype(str) + "||" + final_df["diseaseId"].astype(str)
+    )
+
+    evidence_packs = []
+    for _, pr in tqdm(final_df.iterrows(), total=len(final_df), desc="V5 evidence packs"):
+        drug = safe_str(pr.get("drug_normalized"))
+        disease_id = safe_str(pr.get("diseaseId"))
+        disease_name = safe_str(pr.get("diseaseName"))
+        base_score = float(pr.get("mechanism_score", 0))
+        final_score = float(pr.get("final_score", 0))
+        safety_pen = float(pr.get("safety_penalty", 0))
+        trial_pen = float(pr.get("trial_penalty", 0))
+
+        ae_evidence = _safety_cache.get(drug, (0.0, []))[1]
+        trial_evidence = _trial_cache.get(drug, (0.0, []))[1]
+        phenotypes = _pheno_cache.get(disease_id, [])
+
+        sub_paths = paths_v3[(paths_v3["drug"] == drug) & (paths_v3["diseaseId"] == disease_id)]
+
         pack = {
             "drug": drug,
             "disease": {"id": disease_id, "name": disease_name},
@@ -232,28 +384,67 @@ def run_v5(cfg: Config) -> dict[str, Path]:
 
         evidence_packs.append(pack)
 
-    # 排序并保留top K
-    final_df = pd.DataFrame(final_rows)
-    final_df = final_df.sort_values(["drug_normalized", "final_score"], ascending=[True, False])
-    topk = int(rank_cfg.get("topk_pairs_per_drug", 50))
-    final_df = final_df.groupby("drug_normalized", as_index=False).head(topk)
-
-    # 输出
-    out_csv = output_dir / "drug_disease_rank_v5.csv"
-    final_df.to_csv(out_csv, index=False)
-
     ev_path = output_dir / "evidence_paths_v5.jsonl"
     write_jsonl(ev_path, evidence_packs)
 
     ep_dir = ensure_dir(output_dir / "evidence_pack_v5")
+    # Clear stale packs from previous runs to keep directory in sync with current ranking.
+    for old_pack in ep_dir.glob("*.json"):
+        try:
+            old_pack.unlink()
+        except OSError:
+            pass
     for pack in evidence_packs:
         safe = (pack["drug"] + "__" + pack["disease"]["id"]).replace("/", "_").replace(":", "_")
         (ep_dir / f"{safe}.json").write_text(
             json.dumps(pack, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
+    # ===== Generate bridge CSV for LLM+RAG =====
+    def _stable_drug_id(name: str) -> str:
+        """Same algorithm as LLM+RAG step5: D + md5[:10].upper()"""
+        return "D" + hashlib.md5(name.encode("utf-8")).hexdigest()[:10].upper()
+
+    # Per-drug summary: best disease, max score
+    drug_best = final_df.sort_values("final_score", ascending=False).groupby(
+        "drug_normalized", as_index=False
+    ).first()
+
+    bridge_rows = []
+    # Load chembl_pref_name mapping (better for PubMed queries)
+    chembl_path = data_dir / "drug_chembl_map.csv"
+    chembl_map = {}
+    if chembl_path.exists():
+        cm = read_csv(chembl_path, dtype=str)
+        for _, r in cm.iterrows():
+            canon = safe_str(r.get("canonical_name"))
+            pref = safe_str(r.get("chembl_pref_name"))
+            if canon and pref:
+                chembl_map[canon] = pref
+
+    for _, r in drug_best.iterrows():
+        drug = safe_str(r.get("drug_normalized"))
+        bridge_rows.append({
+            "drug_id": _stable_drug_id(drug),
+            "canonical_name": drug,
+            "chembl_pref_name": chembl_map.get(drug, ""),
+            "max_mechanism_score": round(float(r.get("mechanism_score", 0)), 4),
+            "top_disease": safe_str(r.get("diseaseName")),
+            "final_score": round(float(r.get("final_score", 0)), 4),
+            "n_trials": r.get("n_trials", ""),
+            "trial_statuses": r.get("trial_statuses", ""),
+            "trial_source": r.get("trial_source", ""),
+            "example_condition": r.get("example_condition", ""),
+            "why_stopped": r.get("example_whyStopped", ""),
+        })
+
+    bridge_df = pd.DataFrame(bridge_rows).sort_values("max_mechanism_score", ascending=False)
+    bridge_path = output_dir / "bridge_repurpose_cross.csv"
+    bridge_df.to_csv(bridge_path, index=False)
+
     return {
         "rank_csv": out_csv,
         "evidence_paths": ev_path,
         "evidence_pack_dir": ep_dir,
+        "bridge_csv": bridge_path,
     }

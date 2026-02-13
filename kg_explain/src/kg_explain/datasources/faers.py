@@ -158,12 +158,22 @@ def fetch_drug_ae(
             })
         return drug_rows, filtered
 
+    # Expand combo drugs: "aspirin+ticagrelor" → ["aspirin", "ticagrelor"]
+    expanded = []
+    seen = set()
+    for d in drug_list[:max_drugs]:
+        parts = [p.strip() for p in d.split("+")]
+        for p in parts:
+            if p and p.lower() not in seen:
+                seen.add(p.lower())
+                expanded.append(p)
+
     results = concurrent_map(
-        _fetch_one, drug_list[:max_drugs],
+        _fetch_one, expanded,
         max_workers=cache.max_workers, desc="FAERS Drug→AE",
     )
-    rows = [row for drug_rows, _ in results if drug_rows for row in drug_rows]
-    n_prr_filtered = sum(f for _, f in results if f)
+    rows = [row for r in results if r is not None for drug_rows, _ in [r] if drug_rows for row in drug_rows]
+    n_prr_filtered = sum(f for r in results if r is not None for _, f in [r] if f)
 
     out_df = pd.DataFrame(rows).drop_duplicates()
     n_signals = len(out_df[out_df["prr"] >= 2.0]) if not out_df.empty and "prr" in out_df.columns else 0
