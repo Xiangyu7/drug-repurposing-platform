@@ -224,6 +224,13 @@ def _load_pipeline_config(disease: str, version: str) -> Config:
     # 确保 mode 与 CLI 参数一致 (CLI 优先)
     cfg.raw["mode"] = version
 
+    # 按疾病隔离数据/输出目录, 避免不同疾病互相覆盖
+    paths = cfg.raw.setdefault("paths", {})
+    base_data = paths.get("data_dir", "./data")
+    base_output = paths.get("output_dir", "./output")
+    paths["data_dir"] = str(Path(base_data) / disease)
+    paths["output_dir"] = str(Path(base_output) / disease)
+
     return cfg
 
 
