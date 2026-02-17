@@ -1,8 +1,0 @@
-﻿drug_id,canonical_name,reason,suggestion,dossier_md
-D413D3EC269,medi6570,LLM_fallback;thin_pubmed;conf_LOW;removed_bad_evidence,Open dossier_md; verify attribution/topic; add alias overrides if needed.,dossiers_md/D413D3EC269__medi6570.md
-D4BE4598792,apolipoprotein a-i human apoa-i,LLM_fallback;conf_LOW;removed_bad_evidence;weak_supporting_evidence,Open dossier_md; verify attribution/topic; add alias overrides if needed.,dossiers_md/D4BE4598792__apolipoprotein_a-i_human_apoa-i.md
-D81B744A593,resveratrol,LLM_fallback;conf_LOW;removed_bad_evidence;weak_supporting_evidence,Open dossier_md; verify attribution/topic; add alias overrides if needed.,dossiers_md/D81B744A593__resveratrol.md
-D8291C5A5C4,nicotinamide riboside,LLM_fallback;conf_LOW;removed_bad_evidence;weak_supporting_evidence,Open dossier_md; verify attribution/topic; add alias overrides if needed.,dossiers_md/D8291C5A5C4__nicotinamide_riboside.md
-D9F9BB8C160,creatine monohydrate,LLM_fallback;conf_LOW;removed_bad_evidence,Open dossier_md; verify attribution/topic; add alias overrides if needed.,dossiers_md/D9F9BB8C160__creatine_monohydrate.md
-DD76A1941B2,dexamethasone,LLM_fallback;conf_LOW;removed_bad_evidence,Open dossier_md; verify attribution/topic; add alias overrides if needed.,dossiers_md/DD76A1941B2__dexamethasone.md
-DF09C894FE9,vm202,LLM_fallback;conf_LOW;removed_bad_evidence;topic_mismatch,Open dossier_md; verify attribution/topic; add alias overrides if needed.,dossiers_md/DF09C894FE9__vm202.md

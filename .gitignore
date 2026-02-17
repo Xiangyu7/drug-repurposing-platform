@@ -34,23 +34,31 @@ logs/
 **/cache/
 **/*_cache/
 
-# === kg_explain large outputs ===
-kg_explain/output/evidence_pack_v5/
-kg_explain/output/evidence_paths_v3.jsonl
-kg_explain/output/evidence_paths_v5.jsonl
+# === kg_explain pipeline data & outputs (all regenerable) ===
+kg_explain/data/*.csv
+kg_explain/data/*.json
+kg_explain/data/external/
+kg_explain/output/
 
-# === dsmeta work data (large, regenerable from GEO) ===
+# === dsmeta work data & outputs (regenerable from GEO) ===
 dsmeta_signature_pipeline/work/
+dsmeta_signature_pipeline/outputs/
 
-# === LLM+RAG large/regenerable ===
-LLM+RAG证据工程/archive/
+# === LLM+RAG data & outputs (regenerable) ===
+LLM+RAG证据工程/data/
 LLM+RAG证据工程/output/
+LLM+RAG证据工程/archive/
 LLM+RAG证据工程/*.log
 LLM+RAG证据工程/ctgov_cache/
 
-# === sigreverse outputs (large, regenerable) ===
-sigreverse/data/cache/
+# === sigreverse data & outputs (regenerable) ===
+sigreverse/data/input/
 sigreverse/data/output*/
+sigreverse/data/cache/
+sigreverse/data/gold_standard/
 sigreverse/*.log
 sigreverse/*.parquet
+
+# === Misc ===
 *.bak
+项目全览.html

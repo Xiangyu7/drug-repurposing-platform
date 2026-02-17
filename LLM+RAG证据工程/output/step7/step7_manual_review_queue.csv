@@ -1,6 +1,0 @@
-﻿drug_id,canonical_name,why,action,dossier_md
-D413D3EC269,medi6570,llm_conf_low_or_dirty;thin_unique_pmids,Human quick check: (1) open 2 PMIDs; (2) confirm directionality; (3) confirm endpoint relevance.,/Users/xinyueke/Desktop/DR/step6_v2_out/dossiers/D413D3EC269__medi6570.md
-D8291C5A5C4,nicotinamide riboside,llm_conf_low_or_dirty;thin_unique_pmids,Human quick check: (1) open 2 PMIDs; (2) confirm directionality; (3) confirm endpoint relevance.,/Users/xinyueke/Desktop/DR/step6_v2_out/dossiers/D8291C5A5C4__nicotinamide_riboside.md
-D9F9BB8C160,creatine monohydrate,llm_conf_low_or_dirty;thin_unique_pmids;weak_topic_alignment,Human quick check: (1) open 2 PMIDs; (2) confirm directionality; (3) confirm endpoint relevance.,/Users/xinyueke/Desktop/DR/step6_v2_out/dossiers/D9F9BB8C160__creatine_monohydrate.md
-DD76A1941B2,dexamethasone,safety_flag,Human quick check: (1) open 2 PMIDs; (2) confirm directionality; (3) confirm endpoint relevance.,/Users/xinyueke/Desktop/DR/step6_v2_out/dossiers/DD76A1941B2__dexamethasone.md
-DF09C894FE9,vm202,llm_conf_low_or_dirty;thin_unique_pmids;weak_topic_alignment,Human quick check: (1) open 2 PMIDs; (2) confirm directionality; (3) confirm endpoint relevance.,/Users/xinyueke/Desktop/DR/step6_v2_out/dossiers/DF09C894FE9__vm202.md

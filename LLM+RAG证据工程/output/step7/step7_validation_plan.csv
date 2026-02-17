@@ -1,4 +1,0 @@
-﻿drug_id,canonical_name,gate_decision,priority,validation_stage,timeline_weeks,experiments_count,notes_count
-D81B744A593,resveratrol,GO,1,EXISTING_TRIAL_ANALYSIS,8,4,1
-D8291C5A5C4,nicotinamide riboside,MAYBE,3,PRECLINICAL_VALIDATION,24,5,1
-DD76A1941B2,dexamethasone,GO,1,CLINICAL_TRIAL_DESIGN,16,4,1
