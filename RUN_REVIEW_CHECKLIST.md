@@ -38,7 +38,34 @@
 - [ ] 泄漏审计 `pair_overlap == 0`
 - [ ] 最终日志无 uncertainty-skip 告警
 
-## 5) 每次 Run 至少保留的产物
+## 5) 跑完一轮后数据检查 (按优先级)
+
+### 第一优先：看结论
+- [ ] 打开 `step8_candidate_pack_from_step7.xlsx` → Shortlist sheet → 确认候选药数量和 gate 分布
+- [ ] 每个药的 Sheet → 检查靶点结构表 (Structure Source 列)
+  - `PDB+AlphaFold` → 可直接做分子对接，选实验 PDB
+  - `AlphaFold_only` → 对接结果需谨慎解读
+  - `none` → 无法做分子对接
+- [ ] `step8_shortlist_topK.csv` → 检查 docking 列
+  - `docking_feasibility_tier` 优先 `READY_PDB`
+  - `docking_primary_structure_id` 非空且与 `target_details` 一致
+  - `docking_risk_flags` 对 `AF_FALLBACK/NO_STRUCTURE` 给出降级原因
+- [ ] 查看 `step9_validation_plan.csv` → 关注 P1 优先级候选药
+- [ ] 对比 cross vs origin 两条路线 → 重叠候选药 = 更可信
+
+### 第二优先：判断可信度
+- [ ] `step7_cards.json` → 每药 GO/MAYBE/NO-GO 决策 + 5 维打分
+- [ ] `step8_one_pagers_topK.md` → 候选药 Markdown 报告 (含靶点/UniProt/PDB 链接)
+- [ ] `bridge_*.csv` → KG 排名 + 靶点信息 + 结构来源标记
+
+### 第三优先：排查问题
+- [ ] `drug_disease_rank_v5.csv` → 某药排名高/低的原因
+- [ ] `poolA_drug_level.csv` → CT.gov 拉到了哪些药
+- [ ] `manual_review_queue.csv` → 需人工确认的试验
+- [ ] `step6 dossiers/*.json` → 某药的 PubMed 证据原文
+- [ ] `run_summary.json` → 运行是否有步骤失败/被隔离
+
+## 6) 每次 Run 至少保留的产物
 
 - [ ] `review_log_<run_id>.csv`
 - [ ] `adjudication_<run_id>.md`
@@ -46,3 +73,14 @@
 - [ ] Step6-9 manifest 与关键输出
 - [ ] 评估报告 JSON（`eval_extraction`，若使用 holdout 也一起保留）
 - [ ] reject audit 队列 CSV（含审核后版本）
+
+## 7) TopN 策略审计（工业级新增）
+
+- [ ] 检查 origin 决策文件：`topn_decision_origin_stage1.json` / `topn_quality_origin_stage1.json`
+- [ ] 检查 cross 决策文件：`topn_decision_cross_stage1.json` / `topn_quality_cross_stage1.json`
+- [ ] 检查 stage2 文件是否存在且可解释（触发扩容或 skip 原因）：`*_stage2.json`
+- [ ] 核对 stage2 是否只执行 0 或 1 次（禁止第三轮扩容）
+- [ ] 在 `step9_manifest.json` 的 `summary.topn_policy` 核对：
+  - `selected_stage`
+  - `resolved_topn`
+  - `quality_passed`

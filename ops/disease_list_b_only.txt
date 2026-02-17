@@ -1,0 +1,10 @@
+# 仅 Direction B 的疾病 (不在 dual list 中)
+atrial_fibrillation|atrial fibrillation|EFO_0000275|
+hypertension|hypertension|EFO_0000537|
+stroke|stroke|EFO_0000712|
+deep_vein_thrombosis|deep vein thrombosis|EFO_0003907|
+venous_thromboembolism|venous thromboembolism|EFO_0004286|
+angina_pectoris|angina pectoris|EFO_0003913|
+myocarditis|myocarditis|EFO_0009609|
+pulmonary_embolism|pulmonary embolism|EFO_0003827|
+endocarditis|endocarditis|EFO_0000465|

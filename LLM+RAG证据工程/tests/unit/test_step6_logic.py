@@ -15,6 +15,8 @@ from scripts.step6_evidence_extraction import (
     topic_match_ratio,
     guess_direction,
     guess_model,
+    process_one,
+    rerank_with_embeddings,
 )
 
 
@@ -263,6 +265,101 @@ class TestDedup:
         result = self._dedupe(items)
         assert len(result) == 3
         assert result[0]["pmid"] == "333"  # order preserved
+
+
+# ============================================================
+# Budget controls
+# ============================================================
+class TestStep6BudgetControls:
+    def test_rerank_respects_max_rerank_docs(self, monkeypatch):
+        from scripts import step6_evidence_extraction as step6
+
+        ranked = [
+            (float(100 - i), {"pmid": str(i), "title": f"title {i}", "abstract": "abstract"})
+            for i in range(10)
+        ]
+
+        monkeypatch.setattr(step6, "DISABLE_EMBED", False)
+        monkeypatch.setattr(step6, "ollama_embed", lambda texts, model: [[1.0] for _ in texts])
+        monkeypatch.setattr(step6, "ollama_embed_batched", lambda texts, model: [[1.0] for _ in texts])
+
+        out = rerank_with_embeddings("query", ranked, topk=10, max_rerank_docs=4)
+        assert len(out) == 4
+
+    def test_process_one_respects_max_evidence_docs(self, tmp_path, monkeypatch):
+        from scripts import step6_evidence_extraction as step6
+
+        out_dir = tmp_path / "out"
+        cache_dir = out_dir / "cache" / "pubmed"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
+
+        docs = [
+            {"pmid": str(10000000 + i), "title": f"title {i}", "abstract": "benefit signal"}
+            for i in range(8)
+        ]
+        observed = {"retmax": None, "parse_max": None}
+
+        monkeypatch.setattr(step6, "load_negative_trials", lambda *args, **kwargs: ("OTHER", [], ""))
+        monkeypatch.setattr(step6, "build_query_routes", lambda *args, **kwargs: [{"route": "exact_disease", "query": "q"}])
+
+        def _fake_search(term, retmax=200):
+            observed["retmax"] = int(retmax)
+            return [d["pmid"] for d in docs]
+
+        def _fake_parse(xml_text, max_articles=200):
+            observed["parse_max"] = int(max_articles)
+            return docs[:max_articles]
+
+        monkeypatch.setattr(step6, "pubmed_esearch", _fake_search)
+        monkeypatch.setattr(step6, "pubmed_efetch_xml", lambda pmids: "<xml/>")
+        monkeypatch.setattr(step6, "parse_pubmed_xml", _fake_parse)
+        monkeypatch.setattr(step6, "bm25_rank", lambda query, in_docs, topk=80: [(float(i + 1), d) for i, d in enumerate(in_docs)])
+        monkeypatch.setattr(step6, "reciprocal_rank_fusion", lambda ranked_lists, k=60: ranked_lists[0])
+        monkeypatch.setattr(
+            step6,
+            "rerank_with_embeddings",
+            lambda query, ranked, topk=30, max_rerank_docs=None: [d for _, d in ranked][:topk],
+        )
+        monkeypatch.setattr(step6, "pick_evidence_fragments", lambda *args, **kwargs: ["fragment"])
+        monkeypatch.setattr(step6, "extract_evidence_with_llm", lambda *args, **kwargs: [])
+        monkeypatch.setattr(
+            step6,
+            "extract_evidence_rule_based",
+            lambda pmid, title, abstract, endpoint_type: [
+                {
+                    "pmid": pmid,
+                    "supports": True,
+                    "direction": "benefit",
+                    "model": "human",
+                    "endpoint": endpoint_type,
+                    "claim": f"claim {pmid}",
+                    "confidence": 0.8,
+                }
+            ],
+        )
+
+        _, _, dossier = process_one(
+            drug_id="D001",
+            canonical_name="resveratrol",
+            target_disease="atherosclerosis",
+            endpoint_type_hint="OTHER",
+            neg_path=None,
+            out_dir=out_dir,
+            cache_dir=cache_dir,
+            all_drug_names=["resveratrol"],
+            pubmed_retmax=77,
+            pubmed_parse_max=33,
+            max_rerank_docs=10,
+            max_evidence_docs=3,
+        )
+
+        assert observed["retmax"] == 77
+        assert observed["parse_max"] == 33
+        supporting = ((dossier.get("llm_structured") or {}).get("supporting_evidence") or [])
+        counts = ((dossier.get("llm_structured") or {}).get("counts") or {})
+        assert len(supporting) <= 3
+        assert int(counts.get("supporting_sentence_count", 0)) <= 3
 
 
 # ============================================================

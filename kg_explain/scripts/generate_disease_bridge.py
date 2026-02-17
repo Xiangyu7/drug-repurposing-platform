@@ -58,6 +58,110 @@ def _stable_drug_id(name: str) -> str:
     return "D" + hashlib.md5(name.encode("utf-8")).hexdigest()[:10].upper()
 
 
+def _build_drug_target_map(data_dir: Path) -> Dict[str, List[dict]]:
+    """Build drug → target list mapping from KG data files.
+
+    Returns:
+        Dict mapping drug_normalized → list of target dicts, each containing:
+            target_chembl_id, target_name, mechanism_of_action, uniprot,
+            pdb_ids (experimental), has_alphafold, structure_source
+    """
+    dt_path = data_dir / "edge_drug_target.csv"
+    nt_path = data_dir / "node_target.csv"
+    xref_path = data_dir / "target_xref.csv"
+
+    if not dt_path.exists():
+        logger.warning("edge_drug_target.csv not found, skipping target enrichment")
+        return {}
+
+    dt = pd.read_csv(dt_path, dtype=str).fillna("")
+
+    # target_chembl_id → pref_name
+    target_names: Dict[str, str] = {}
+    if nt_path.exists():
+        nt = pd.read_csv(nt_path, dtype=str).fillna("")
+        for _, r in nt.iterrows():
+            tid = str(r.get("target_chembl_id", "")).strip()
+            pname = str(r.get("pref_name", "")).strip()
+            if tid and pname:
+                target_names[tid] = pname
+
+    # Parse xref for UniProt, PDB, and AlphaFold
+    target_uniprot: Dict[str, str] = {}
+    target_pdb: Dict[str, List[str]] = {}
+    target_alphafold: Dict[str, bool] = {}
+    if xref_path.exists():
+        xref = pd.read_csv(xref_path, dtype=str).fillna("")
+        uni_seen: set = set()
+        for _, r in xref.iterrows():
+            tid = str(r.get("target_chembl_id", "")).strip()
+            src = str(r.get("xref_src_db", "")).strip()
+            xid = str(r.get("xref_id", "")).strip()
+            uni = str(r.get("uniprot_accession", "")).strip()
+            if not tid:
+                continue
+            if uni and tid not in uni_seen:
+                target_uniprot[tid] = uni
+                uni_seen.add(tid)
+            if src == "PDB" and xid:
+                target_pdb.setdefault(tid, []).append(xid)
+            if src == "AlphaFoldDB":
+                target_alphafold[tid] = True
+
+    drug_targets: Dict[str, List[dict]] = {}
+    for _, r in dt.iterrows():
+        drug = str(r.get("drug_normalized", "")).strip()
+        tid = str(r.get("target_chembl_id", "")).strip()
+        moa = str(r.get("mechanism_of_action", "")).strip()
+        if not drug or not tid:
+            continue
+        tname = target_names.get(tid, "")
+        uniprot = target_uniprot.get(tid, "")
+        pdb_ids = target_pdb.get(tid, [])
+        has_af = target_alphafold.get(tid, False)
+
+        if pdb_ids and has_af:
+            structure_source = "PDB+AlphaFold"
+        elif pdb_ids:
+            structure_source = "PDB"
+        elif has_af:
+            structure_source = "AlphaFold_only"
+        else:
+            structure_source = "none"
+
+        entry = {
+            "target_chembl_id": tid,
+            "target_name": tname,
+            "mechanism_of_action": moa,
+            "uniprot": uniprot,
+            "pdb_ids": pdb_ids[:5],
+            "pdb_count": len(pdb_ids),
+            "has_alphafold": has_af,
+            "structure_source": structure_source,
+        }
+        drug_targets.setdefault(drug, []).append(entry)
+
+    logger.info("Drug-target map: %d drugs with targets", len(drug_targets))
+    return drug_targets
+
+
+def _format_target_summary(targets: List[dict]) -> str:
+    """Format target list into a human-readable semicolon-separated string."""
+    parts = []
+    for t in targets:
+        s = f"{t.get('target_name', '')} ({t.get('target_chembl_id', '')})"
+        uni = t.get("uniprot", "")
+        if uni:
+            s += f" [UniProt:{uni}]"
+        src = t.get("structure_source", "none")
+        s += f" [{src}]"
+        moa = t.get("mechanism_of_action", "")
+        if moa:
+            s += f" — {moa}"
+        parts.append(s)
+    return "; ".join(parts)
+
+
 def _infer_endpoint_type(condition: str) -> str:
     """Heuristic endpoint_type from trial condition text."""
     if not condition:
@@ -150,6 +254,7 @@ def build_bridge(
     n_bootstrap: int = 1000,
     ci_level: float = 0.95,
     seed: int = 42,
+    data_dir: Optional[str] = None,
 ) -> pd.DataFrame:
     """Build the origin-disease reassessment bridge DataFrame."""
 
@@ -178,6 +283,14 @@ def build_bridge(
             pref = str(r.get("chembl_pref_name", "")).strip()
             if canon and pref and pref != "nan":
                 chembl_map[canon] = pref
+
+    # 4b. Load drug → target mapping for molecular docking readiness
+    if data_dir:
+        drug_target_map = _build_drug_target_map(Path(data_dir))
+    else:
+        # Infer data_dir from chembl_path (sibling directory)
+        inferred = Path(chembl_path).parent
+        drug_target_map = _build_drug_target_map(inferred)
 
     # 5. Load V5 per-drug penalties (median across all diseases)
     penalty_map: Dict[str, dict] = {}
@@ -242,6 +355,7 @@ def build_bridge(
 
         condition = str(r.get("example_condition", "")) if "example_condition" in r.index else ""
 
+        targets = drug_target_map.get(drug, [])
         bridge_rows.append({
             "drug_id": _stable_drug_id(drug),
             "canonical_name": drug,
@@ -262,6 +376,8 @@ def build_bridge(
             "confidence_tier": assign_confidence_tier(ci_result["ci_width"]),
             "n_evidence_paths": ci_result.get("n_paths", len(scores)),
             "source": "kg",
+            "targets": _format_target_summary(targets) if targets else "",
+            "target_details": json.dumps(targets, ensure_ascii=False) if targets else "",
         })
 
     # 9. Add literature-inject drugs (if not already in KG set)
@@ -276,6 +392,7 @@ def build_bridge(
                 if row["canonical_name"].lower() == name:
                     row["source"] = "kg+literature"
             continue
+        inj_targets = drug_target_map.get(name, [])
         bridge_rows.append({
             "drug_id": _stable_drug_id(name),
             "canonical_name": name,
@@ -296,6 +413,8 @@ def build_bridge(
             "confidence_tier": "LOW",
             "n_evidence_paths": 0,
             "source": "literature",
+            "targets": _format_target_summary(inj_targets) if inj_targets else "",
+            "target_details": json.dumps(inj_targets, ensure_ascii=False) if inj_targets else "",
         })
         logger.info("  +inject: %s (source=literature, endpoint=%s)", name, inj.get("endpoint_type", "OTHER"))
 
@@ -342,6 +461,9 @@ def main():
     parser.add_argument("--out", type=str,
                         default=str(_project_root / "output" / "bridge_origin_reassess.csv"),
                         help="Output bridge CSV path")
+    parser.add_argument("--data-dir", type=str,
+                        default=str(_project_root / "data"),
+                        help="kg_explain data directory (for target enrichment)")
     parser.add_argument("--n-bootstrap", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=42)
 
@@ -361,6 +483,7 @@ def main():
         inject_drugs=load_inject_drugs(args.inject),
         n_bootstrap=args.n_bootstrap,
         seed=args.seed,
+        data_dir=args.data_dir,
     )
 
     out = Path(args.out)

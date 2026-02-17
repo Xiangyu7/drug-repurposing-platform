@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from scripts import step9_validation_plan as step9
+from src.dr.contracts import STEP8_SHORTLIST_VERSION
 
 
 class TestStep9ValidationPlan:
@@ -42,7 +43,18 @@ class TestStep9ValidationPlan:
                     "neg_trials_n": 0,
                     "dossier_json": "/tmp/d001.json",
                     "dossier_md": "/tmp/d001.md",
-                    "contract_version": "1.0.0",
+                    "docking_primary_target_chembl_id": "CHEMBL2147",
+                    "docking_primary_target_name": "Sirtuin 1",
+                    "docking_primary_uniprot": "Q96EB6",
+                    "docking_primary_structure_source": "PDB+AlphaFold",
+                    "docking_primary_structure_provider": "PDB",
+                    "docking_primary_structure_id": "4I5I",
+                    "docking_backup_targets_json": "[]",
+                    "docking_feasibility_tier": "READY_PDB",
+                    "docking_target_selection_score": 0.95,
+                    "docking_risk_flags": "",
+                    "docking_policy_version": "v1",
+                    "contract_version": STEP8_SHORTLIST_VERSION,
                 },
                 {
                     "drug_id": "D002",
@@ -59,7 +71,18 @@ class TestStep9ValidationPlan:
                     "neg_trials_n": 1,
                     "dossier_json": "/tmp/d002.json",
                     "dossier_md": "/tmp/d002.md",
-                    "contract_version": "1.0.0",
+                    "docking_primary_target_chembl_id": "",
+                    "docking_primary_target_name": "",
+                    "docking_primary_uniprot": "",
+                    "docking_primary_structure_source": "none",
+                    "docking_primary_structure_provider": "none",
+                    "docking_primary_structure_id": "",
+                    "docking_backup_targets_json": "[]",
+                    "docking_feasibility_tier": "NO_STRUCTURE",
+                    "docking_target_selection_score": 0.0,
+                    "docking_risk_flags": "NO_TARGET_DETAILS",
+                    "docking_policy_version": "v1",
+                    "contract_version": STEP8_SHORTLIST_VERSION,
                 },
             ]
         )

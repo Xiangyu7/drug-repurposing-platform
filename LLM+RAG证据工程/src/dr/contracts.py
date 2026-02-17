@@ -19,7 +19,7 @@ STEP7_CARDS_SCHEMA = "step7_cards_json"
 STEP7_CARDS_VERSION = "1.0.0"
 
 STEP8_SHORTLIST_SCHEMA = "step8_shortlist_csv"
-STEP8_SHORTLIST_VERSION = "1.0.0"
+STEP8_SHORTLIST_VERSION = "1.1.0"
 
 STEP9_PLAN_SCHEMA = "step9_validation_plan_csv"
 STEP9_PLAN_VERSION = "1.0.0"
@@ -78,6 +78,17 @@ STEP8_SHORTLIST_REQUIRED_COLUMNS = {
     "dossier_json",
     "dossier_md",
     "rank_key",
+    "docking_primary_target_chembl_id",
+    "docking_primary_target_name",
+    "docking_primary_uniprot",
+    "docking_primary_structure_source",
+    "docking_primary_structure_provider",
+    "docking_primary_structure_id",
+    "docking_backup_targets_json",
+    "docking_feasibility_tier",
+    "docking_target_selection_score",
+    "docking_risk_flags",
+    "docking_policy_version",
 }
 
 STEP9_PLAN_REQUIRED_COLUMNS = {

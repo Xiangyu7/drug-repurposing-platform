@@ -1,1 +1,223 @@
 nctId,drug_normalized,overallStatus,whyStopped,is_safety_stop,is_efficacy_stop
+NCT03335020,contrast-enhanced ultrasound,WITHDRAWN,Closed by Investigator,0,0
+NCT01019681,cord blood stem cell injection,TERMINATED,Only patient enrolled on study died -the cause of death not study related,1,0
+NCT01918111,adenosine infusion treatment,TERMINATED,The study terminated early due to the difficulty of recruiting candidates.,0,0
+NCT06280976,statin,WITHDRAWN,"study withdrawn, no participants enrolled, changes in the study design planned",0,0
+NCT06280976,aspirin,WITHDRAWN,"study withdrawn, no participants enrolled, changes in the study design planned",0,0
+NCT06280976,nexlizet,WITHDRAWN,"study withdrawn, no participants enrolled, changes in the study design planned",0,0
+NCT06280976,leqvio,WITHDRAWN,"study withdrawn, no participants enrolled, changes in the study design planned",0,0
+NCT06280976,vascepa,WITHDRAWN,"study withdrawn, no participants enrolled, changes in the study design planned",0,0
+NCT06280976,jardiance,WITHDRAWN,"study withdrawn, no participants enrolled, changes in the study design planned",0,0
+NCT06280976,colchicine,WITHDRAWN,"study withdrawn, no participants enrolled, changes in the study design planned",0,0
+NCT00300040,hemoglobin glutamer 250 - bovine,TERMINATED,Very slow enrollment.Study entry criteria not in line w/local standards of care,0,0
+NCT00300040,6% hydroxyethylstarch,TERMINATED,Very slow enrollment.Study entry criteria not in line w/local standards of care,0,0
+NCT02388971,mln1202,WITHDRAWN,Study has withdrawn.,0,0
+NCT02388971,placebo,WITHDRAWN,Study has withdrawn.,0,0
+NCT04073134,evolocumab,TERMINATED,Funding withdrawn,0,0
+NCT04073134,placebo,TERMINATED,Funding withdrawn,0,0
+NCT02790957,plerixafor,TERMINATED,Safety reasons,1,0
+NCT02790957,placebo,TERMINATED,Safety reasons,1,0
+NCT01352702,dabigatran,TERMINATED,Slow recruitment; Study was terminated for futility reasons,0,1
+NCT01352702,phenprocoumon,TERMINATED,Slow recruitment; Study was terminated for futility reasons,0,1
+NCT00203632,rosiglitazone/placebo,TERMINATED,Terminated at 50% enrollment due to recent concerns about rosiglitazone,0,0
+NCT04059536,acetylsalicylic acid,WITHDRAWN,Sponsor decision,0,0
+NCT04059536,heparin,WITHDRAWN,Sponsor decision,0,0
+NCT02114697,statin,TERMINATED,The study was stopped when the original principal investigator moved to a new institution.,0,0
+NCT02215824,biwh 3,TERMINATED,,0,0
+NCT02215824,placebo,TERMINATED,,0,0
+NCT04505098,icosapent ethyl,TERMINATED,The study was suspended by the IRB of record and subsequently terminated,0,0
+NCT00651014,ezetimibe,TERMINATED,slow subject recruitment and lack of medical and scientific merit due to change in new standard of therapy during that same period.,0,0
+NCT00651014,placebo,TERMINATED,slow subject recruitment and lack of medical and scientific merit due to change in new standard of therapy during that same period.,0,0
+NCT05618691,gfh312,WITHDRAWN,The study was terminated by sponsor for reasons of adjusted clinical development strategy.,0,0
+NCT01030328,placebo,WITHDRAWN,Lack of patient population,0,0
+NCT01030328,trilipix,WITHDRAWN,Lack of patient population,0,0
+NCT01901224,metformin,TERMINATED,study was not funded,0,0
+NCT01901224,placebo,TERMINATED,study was not funded,0,0
+NCT01341730,atorvastatin,TERMINATED,,0,0
+NCT01417104,aliskiren,TERMINATED,Safety concerns with approved medication identified in an unrelated trial,1,0
+NCT01417104,placebo,TERMINATED,Safety concerns with approved medication identified in an unrelated trial,1,0
+NCT03942601,temsirolimus,TERMINATED,Halted due to pandemic.,0,0
+NCT03942601,temsirolimus + dexamethasone sodium phosphate,TERMINATED,Halted due to pandemic.,0,0
+NCT00353067,veliflapon (dg-031),SUSPENDED,,0,0
+NCT01559974,placebo,TERMINATED,Insufficient recruitment,0,0
+NCT01559974,cholecalciferol,TERMINATED,Insufficient recruitment,0,0
+NCT00651378,rosuvastatin,TERMINATED,Slow enrollment \[HIGH SCREEN FAILURE RATE\],0,0
+NCT00651378,ezetimibe + atorvastatin,TERMINATED,Slow enrollment \[HIGH SCREEN FAILURE RATE\],0,0
+NCT00651378,atorvastatin,TERMINATED,Slow enrollment \[HIGH SCREEN FAILURE RATE\],0,0
+NCT00067041,remodulin (treprostinil sodium),TERMINATED,,0,0
+NCT04792008,yq23,TERMINATED,Due to business decision,0,0
+NCT04792008,matching placebo,TERMINATED,Due to business decision,0,0
+NCT01638585,urokinase,TERMINATED,recruition number was not reached,0,0
+NCT00527943,vorapaxar,TERMINATED,The trial was terminated at the request of the Data and Safety Monitoring Board.,1,0
+NCT00527943,placebo,TERMINATED,The trial was terminated at the request of the Data and Safety Monitoring Board.,1,0
+NCT03247972,evolocumab,TERMINATED,Research group transferred to another hospital,0,0
+NCT00985478,slv342,TERMINATED,Terminated on 14 Sep 2010 due to strategic considerations,0,0
+NCT00985478,placebo,TERMINATED,Terminated on 14 Sep 2010 due to strategic considerations,0,0
+NCT04176978,rosuvastatin,WITHDRAWN,Lack of funding,0,0
+NCT00856817,heme arginate + l-arginine,TERMINATED,Recruitment faillure. Similar study published by others. Not yet entered treatment phase.,0,0
+NCT00311311,tacrolimus,TERMINATED,See termination reason in detailed description.,0,0
+NCT00311311,mycophenolate mofetil,TERMINATED,See termination reason in detailed description.,0,0
+NCT00311311,prednisone,TERMINATED,See termination reason in detailed description.,0,0
+NCT00311311,sirolimus,TERMINATED,See termination reason in detailed description.,0,0
+NCT03968198,autologous asc (for adipose-derived stem/stroma cell),TERMINATED,organizational difficulties for the collection of adipose tissue and for the supply of the experimental drug,0,0
+NCT00120289,extended release niacin,TERMINATED,AIM-HIGH was stopped on the recommendation of the DSMB because of lack of efficacy of niacin in preventing primary outcome events.,0,1
+NCT00120289,simvastatin,TERMINATED,AIM-HIGH was stopped on the recommendation of the DSMB because of lack of efficacy of niacin in preventing primary outcome events.,0,1
+NCT05191862,cilostazol,TERMINATED,Randomization Error,0,0
+NCT05191862,pmr,TERMINATED,Randomization Error,0,0
+NCT00673582,rosuvastatin,TERMINATED,Sponsor has withdrawn the funding,0,0
+NCT00673582,placebo,TERMINATED,Sponsor has withdrawn the funding,0,0
+NCT01326676,polypill: red heart pill,WITHDRAWN,Funding never attained,0,0
+NCT01326676,usual medication,WITHDRAWN,Funding never attained,0,0
+NCT03542110,alirocumab,TERMINATED,Withdrawal of medication and funding support by Sponsor,0,0
+NCT03542110,matching placebo subcutaneous injection,TERMINATED,Withdrawal of medication and funding support by Sponsor,0,0
+NCT03240068,angiotensin 1-7,TERMINATED,Study funding ended prior to completion.,0,0
+NCT03240068,saline,TERMINATED,Study funding ended prior to completion.,0,0
+NCT01159054,extended release nicotinic acid (niaspan),TERMINATED,The funding source is not going to fund this anymore. Only two subjects completed the study therefore meaningful analysis not possible.,0,0
+NCT00805311,atorvastatin + aspirin + losartan + amlodipine,TERMINATED,Due to the clear advantage of carotid endarterectomy,0,0
+NCT01731990,canakinumab (acz885),TERMINATED,The study got terminated based on result from primary endpoint analysis,0,0
+NCT01731990,placebo,TERMINATED,The study got terminated based on result from primary endpoint analysis,0,0
+NCT03119012,clopidogrel,TERMINATED,cannot use bioabsorbable scaffold,0,0
+NCT03119012,aspirin + ticagrelor,TERMINATED,cannot use bioabsorbable scaffold,0,0
+NCT03119012,acetylsalicylic acid,TERMINATED,cannot use bioabsorbable scaffold,0,0
+NCT03174522,rex-001,TERMINATED,Independent Data Monitoring Committee recommendation to stop due to futility,0,1
+NCT03174522,placebo,TERMINATED,Independent Data Monitoring Committee recommendation to stop due to futility,0,1
+NCT00491751,atorvastatin,TERMINATED,Insufficient enrollment,0,0
+NCT00491751,vitamin c,TERMINATED,Insufficient enrollment,0,0
+NCT00491751,placebo,TERMINATED,Insufficient enrollment,0,0
+NCT03493412,sapropterin dihydrochloride (bh4 + tetrahydrobiopterin),WITHDRAWN,discontinued due to change in operating plans prior to study initiation and enrollment,0,0
+NCT03493412,placebo,WITHDRAWN,discontinued due to change in operating plans prior to study initiation and enrollment,0,0
+NCT00351364,montelukast sodium,TERMINATED,Diffic;ulty recruiting,0,0
+NCT01391377,niacin/laropiprant,TERMINATED,Tredaptive has been suspended worldwide,0,0
+NCT01391377,sugar pill,TERMINATED,Tredaptive has been suspended worldwide,0,0
+NCT00951132,rosuvastatin,WITHDRAWN,Failure to include patients,0,0
+NCT00951132,placebo,WITHDRAWN,Failure to include patients,0,0
+NCT02407314,acetylsalicylic acid,TERMINATED,AZ discontinued study,0,0
+NCT02407314,aspirin + ticagrelor,TERMINATED,AZ discontinued study,0,0
+NCT02953496,vonapanitase,WITHDRAWN,Change in operating plans,0,0
+NCT01104597,nitroglycerin,WITHDRAWN,No subjects were enrolled into the study,0,0
+NCT00914316,ranolazine,TERMINATED,,0,0
+NCT00914316,placebo,TERMINATED,,0,0
+NCT04007055,ticagrelor,TERMINATED,Poor recruitment,0,0
+NCT00569686,lovaza,WITHDRAWN,No subject meeting criteria,0,0
+NCT00569686,placebo,WITHDRAWN,No subject meeting criteria,0,0
+NCT04638400,simvastatin,TERMINATED,Lack of recruitment- Fellow responsible for study graduated,0,0
+NCT04638400,ezetimibe,TERMINATED,Lack of recruitment- Fellow responsible for study graduated,0,0
+NCT01683656,niacin/laropiprant,TERMINATED,Withdrawal of IMP from the market. Data on risk-benefit ratio pending.,0,0
+NCT01683656,placebo,TERMINATED,Withdrawal of IMP from the market. Data on risk-benefit ratio pending.,0,0
+NCT00397657,extended release niacin,TERMINATED,"Independent steering committee has stopped the trial based on results of a prespecified, blinded interim analysis. It was not stopped due to safety concerns.",1,0
+NCT00397657,ezetimibe,TERMINATED,"Independent steering committee has stopped the trial based on results of a prespecified, blinded interim analysis. It was not stopped due to safety concerns.",1,0
+NCT02975583,vorapaxar,WITHDRAWN,We could not secure adequate medication,0,0
+NCT02975583,placebos,WITHDRAWN,We could not secure adequate medication,0,0
+NCT02477540,cellgram-cli,WITHDRAWN,Study was stopped by sponsers internal reason.,0,0
+NCT03214887,rv-p1501,WITHDRAWN,Incomplete enrollment process,0,0
+NCT00657514,ranolazine,WITHDRAWN,Insufficient enrollment,0,0
+NCT00657514,placebo,WITHDRAWN,Insufficient enrollment,0,0
+NCT01666704,bms-823778,WITHDRAWN,,0,0
+NCT01666704,placebo matching with bms-823778,WITHDRAWN,,0,0
+NCT00385138,cangrelor,TERMINATED,Insufficient evidence of the clinical effectiveness of cangrelor,0,0
+NCT00385138,clopidogrel,TERMINATED,Insufficient evidence of the clinical effectiveness of cangrelor,0,0
+NCT00385138,placebo bolus & placebo infusion,TERMINATED,Insufficient evidence of the clinical effectiveness of cangrelor,0,0
+NCT00385138,placebo capsules - end of pci,TERMINATED,Insufficient evidence of the clinical effectiveness of cangrelor,0,0
+NCT00385138,placebo capsules - end of infusion,TERMINATED,Insufficient evidence of the clinical effectiveness of cangrelor,0,0
+NCT01082562,bms-823778,TERMINATED,,0,0
+NCT01082562,0.9% sodium chloride injection solution,TERMINATED,,0,0
+NCT02287974,stem cell infusion,TERMINATED,Patients' numebr randomized not achieved. Investigators team with lack of interest and commitment. The sponsor closed prematurely patients' recruitment.,0,0
+NCT05468957,statseal,WITHDRAWN,Initiating PI left our institution.,0,0
+NCT05908513,n-acetylcysteine,WITHDRAWN,Lack of available resources needed to conduct study.,0,0
+NCT05908513,placebo,WITHDRAWN,Lack of available resources needed to conduct study.,0,0
+NCT02374957,cilostazol,TERMINATED,Original PI left institution,0,0
+NCT00670202,fasudil hydrochloride,TERMINATED,Slow enrollment,0,0
+NCT00670202,placebo oral tablet,TERMINATED,Slow enrollment,0,0
+NCT02636283,entresto,TERMINATED,Recruitment,0,0
+NCT02636283,placebo group,TERMINATED,Recruitment,0,0
+NCT03773172,medi6012,TERMINATED,Early termination due to COVID-19,0,0
+NCT03773172,placebo,TERMINATED,Early termination due to COVID-19,0,0
+NCT03277183,low dose erythropoietin,TERMINATED,Lack of enrollment,0,0
+NCT03277183,high dose erythropoietin,TERMINATED,Lack of enrollment,0,0
+NCT00403780,pregabalin,TERMINATED,low inclusion rate,0,0
+NCT00403780,placebo,TERMINATED,low inclusion rate,0,0
+NCT00651391,ezetimibe + simvastatin,TERMINATED,Slow enrollment,0,0
+NCT00651391,simvastatin,TERMINATED,Slow enrollment,0,0
+NCT00651391,placebo,TERMINATED,Slow enrollment,0,0
+NCT00906035,dipyridamole + aspirin,TERMINATED,Could not enroll subjects who met the stringent inclusion/exclusion criteria.,0,0
+NCT00906035,dipyridamole,TERMINATED,Could not enroll subjects who met the stringent inclusion/exclusion criteria.,0,0
+NCT00906035,aspirin,TERMINATED,Could not enroll subjects who met the stringent inclusion/exclusion criteria.,0,0
+NCT01067326,aliskiren,TERMINATED,Novartis ended all studies regarding Aliskiren.,0,0
+NCT01067326,placebo,TERMINATED,Novartis ended all studies regarding Aliskiren.,0,0
+NCT03606642,dual antiplatelet (dapt) therapy,TERMINATED,"The DSMC March 16, 2022 reviewed of Interim Analysis and recommendation due to no glaring outcomes found to date.",0,0
+NCT02227368,aspirin + ticagrelor,TERMINATED,,0,0
+NCT02227368,comparator,TERMINATED,,0,0
+NCT05992896,bupivacaine liposome,TERMINATED,Lack of funds,0,0
+NCT05992896,placebo,TERMINATED,Lack of funds,0,0
+NCT02121288,aspirin + ticagrelor,WITHDRAWN,,0,0
+NCT02121288,clopidogrel,WITHDRAWN,,0,0
+NCT03625089,atorvastatin,WITHDRAWN,Limited funding support,0,0
+NCT02626169,clopidogrel,WITHDRAWN,Pharmaceutical company sponsor withdrew support prior to enrollment of subjects.,0,0
+NCT02626169,aspirin + ticagrelor,WITHDRAWN,Pharmaceutical company sponsor withdrew support prior to enrollment of subjects.,0,0
+NCT03986697,biktarvy,WITHDRAWN,COVID19 emergency. No patients randomised,0,0
+NCT00000600,vitamin e,TERMINATED,,0,0
+NCT00000600,vitamin c,TERMINATED,,0,0
+NCT02399852,lomitapide,WITHDRAWN,,0,0
+NCT02433587,acetylsalicylic acid,WITHDRAWN,Never recruited any patients.,0,0
+NCT02433587,clopidogrel,WITHDRAWN,Never recruited any patients.,0,0
+NCT00228176,rimonabant,TERMINATED,Company decision taken in light of demands by certain national health authorities,0,0
+NCT00228176,placebo (for rimonabant),TERMINATED,Company decision taken in light of demands by certain national health authorities,0,0
+NCT00790764,mesendo,SUSPENDED,Suspended due to lack of funding.,0,0
+NCT00060996,remodulin (treprostinil sodium),TERMINATED,,0,0
+NCT00151788,pactimibe sulfate,TERMINATED,,0,0
+NCT03507374,alirocumab,TERMINATED,Funding withdrawn,0,0
+NCT03507374,placebo,TERMINATED,Funding withdrawn,0,0
+NCT06886620,cilostazol,TERMINATED,,0,0
+NCT05574166,sp-8356,TERMINATED,"Only Part 1 was conducted but not Part 2. Due to the low exposures, definitive safety conclusions could not be made for the targeted exposure levels in the future.",1,0
+NCT05574166,placebo,TERMINATED,"Only Part 1 was conducted but not Part 2. Due to the low exposures, definitive safety conclusions could not be made for the targeted exposure levels in the future.",1,0
+NCT04573777,repatha,TERMINATED,Funding Discontinued,0,0
+NCT02460081,pda-002,WITHDRAWN,Discontinued due to significant delays in the expected availability of data.,0,0
+NCT02460081,placebo,WITHDRAWN,Discontinued due to significant delays in the expected availability of data.,0,0
+NCT01238588,sevelamer carbonate (renvela),TERMINATED,The study stopped due to lack of funding.,0,0
+NCT01132768,atenolol,TERMINATED,Low recruitment,0,0
+NCT01132768,olmesartan medoxomil,TERMINATED,Low recruitment,0,0
+NCT00243672,atorvastatin,WITHDRAWN,"The study chair changed his employment, the realization of the study was not possible",0,0
+NCT00243672,gemfibrozil,WITHDRAWN,"The study chair changed his employment, the realization of the study was not possible",0,0
+NCT03597035,spironolactone,TERMINATED,The study could not enroll patients owing to the inclusion exclusion criteria,0,0
+NCT03490903,fentanyl,WITHDRAWN,No patients enrolled,0,0
+NCT03490903,midazolam,WITHDRAWN,No patients enrolled,0,0
+NCT00932048,atorvastatin,WITHDRAWN,,0,0
+NCT00220831,natural source vitamin e,TERMINATED,interim analysis showed significant differences between two treatment groups,0,0
+NCT00926055,ezetimibe,WITHDRAWN,,0,0
+NCT00926055,vytorin (ezetimibe + simvastatin),WITHDRAWN,,0,0
+NCT05031520,isovue,TERMINATED,Study was terminated due to funding expiration.,0,0
+NCT05031520,nitroglycerin,TERMINATED,Study was terminated due to funding expiration.,0,0
+NCT05031520,metoprolol,TERMINATED,Study was terminated due to funding expiration.,0,0
+NCT00243308,serine proteinase-1 (serp-1),TERMINATED,Third dose group not recruited due to slow enrollment.,0,0
+NCT01230216,control systolic blood pressure less than 120 mmhg,TERMINATED,Slow patients enrollment,0,0
+NCT01230216,control systolic blood pressure less than 140 mmhg,TERMINATED,Slow patients enrollment,0,0
+NCT03111238,rex-001,TERMINATED,Stopped due to inactivity,0,0
+NCT03111238,placebo,TERMINATED,Stopped due to inactivity,0,0
+NCT02264288,3 x 10^6 cells,TERMINATED,Business decision with all subjects completing at least 1 year follow-up,0,0
+NCT02264288,10 x 10^6 cells,TERMINATED,Business decision with all subjects completing at least 1 year follow-up,0,0
+NCT02264288,30 x 10^6 cells,TERMINATED,Business decision with all subjects completing at least 1 year follow-up,0,0
+NCT00166803,rosiglitazone,SUSPENDED,no fund,0,0
+NCT02145988,dlbs1033,TERMINATED,Recruitment rate is unexpectedly too low (insufficient number of eligible patients).,0,0
+NCT02145988,placebo,TERMINATED,Recruitment rate is unexpectedly too low (insufficient number of eligible patients).,0,0
+NCT01799057,metformin,TERMINATED,The trial has been terminated due to difficulties with recruitment.,0,0
+NCT01799057,placebo,TERMINATED,The trial has been terminated due to difficulties with recruitment.,0,0
+NCT04043377,injection of 68ga-dotatate,TERMINATED,Financial issues,0,0
+NCT02230527,aspirin + ticagrelor,TERMINATED,Lack of enrollment,0,0
+NCT02230527,clopidogrel,TERMINATED,Lack of enrollment,0,0
+NCT02995642,18f-fpprgd2,WITHDRAWN,Resources not secured,0,0
+NCT04325932,urinary kallikrein,WITHDRAWN,,0,0
+NCT03318484,optimal medical care,WITHDRAWN,Re-registered,0,0
+NCT02539303,yamani-15/5 chemical solution,WITHDRAWN,Unable to enroll subjects,0,0
+NCT00913900,autologous cd133+ cells,TERMINATED,Failure to mobilize adequate CD34+ stem cells for minimum study treatment dose.,0,0
+NCT00004728,warfarin,TERMINATED,,0,0
+NCT00004728,acetylsalicylic acid,TERMINATED,,0,0
+NCT02144610,hgf plasmid (amg0001),TERMINATED,,0,0
+NCT02144610,matching placebo,TERMINATED,,0,0
+NCT02908490,sildenafil,TERMINATED,"Slow recruitment, lack of continued funding",0,0
+NCT01911169,cholecalciferol,COMPLETED,,0,0
+NCT02576067,low dose erythropoietin,COMPLETED,,0,0
+NCT02576067,placebo,COMPLETED,,0,0
+NCT00225277,pioglitazone,COMPLETED,,0,0
+NCT00225277,glimepiride,COMPLETED,,0,0
+NCT00853827,placebo,COMPLETED,,0,0
+NCT00853827,aliskiren,COMPLETED,,0,0

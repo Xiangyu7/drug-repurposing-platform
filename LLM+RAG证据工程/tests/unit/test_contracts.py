@@ -116,6 +116,17 @@ class TestContracts:
             "dossier_json",
             "dossier_md",
             "rank_key",
+            "docking_primary_target_chembl_id",
+            "docking_primary_target_name",
+            "docking_primary_uniprot",
+            "docking_primary_structure_source",
+            "docking_primary_structure_provider",
+            "docking_primary_structure_id",
+            "docking_backup_targets_json",
+            "docking_feasibility_tier",
+            "docking_target_selection_score",
+            "docking_risk_flags",
+            "docking_policy_version",
             "contract_version",
         }
         assert (

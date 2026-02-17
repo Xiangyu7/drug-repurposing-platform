@@ -24,7 +24,7 @@ seed_nct_list.csv
 | 5 | step5_normalize_drugs.py | step4 输出 | drug_master.csv, poolA_drug_level.csv | 药物归一化和聚合 |
 | 6 | step6_evidence_extraction.py | poolA_drug_level.csv | dossiers/ + step6_rank_v2.csv | PubMed RAG + LLM 证据提取 |
 | 7 | step7_score_and_gate.py | step6 dossiers | hypothesis_cards, gating_decision | 评分和门控决策 |
-| 8 | step8_candidate_pack.py | step7 输出 | step8_shortlist_topK.csv + candidate_pack.xlsx + step8_manifest.json | 打包候选药物 |
+| 8 | step8_candidate_pack.py | step7 输出 + bridge CSV | step8_shortlist_topK.csv (含靶点+docking就绪列) + candidate_pack.xlsx (含靶点结构表) + step8_manifest.json | 打包候选药物 (含靶点/PDB/AlphaFold + docking优先级) |
 | 9 | step9_validation_plan.py | step8 输出 | step9_validation_plan.csv + step9_manifest.json | 验证计划生成 |
 
 ## Step 6 子步骤（核心）

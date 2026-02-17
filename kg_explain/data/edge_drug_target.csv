@@ -1,81 +1,61 @@
 drug_normalized,drug_raw,molecule_chembl_id,target_chembl_id,mechanism_of_action
-rosiptor,rosiptor,CHEMBL3989954,CHEMBL1781870,"Phosphatidylinositol-3,4,5-trisphosphate 5-phosphatase 1 activator"
-odulimomab,odulimomab,CHEMBL2109177,CHEMBL1803,Leukocyte adhesion glycoprotein LFA-1 alpha inhibitor
-alemtuzumab,alemtuzumab,CHEMBL1201587,CHEMBL1912,CAMPATH-1 antigen inhibitor
-alemtuzumab beta,alemtuzumab beta,CHEMBL5314722,CHEMBL1912,CAMPATH-1 antigen binding agent
-deslanoside,deslanoside,CHEMBL1614,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor
-digitoxin,digitoxin,CHEMBL254219,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor
-digoxin,digoxin,CHEMBL1751,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor
-acetyldigitoxin,acetyldigitoxin,CHEMBL3545057,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor
-istaroxime,istaroxime,CHEMBL2093999,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor
-lanatoside c,lanatoside c,CHEMBL506569,CHEMBL2095186,Sodium/potassium-transporting ATPase inhibitor
-rovelizumab,rovelizumab,CHEMBL2109224,CHEMBL2111362,Integrin alpha-M/beta-2 antagonist
-cerdulatinib,cerdulatinib,CHEMBL4116008,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-r-348,r-348,CHEMBL5314384,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-at-9283,at-9283,CHEMBL495727,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-r-333,r-333,CHEMBL3545159,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-decernotinib,decernotinib,CHEMBL3039513,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-ritlecitinib,ritlecitinib,CHEMBL4085457,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-ritlecitinib tosylate,ritlecitinib tosylate,CHEMBL5314649,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-filgotinib,filgotinib,CHEMBL3301607,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-filgotinib maleate,filgotinib maleate,CHEMBL4298167,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-upadacitinib hemihydrate,upadacitinib hemihydrate,CHEMBL5315119,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-deuruxolitinib phosphate,deuruxolitinib phosphate,CHEMBL4594382,CHEMBL2148,Tyrosine-protein kinase JAK3 inhibitor
-brensocatib,brensocatib,CHEMBL3900409,CHEMBL2252,Dipeptidyl peptidase I inhibitor
-tofacitinib citrate,tofacitinib citrate,CHEMBL2103743,CHEMBL2363062,Janus Kinase (JAK) inhibitor
-peficitinib,peficitinib,CHEMBL3137308,CHEMBL2363062,Janus Kinase (JAK) inhibitor
-delgocitinib,delgocitinib,CHEMBL4297507,CHEMBL2363062,Janus Kinase (JAK) inhibitor
-gusacitinib,gusacitinib,CHEMBL4594275,CHEMBL2363062,Janus Kinase (JAK) inhibitor
-izencitinib,izencitinib,CHEMBL4650343,CHEMBL2363062,Janus Kinase (JAK) inhibitor
-nezulcitinib,nezulcitinib,CHEMBL4802163,CHEMBL2363062,Janus Kinase (JAK) inhibitor
-interferon alfa-n3,interferon alfa-n3,CHEMBL2109047,CHEMBL2364170,Interferon alpha/beta receptor agonist
-interferon alfa-2a,interferon alfa-2a,CHEMBL2108508,CHEMBL2364170,Interferon alpha/beta receptor agonist
-interferon alfa-2b,interferon alfa-2b,CHEMBL1201558,CHEMBL2364170,Interferon alpha/beta receptor agonist
-interferon beta-1a,interferon beta-1a,CHEMBL1201562,CHEMBL2364170,Interferon alpha/beta receptor agonist
-peginterferon alfa-2a,peginterferon alfa-2a,CHEMBL1201560,CHEMBL2364170,Interferon alpha/beta receptor agonist
-peginterferon alfa-2b,peginterferon alfa-2b,CHEMBL1201561,CHEMBL2364170,Interferon alpha/beta receptor agonist
-interferon beta-1b,interferon beta-1b,CHEMBL1201563,CHEMBL2364170,Interferon alpha/beta receptor agonist
-interferon alfacon-1,interferon alfacon-1,CHEMBL1201557,CHEMBL2364170,Interferon alpha/beta receptor agonist
-peginterferon beta-1a,peginterferon beta-1a,CHEMBL2108677,CHEMBL2364170,Interferon alpha/beta receptor agonist
-albinterferon alfa-2b,albinterferon alfa-2b,CHEMBL2107842,CHEMBL2364170,Interferon alpha/beta receptor agonist
-ropeginterferon alfa-2b,ropeginterferon alfa-2b,CHEMBL4297819,CHEMBL2364170,Interferon alpha/beta receptor positive modulator
-efalizumab,efalizumab,CHEMBL1201575,CHEMBL2364172,Integrin alpha-L/beta-2 (LFA-1) inhibitor
-lifitegrast,lifitegrast,CHEMBL2048028,CHEMBL2364172,Integrin alpha-L/beta-2 (LFA-1) antagonist
-rovelizumab,rovelizumab,CHEMBL2109224,CHEMBL2364172,Integrin alpha-L/beta-2 (LFA-1) antagonist
-ccx354,ccx354,CHEMBL4444976,CHEMBL2413,C-C chemokine receptor type 1 antagonist
-azd4818,azd4818,CHEMBL2178570,CHEMBL2413,C-C chemokine receptor type 1 antagonist
-bms-817399,bms-817399,CHEMBL3334824,CHEMBL2413,C-C chemokine receptor type 1 antagonist
-erlizumab,erlizumab,CHEMBL2109095,CHEMBL3631,Integrin beta-2 negative modulator
-mlnm-2201,mlnm-2201,CHEMBL2109332,CHEMBL3631,Integrin beta-2 inhibitor
-bms-986020,bms-986020,CHEMBL4297270,CHEMBL3819,Lysophosphatidic acid receptor Edg-2 antagonist
-emricasan,emricasan,CHEMBL197672,CHEMBL3831289,Caspase inhibitor
-ritlecitinib,ritlecitinib,CHEMBL4085457,CHEMBL4296642,TEC family kinase inhibitor
-ritlecitinib tosylate,ritlecitinib tosylate,CHEMBL5314649,CHEMBL4296642,TEC family kinase inhibitor
-sabatolimab,sabatolimab,CHEMBL4594575,CHEMBL4630879,Hepatitis A virus cellular receptor 2 inhibitor
-cobolimab,cobolimab,CHEMBL4298123,CHEMBL4630879,Hepatitis A virus cellular receptor 2 inhibitor
-lomvastomig,lomvastomig,CHEMBL4594602,CHEMBL4630879,Hepatitis A virus cellular receptor 2 inhibitor
-nivocasan,nivocasan,CHEMBL2105721,CHEMBL4801,Caspase-1 inhibitor
-belnacasan,belnacasan,CHEMBL2107819,CHEMBL4801,Caspase-1 inhibitor
-azd9056,azd9056,CHEMBL3545108,CHEMBL4805,P2X purinoceptor 7 antagonist
-ce-224535,ce-224535,CHEMBL1823817,CHEMBL4805,P2X purinoceptor 7 antagonist
-jnj-54175446,jnj-54175446,CHEMBL4079239,CHEMBL4805,P2X purinoceptor 7 antagonist
-ibrutinib,ibrutinib,CHEMBL1873475,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-spebrutinib besylate,spebrutinib besylate,CHEMBL3301600,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-poseltinib,poseltinib,CHEMBL4163691,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-tirabrutinib,tirabrutinib,CHEMBL4071161,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-acalabrutinib,acalabrutinib,CHEMBL3707348,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-zanubrutinib,zanubrutinib,CHEMBL3936761,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-branebrutinib,branebrutinib,CHEMBL4297674,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-bms-986142,bms-986142,CHEMBL3900554,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-evobrutinib,evobrutinib,CHEMBL4072833,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-elsubrutinib,elsubrutinib,CHEMBL4594348,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-fenebrutinib,fenebrutinib,CHEMBL4065122,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-rilzabrutinib,rilzabrutinib,CHEMBL3702854,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-abivertinib maleate,abivertinib maleate,CHEMBL4297866,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-abivertinib,abivertinib,CHEMBL4297865,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-vecabrutinib,vecabrutinib,CHEMBL4297640,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-orelabrutinib,orelabrutinib,CHEMBL4650321,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-pirtobrutinib,pirtobrutinib,CHEMBL4650485,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-edralbrutinib,edralbrutinib,CHEMBL4650338,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-tolebrutinib,tolebrutinib,CHEMBL4650323,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
-acalabrutinib maleate,acalabrutinib maleate,CHEMBL4594293,CHEMBL5251,Tyrosine-protein kinase BTK inhibitor
+alirocumab,Alirocumab,CHEMBL2109540,CHEMBL2929,Subtilisin/kexin type 9 inhibitor
+angiotensin 1-7,Angiotensin 1-7,CHEMBL3545347,CHEMBL3559701,Proto-oncogene Mas agonist
+aspirin + ticagrelor,Aspirin + Ticagrelor,CHEMBL398435,CHEMBL2001,Purinergic receptor P2Y12 negative allosteric modulator
+aspirin,Aspirin 25 mg bid,CHEMBL25,CHEMBL2094253,Cyclooxygenase inhibitor
+atenolol,Atenolol,CHEMBL24,CHEMBL213,Beta-1 adrenergic receptor antagonist
+bms-823778,BMS-823778,CHEMBL4297457,CHEMBL4235,11-beta-hydroxysteroid dehydrogenase 1 inhibitor
+biktarvy,Biktarvy,CHEMBL3989867,CHEMBL3471,Human immunodeficiency virus type 1 integrase inhibitor
+bupivacaine liposome,Bupivacaine liposome,CHEMBL1098,CHEMBL2072,Sodium channel protein type IV alpha subunit blocker
+canakinumab (acz885),Canakinumab (ACZ885),CHEMBL1201834,CHEMBL1909490,Interleukin-1 beta inhibitor
+cangrelor,Cangrelor,CHEMBL334966,CHEMBL2001,Purinergic receptor P2Y12 inhibitor
+cellgram-cli,Cellgram-CLI,CHEMBL225157,CHEMBL5255,Toll-like receptor 4 inhibitor
+cholecalciferol,Cholecalciferol,CHEMBL1042,CHEMBL1977,Vitamin D receptor agonist
+cilostazol,Cilostazol,CHEMBL799,CHEMBL241,Phosphodiesterase 3A inhibitor
+colchicine,Colchicine,CHEMBL107,CHEMBL2095182,Tubulin inhibitor
+dabigatran,Dabigatran,CHEMBL48361,CHEMBL204,Thrombin inhibitor
+dipyridamole,Dipyridamole 200 mg bid,CHEMBL932,CHEMBL1997,Equilibrative nucleoside transporter 1 inhibitor
+dipyridamole,Dipyridamole 200 mg bid,CHEMBL932,CHEMBL2363066,"3',5'-cyclic phosphodiesterase inhibitor"
+dipyridamole + aspirin,Dipyridamole 200mg and Aspirin 25mg bid:,CHEMBL25,CHEMBL2094253,Cyclooxygenase inhibitor
+evolocumab,Evolocumab,CHEMBL2364655,CHEMBL2929,Subtilisin/kexin type 9 inhibitor
+ezetimibe,Ezetimibe,CHEMBL1138,CHEMBL2027,Niemann-Pick C1-like protein 1 inhibitor
+fasudil hydrochloride,Fasudil Hydrochloride,CHEMBL541388,CHEMBL2111459,Rho-associated protein kinase inhibitor
+fentanyl,Fentanyl Injection,CHEMBL1201159,CHEMBL233,Mu opioid receptor agonist
+gemfibrozil,Gemfibrozil,CHEMBL457,CHEMBL239,Peroxisome proliferator-activated receptor alpha agonist
+glimepiride,Glimepiride,CHEMBL1481,CHEMBL2096972,"Sulfonylurea receptor 1, Kir6.2 blocker"
+heparin,Heparin,CHEMBL4650299,CHEMBL1950,Antithrombin-III activator
+jardiance,Jardiance,CHEMBL2107830,CHEMBL3884,Sodium/glucose cotransporter 2 inhibitor
+leqvio,LEQVIO,CHEMBL5095052,CHEMBL4630662,PCSK9 mRNA rnai inhibitor
+mln1202,MLN1202,CHEMBL3707228,CHEMBL4015,C-C chemokine receptor type 2 inhibitor
+midazolam,Midazolam injection,CHEMBL655,CHEMBL2093872,GABA-A receptor; anion channel positive allosteric modulator
+montelukast sodium,Montelukast Sodium,CHEMBL1200681,CHEMBL1798,Cysteinyl leukotriene receptor 1 antagonist
+nexlizet,Nexlizet,CHEMBL3545313,CHEMBL3720,ATP-citrate synthase inhibitor
+niacin/laropiprant,Niacin/Laropiprant combination,CHEMBL426559,CHEMBL4427,Prostanoid DP receptor antagonist
+nitroglycerin,Nitroglycerin,CHEMBL730,CHEMBL2111348,Soluble guanylate cyclase activator
+pactimibe sulfate,Pactimibe sulfate,CHEMBL447977,CHEMBL2782,Acyl coenzyme A:cholesterol acyltransferase 1 inhibitor
+pactimibe sulfate,Pactimibe sulfate,CHEMBL447977,CHEMBL4465,Acyl coenzyme A:cholesterol acyltransferase 2 inhibitor
+phenprocoumon,Phenprocoumon,CHEMBL1465,CHEMBL1930,Vitamin k epoxide reductase complex subunit 1 isoform 1 inhibitor
+plerixafor,Plerixafor,CHEMBL18442,CHEMBL2107,C-X-C chemokine receptor type 4 partial agonist
+ranolazine,Ranolazine,CHEMBL1404,CHEMBL1980,Sodium channel protein type V alpha subunit blocker
+ranolazine,Ranolazine,CHEMBL1404,CHEMBL2072,Sodium channel protein type IV alpha subunit blocker
+remodulin (treprostinil sodium),Remodulin (treprostinil sodium) Injection,CHEMBL561157,CHEMBL1995,Prostanoid IP receptor agonist
+repatha,Repatha,CHEMBL2364655,CHEMBL2929,Subtilisin/kexin type 9 inhibitor
+rimonabant,Rimonabant,CHEMBL111,CHEMBL218,Cannabinoid CB1 receptor antagonist
+rosiglitazone,Rosiglitazone,CHEMBL121,CHEMBL235,Peroxisome proliferator-activated receptor gamma agonist
+serine proteinase-1 (serp-1),Serine proteinase-1 (Serp-1),CHEMBL4297879,CHEMBL248,Leukocyte elastase inhibitor
+simvastatin,Simvastatin,CHEMBL1064,CHEMBL402,HMG-CoA reductase inhibitor
+spironolactone,Spironolactone,CHEMBL1393,CHEMBL1994,Mineralocorticoid receptor antagonist
+temsirolimus,Temsirolimus,CHEMBL1201182,CHEMBL1902,FK506-binding protein 1A inhibitor
+temsirolimus + dexamethasone sodium phosphate,Temsirolimus and dexamethasone sodium phosphate,CHEMBL2021430,CHEMBL2034,Glucocorticoid receptor agonist
+ticagrelor,Ticagrelor 90mg,CHEMBL398435,CHEMBL2001,Purinergic receptor P2Y12 negative allosteric modulator
+trilipix,TriLipix,CHEMBL981,CHEMBL239,Peroxisome proliferator-activated receptor alpha agonist
+atorvastatin + aspirin + losartan + amlodipine,"atorvastatin, aspirin, losartan, amlodipine",CHEMBL1200402,CHEMBL2095229,Voltage-gated L-type calcium channel blocker
+mycophenolate mofetil,mycophenolate mofetil,CHEMBL1456,CHEMBL2111369,Inosine-5'-monophosphate dehydrogenase (IMPDH) inhibitor
+olmesartan medoxomil,olmesartan medoxomil,CHEMBL1200692,CHEMBL227,Type-1 angiotensin II receptor antagonist
+prednisone,prednisone,CHEMBL635,CHEMBL2034,Glucocorticoid receptor agonist
+pregabalin,pregabalin,CHEMBL1059,CHEMBL2363032,Voltage-gated calcium channel modulator
+sirolimus,sirolimus,CHEMBL413,CHEMBL1902,FK506-binding protein 1A inhibitor
+tacrolimus,tacrolimus,CHEMBL3989887,CHEMBL1902,FK506-binding protein 1A inhibitor
+urokinase,urokinase,CHEMBL1201420,CHEMBL3286,Urokinase-type plasminogen activator exogenous protein
+veliflapon (dg-031),veliflapon (DG-031),CHEMBL88712,CHEMBL4550,5-lipoxygenase activating protein inhibitor
+vonapanitase,vonapanitase,CHEMBL3545070,CHEMBL3713712,Elastin proteolytic enzyme

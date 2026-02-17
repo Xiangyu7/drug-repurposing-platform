@@ -1,0 +1,13 @@
+disease:
+  name: "endocarditis"
+  condition: "endocarditis"
+
+drug_filter:
+  include_types:
+    - DRUG
+    - BIOLOGICAL
+  exclude_types:
+    - DEVICE
+    - PROCEDURE
+    - BEHAVIORAL
+    - DIETARY_SUPPLEMENT

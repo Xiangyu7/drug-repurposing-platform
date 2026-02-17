@@ -48,6 +48,114 @@ def _is_serious_ae(ae_term: str, serious_keywords: list[str]) -> bool:
     return any(kw.lower() in ae_lower for kw in serious_keywords)
 
 
+def _build_drug_target_map(data_dir: Path) -> dict[str, list[dict]]:
+    """Build drug → target list mapping from KG data files.
+
+    Returns:
+        Dict mapping drug_normalized → list of target dicts, each containing:
+            target_chembl_id, target_name, mechanism_of_action, uniprot,
+            pdb_ids (experimental), has_alphafold, structure_source
+    """
+    dt_path = data_dir / "edge_drug_target.csv"
+    nt_path = data_dir / "node_target.csv"
+    xref_path = data_dir / "target_xref.csv"
+
+    if not dt_path.exists():
+        logger.warning("edge_drug_target.csv not found, skipping target enrichment")
+        return {}
+
+    dt = pd.read_csv(dt_path, dtype=str).fillna("")
+
+    # target_chembl_id → pref_name
+    target_names: dict[str, str] = {}
+    if nt_path.exists():
+        nt = pd.read_csv(nt_path, dtype=str).fillna("")
+        for _, r in nt.iterrows():
+            tid = str(r.get("target_chembl_id", "")).strip()
+            pname = str(r.get("pref_name", "")).strip()
+            if tid and pname:
+                target_names[tid] = pname
+
+    # Parse xref for UniProt, PDB, and AlphaFold
+    target_uniprot: dict[str, str] = {}
+    target_pdb: dict[str, list[str]] = {}  # target → list of PDB IDs
+    target_alphafold: dict[str, bool] = {}  # target → has AlphaFold
+    if xref_path.exists():
+        xref = pd.read_csv(xref_path, dtype=str).fillna("")
+        uni_seen: set = set()
+        for _, r in xref.iterrows():
+            tid = str(r.get("target_chembl_id", "")).strip()
+            src = str(r.get("xref_src_db", "")).strip()
+            xid = str(r.get("xref_id", "")).strip()
+            uni = str(r.get("uniprot_accession", "")).strip()
+            if not tid:
+                continue
+            if uni and tid not in uni_seen:
+                target_uniprot[tid] = uni
+                uni_seen.add(tid)
+            if src == "PDB" and xid:
+                target_pdb.setdefault(tid, []).append(xid)
+            if src == "AlphaFoldDB":
+                target_alphafold[tid] = True
+
+    # Build per-drug target list
+    drug_targets: dict[str, list[dict]] = {}
+    for _, r in dt.iterrows():
+        drug = str(r.get("drug_normalized", "")).strip()
+        tid = str(r.get("target_chembl_id", "")).strip()
+        moa = str(r.get("mechanism_of_action", "")).strip()
+        if not drug or not tid:
+            continue
+        tname = target_names.get(tid, "")
+        uniprot = target_uniprot.get(tid, "")
+        pdb_ids = target_pdb.get(tid, [])
+        has_af = target_alphafold.get(tid, False)
+
+        # Determine structure source tag
+        if pdb_ids and has_af:
+            structure_source = "PDB+AlphaFold"
+        elif pdb_ids:
+            structure_source = "PDB"
+        elif has_af:
+            structure_source = "AlphaFold_only"
+        else:
+            structure_source = "none"
+
+        entry = {
+            "target_chembl_id": tid,
+            "target_name": tname,
+            "mechanism_of_action": moa,
+            "uniprot": uniprot,
+            "pdb_ids": pdb_ids[:5],  # top 5 PDB IDs (can be many)
+            "pdb_count": len(pdb_ids),
+            "has_alphafold": has_af,
+            "structure_source": structure_source,
+        }
+        drug_targets.setdefault(drug, []).append(entry)
+
+    logger.info("Drug-target map: %d drugs with targets", len(drug_targets))
+    return drug_targets
+
+
+def _format_target_summary(targets: list[dict]) -> str:
+    """Render target_details into a concise human-readable summary string."""
+    parts: list[str] = []
+    for t in targets:
+        if not isinstance(t, dict):
+            continue
+        s = f"{safe_str(t.get('target_name'))} ({safe_str(t.get('target_chembl_id'))})"
+        uni = safe_str(t.get("uniprot"))
+        if uni:
+            s += f" [UniProt:{uni}]"
+        src = safe_str(t.get("structure_source")) or "none"
+        s += f" [{src}]"
+        moa = safe_str(t.get("mechanism_of_action"))
+        if moa:
+            s += f" — {moa}"
+        parts.append(s)
+    return "; ".join(parts)
+
+
 def _generate_path_explanation(path_row) -> str:
     """生成路径的自然语言解释"""
     nodes = path_row.get("nodes", [])
@@ -422,8 +530,12 @@ def run_v5(cfg: Config) -> dict[str, Path]:
             if canon and pref:
                 chembl_map[canon] = pref
 
+    # Load drug → target mapping for molecular docking readiness
+    drug_target_map = _build_drug_target_map(data_dir)
+
     for _, r in drug_best.iterrows():
         drug = safe_str(r.get("drug_normalized"))
+        targets = drug_target_map.get(drug, [])
         bridge_rows.append({
             "drug_id": _stable_drug_id(drug),
             "canonical_name": drug,
@@ -436,6 +548,8 @@ def run_v5(cfg: Config) -> dict[str, Path]:
             "trial_source": r.get("trial_source", ""),
             "example_condition": r.get("example_condition", ""),
             "why_stopped": r.get("example_whyStopped", ""),
+            "targets": _format_target_summary(targets) if targets else "",
+            "target_details": json.dumps(targets, ensure_ascii=False) if targets else "",
         })
 
     bridge_df = pd.DataFrame(bridge_rows).sort_values("max_mechanism_score", ascending=False)

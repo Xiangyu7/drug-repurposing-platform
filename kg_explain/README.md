@@ -221,12 +221,41 @@ configs/
 | `output/drug_disease_rank_v5.csv` | 药物-疾病排序 (final_score, mechanism, safety, is_known_indication) |
 | `output/evidence_paths_v5.jsonl` | 所有 DTPD 路径 (每行一个 JSON) |
 | `output/evidence_pack_v5/*.json` | ★ 每对药-疾病的完整证据包 |
-| `output/bridge_repurpose_cross.csv` | Direction A: 跨疾病迁移 bridge (每药最高分疾病) |
-| `output/bridge_origin_reassess.csv` | Direction B: 原疾病重评估 bridge (目标疾病 + 文献注入) |
+| `output/bridge_repurpose_cross.csv` | Direction A: 跨疾病迁移 bridge (含靶点 + 结构来源标记) |
+| `output/bridge_origin_reassess.csv` | Direction B: 原疾病重评估 bridge (含靶点 + 结构来源标记) |
 | `output/pipeline_manifest.json` | 运行元数据 (计时、缓存命中率、配置摘要) |
 | `data/drug_from_signature.csv` | (Signature) 反查结果 (药物+靶点+基因+权重) |
 | `data/drug_known_indications.csv` | (Signature) 各药物已知适应症列表 |
 | `data/edge_*.csv` | 所有中间边数据 (可复用) |
+
+### Bridge CSV 靶点信息 (2026-02-16 新增)
+
+Bridge 文件新增两列，为分子对接提供结构化靶点数据:
+
+| 新增列 | 说明 |
+|--------|------|
+| `targets` | 人类可读摘要: `TargetName (CHEMBL_ID) [UniProt:ACC] [PDB+AlphaFold] — MoA` |
+| `target_details` | JSON 数组，每个靶点含完整结构化信息 |
+
+`target_details` 中每个靶点包含:
+```json
+{
+  "target_chembl_id": "CHEMBL2929",
+  "target_name": "Proprotein convertase subtilisin/kexin type 9",
+  "mechanism_of_action": "Subtilisin/kexin type 9 inhibitor",
+  "uniprot": "Q8NBP7",
+  "pdb_ids": ["2P4E", "2PMW", "2QTW"],
+  "pdb_count": 43,
+  "has_alphafold": true,
+  "structure_source": "PDB+AlphaFold"
+}
+```
+
+`structure_source` 标记含义:
+- **`PDB+AlphaFold`** — 有实验晶体结构 + AlphaFold 预测 → 优先选 PDB 做分子对接
+- **`PDB`** — 仅有实验结构 → 可直接对接
+- **`AlphaFold_only`** — 仅有 AI 预测结构 → 对接结果需谨慎解读
+- **`none`** — 无结构数据
 
 ---
 

@@ -1,0 +1,15 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Auto-generated 2026-02-16, supplemented with EFO IDs from origin list
+# AI-reviewed 2026-02-16: removed hypertension (3/4 GSE were PAH not essential hypertension, only 1 left)
+# Diseases with dsmeta config ready (no TODO, >= 2 GSE)
+#
+# atherosclerosis: manually curated (2 GSE, human reviewed)
+atherosclerosis|atherosclerosis|EFO_0003914,MONDO_0021661|kg_explain/configs/inject_atherosclerosis.yaml
+# Below: auto-discovered + AI-reviewed
+abdominal_aortic_aneurysm|abdominal aortic aneurysm|EFO_0004214|
+cardiomyopathy|cardiomyopathy|EFO_0000318|
+coronary_artery_disease|coronary artery disease|EFO_0001645|
+heart_failure|heart failure|EFO_0003144|
+myocardial_infarction|myocardial infarction|EFO_0000612|
+pulmonary_arterial_hypertension|pulmonary arterial hypertension|EFO_0001361|
+# hypertension: removed — after review only 1 valid GSE (GSE236442), 3 others were PAH → Direction B only

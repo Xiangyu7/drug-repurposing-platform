@@ -1,0 +1,17 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Day-1 origin-only list: cardiovascular diseases queued for CT.gov route.
+coronary_artery_disease|coronary artery disease|EFO_0001645|
+heart_failure|heart failure|EFO_0003144|
+myocardial_infarction|myocardial infarction|EFO_0000612|
+atrial_fibrillation|atrial fibrillation|EFO_0000275|
+hypertension|hypertension|EFO_0000537|
+stroke|stroke|EFO_0000712|
+pulmonary_arterial_hypertension|pulmonary arterial hypertension|EFO_0001361|
+deep_vein_thrombosis|deep vein thrombosis|EFO_0003907|
+venous_thromboembolism|venous thromboembolism|EFO_0004286|
+angina_pectoris|angina pectoris|EFO_0003913|
+myocarditis|myocarditis|EFO_0009609|
+cardiomyopathy|cardiomyopathy|EFO_0000318|
+abdominal_aortic_aneurysm|abdominal aortic aneurysm|EFO_0004214|
+pulmonary_embolism|pulmonary embolism|EFO_0003827|
+endocarditis|endocarditis|EFO_0000465|

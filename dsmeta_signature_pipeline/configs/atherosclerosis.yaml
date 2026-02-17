@@ -1,0 +1,68 @@
+project:
+  name: "atherosclerosis_meta_signature"
+  outdir: "outputs/atherosclerosis"
+  workdir: "work/atherosclerosis"
+  seed: 13
+
+geo:
+  gse_list:
+    - "GSE28829"
+    - "GSE43292"
+  prefer_series_matrix: true
+
+labeling:
+  mode: "regex"
+  regex_rules:
+    GSE28829:
+      case:
+        any: ["advanced atherosclerotic"]
+      control:
+        any: ["early atherosclerotic"]
+    GSE43292:
+      case:
+        any: ["tissue: atheroma plaque"]
+      control:
+        any: ["tissue: macroscopically intact"]
+
+de:
+  method: "limma"
+  covariates: []
+  qc:
+    remove_outliers: true
+    pca_outlier_z: 3.5
+
+probe_to_gene:
+  enable: true
+  skip_if_gene_symbols: true
+
+meta:
+  model: "random"
+  min_sign_concordance: 0.7
+  flag_i2_above: 0.6
+  top_n: 300
+
+rank_aggregation:
+  enable: true
+  method: "rra"
+  ensemble:
+    enable: true
+    w_meta: 0.7
+    w_rra: 0.3
+
+genesets:
+  enable_reactome: true
+  enable_wikipathways: true
+  enable_kegg: false
+
+gsea:
+  method: "fgsea"
+  min_size: 15
+  max_size: 500
+  nperm: 10000
+
+pathway_meta:
+  method: "stouffer"
+  min_concordance: 0.7
+
+report:
+  enable: true

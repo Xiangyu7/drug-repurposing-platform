@@ -52,13 +52,31 @@ STEPS = [
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-def sh(cmd, step_name: str = ""):
-    """Run a subprocess, raise on failure with informative message."""
+def sh(cmd, step_name: str = "", timeout: int = 0):
+    """Run a subprocess, raise on failure with informative message.
+
+    Args:
+        cmd: Command + args list.
+        step_name: Human-readable label for logging.
+        timeout: Per-step timeout in seconds. 0 means use DSMETA_STEP_TIMEOUT
+                 env var (default 1800s = 30 min). Set -1 for no timeout.
+    """
     console.print(f"[bold cyan]$ {' '.join(cmd)}[/bold cyan]")
     env = os.environ.copy()
     env["PATH"] = str(_env_bin) + os.pathsep + env.get("PATH", "")
+
+    if timeout == 0:
+        timeout = int(os.environ.get("DSMETA_STEP_TIMEOUT", "1800"))
+    if timeout <= 0:
+        timeout = None  # no timeout
+
     t0 = time.monotonic()
-    r = subprocess.run(cmd, env=env)
+    try:
+        r = subprocess.run(cmd, env=env, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        elapsed = time.monotonic() - t0
+        logger.error("Step '%s' TIMED OUT after %.1fs (limit=%ss)", step_name, elapsed, timeout)
+        raise SystemExit(124)  # 124 = timeout, consistent with coreutils
     elapsed = time.monotonic() - t0
     if r.returncode != 0:
         logger.error("Step '%s' failed with exit code %d (%.1fs)", step_name, r.returncode, elapsed)
@@ -138,6 +156,24 @@ def validate_config(cfg: dict):
     logger.info("Config validation passed.")
 
 
+def cleanup_workdir(workdir: Path):
+    """Delete workdir contents after successful pipeline run to free disk space.
+
+    The workdir contains intermediate files (GEO expression matrices,
+    DE results, gene set downloads) that can be 100MB+ per GSE.
+    On low-disk machines (e.g. M1 MacBook), this frees significant space
+    between disease runs.
+
+    Outputs in outdir are NOT affected — they live in a separate directory.
+    """
+    if not workdir.exists():
+        return
+    size_mb = sum(f.stat().st_size for f in workdir.rglob("*") if f.is_file()) / (1024 * 1024)
+    logger.info("Cleaning up workdir: %s (%.1f MB)", workdir, size_mb)
+    shutil.rmtree(workdir)
+    console.print(f"[bold yellow]🧹 Cleaned workdir: {workdir} ({size_mb:.0f} MB freed)[/bold yellow]")
+
+
 def generate_run_manifest(cfg: dict, outdir: Path, start_time: datetime,
                           end_time: datetime, steps_run: list, status: str):
     """Generate a run manifest for reproducibility."""
@@ -187,7 +223,15 @@ def main():
                     help="Stop after this step number (1-10, default: 10)")
     ap.add_argument("--dry-run", action="store_true",
                     help="Show steps that would run without executing")
+    ap.add_argument("--cleanup-workdir", action="store_true",
+                    help="Delete workdir after successful run to free disk space. "
+                         "Outputs in outdir are preserved. "
+                         "Also enabled by env DSMETA_CLEANUP=1.")
     args = ap.parse_args()
+
+    # Env override for cleanup
+    if os.environ.get("DSMETA_CLEANUP", "0") == "1":
+        args.cleanup_workdir = True
 
     # Load and validate config
     cfg_path = Path(args.config)
@@ -251,6 +295,10 @@ def main():
         end_time = datetime.now(timezone.utc)
         generate_run_manifest(cfg, outdir, start_time, end_time, steps_completed, "success")
         console.print(f"\n[bold green]✓ Pipeline complete.[/bold green] Outputs in: {outdir}")
+
+        # Cleanup workdir after success (saves disk on M1 Mac / low-disk machines)
+        if args.cleanup_workdir:
+            cleanup_workdir(workdir)
 
     except SystemExit as e:
         end_time = datetime.now(timezone.utc)

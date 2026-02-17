@@ -169,6 +169,8 @@ configs/athero_example.yaml
 1. **GSE ID 列表** — 你想用哪些 GEO 数据集
 2. **Case/Control 标注** — regex 规则或显式 GSM 列表
 
+### 手动配置
+
 ```yaml
 # configs/athero_example.yaml (核心部分)
 geo:
@@ -186,6 +188,64 @@ labeling:
       case:    { any: ["tissue: atheroma plaque"] }
       control: { any: ["tissue: macroscopically intact"] }
 ```
+
+### 自动配置（推荐，2026-02-16 新增）
+
+使用 `auto_discover_geo.py` 自动搜索 GEO、检测 case/control、生成候选配置：
+
+```bash
+# 1. 自动搜索（~1分钟/疾病，纯规则无 LLM）
+cd .. && python ops/auto_discover_geo.py --disease "heart failure" --write-yaml --out-dir ops/geo_curation
+
+# 2. AI 辅助审核（把 discovery_log.txt 喂给 LLM）
+cat ops/geo_curation/heart_failure/discovery_log.txt
+# → 复制给 Claude/ChatGPT，问："请审核这些 heart failure 的 GSE 选择"
+# AI 检查：数据类型(mRNA?)、疾病匹配、组织/细胞类型、regex正确性、重复、研究设计
+
+# 3. 应用审核 — 编辑生成的 YAML 移除不合格 GSE
+#    修改 configs/<disease>.yaml 的 geo.gse_list 和 labeling.regex_rules
+#    如果审核后 GSE < 2 → 从 disease_list_day1_dual.txt 移除
+
+# 4. 生成正式 dsmeta 配置
+python ops/generate_dsmeta_configs.py \
+    --geo-dir ops/geo_curation \
+    --config-dir dsmeta_signature_pipeline/configs
+
+# 5. 验证（运行 Step1-2 检查样本数）
+bash ops/precheck_dual_dsmeta.sh
+```
+
+**AI 审核检查清单（喂给 LLM 的 6 项检查）：**
+
+| 检查项 | 不合格 → 移除 | 实际案例 |
+|--------|--------------|---------|
+| 数据类型 | 非 mRNA 表达谱（16S rRNA, circRNA, tRNA-derived sRNA） | coronary: GSE242047 是 16S rRNA |
+| 疾病匹配 | GSE 研究的是其他疾病/完全不同的病种 | hypertension: 3/4 个 GSE 是 PAH |
+| 组织/细胞 | 细胞系、成纤维细胞、非靶器官 | cardiomyopathy: GSE133754 是成纤维细胞 |
+| Case/Control | regex 匹配了错误的分组 | 比较两个亚型而非 disease vs healthy |
+| 重复 | 同一数据集出现两次 | MI: '48060' = GSE48060 |
+| 研究设计 | 非 case-control 转录组（药物处理、方法学等） | MI: GSE220865 是效力测试 |
+
+**自动发现的工作原理：**
+- 调用 NCBI E-utilities 搜索 GEO（esearch → esummary）
+- 硬编码过滤：Human only, expression profiling, ≥6 samples
+- 排除：cell line, animal model, miRNA, methylation, single-cell
+- 正则匹配 case/control（在 title/source/characteristics 字段上）
+- 打分：样本数(30) + 平衡性(20) + 平台质量(20) + 分类置信度(20) + 时效(10)
+- 选 top-5 并生成 `candidate_config.yaml`
+- 自动输出路线推荐（`route_recommendation.txt`），告诉你这个疾病应该走哪条路线
+
+**推荐 3-5 个 GSE/疾病**，至少 2 个才能做 meta-analysis。
+
+**GSE 数量不足怎么办？**
+
+| 情况 | 建议 |
+|------|------|
+| 0 个 GSE | 跳过 dsmeta 管线，该疾病只走 Direction B（CT.gov → KG → LLM） |
+| 1 个 GSE | 可以跑但结果为低可信度（无跨实验验证），建议手动补搜或只走 Direction B |
+| ≥2 个 GSE | 正常跑，meta-analysis 和 RRA 都能发挥作用 |
+
+> `generate_dsmeta_configs.py --update-disease-list` 只会把 ≥2 GSE 的疾病加入 dual 列表。
 
 ---
 
@@ -341,7 +401,9 @@ dsmeta_signature_pipeline/
 ├── run.py                          主编排器 (10 步)
 ├── configs/
 │   ├── template.yaml               配置模板
-│   └── athero_example.yaml         动脉粥样硬化示例
+│   ├── atherosclerosis.yaml        动脉粥样硬化 (人工审核)
+│   └── athero_example.yaml         示例配置
+│   └── <disease>.yaml              (由 auto_discover_geo + generate_dsmeta_configs 自动生成)
 ├── scripts/
 │   ├── 01_fetch_geo.R              GEO 数据下载
 │   ├── 02_de_limma.R               limma 差异表达
@@ -379,6 +441,12 @@ A: 可以，但 limma 需要 log-normalized 的表达矩阵。如果是 counts�
 
 **Q: 只有一个 GSE 能跑吗？**
 A: 能跑。meta 分析会退化为单数据集统计，但没有跨数据集验证。sign_concordance 和 I2 指标不可用。建议至少 2 个 GSE。
+
+**Q: 怎么快速找到适合的 GSE？**
+A: 用 `auto_discover_geo.py`。它会自动搜索 NCBI GEO、过滤不适合的数据集、检测 case/control、打分排名，输出候选配置。每个疾病约 1 分钟。详见上方"自动配置"章节。
+
+**Q: auto_discover_geo 生成的配置可以直接用吗？**
+A: 高置信度（confidence=high）的通常可以。但建议至少看一眼 `discovery_log.txt` 确认 GSE 选择合理、case/control regex 正确。低置信度（含 TODO 占位符）的必须手动审核。
 
 **Q: sigreverse_input.json 的基因数量多少合适？**
 A: 推荐每方向 100-300 个。通过 `meta.top_n` 配置。太少统计功效不足，太多信噪比下降。

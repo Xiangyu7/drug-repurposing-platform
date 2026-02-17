@@ -189,6 +189,18 @@ def http_get(url: str, params: Dict[str, Any]) -> Dict[str, Any]:
                 r = requests.get(url, params=params, timeout=TIMEOUT)
             r.raise_for_status()
             return r.json()
+        except requests.HTTPError as e:
+            status_code = e.response.status_code if e.response is not None else None
+            # 4xx（除 429）是参数/客户端错误，重试无意义，直接失败
+            if status_code is not None and 400 <= status_code < 500 and status_code != 429:
+                body = (e.response.text or "")[:300].replace("\n", " ")
+                raise RuntimeError(
+                    f"HTTP {status_code} for {url}; params={params}; body={body}"
+                ) from e
+            last_err = e
+            wait = 2.0 * (attempt + 1)
+            print(f"  [重试 {attempt+1}/{MAX_RETRIES}] {e} — 等待 {wait}s")
+            time.sleep(wait)
         except Exception as e:
             last_err = e
             wait = 2.0 * (attempt + 1)
@@ -233,6 +245,8 @@ def search_studies(
     print(f"  上限:   {max_studies}")
     print(f"{'='*60}\n")
 
+    phase_set = {p.upper() for p in phases} if phases else set()
+
     while pulled < max_studies:
         params = {
             "pageSize": PAGE_SIZE,
@@ -240,8 +254,9 @@ def search_studies(
             "countTotal": "true",
             "sort": "LastUpdatePostDate:desc",
             "filter.overallStatus": ",".join(statuses),
-            "filter.phase": ",".join(phases),
         }
+        # NOTE: filter.phase 已被 CT.gov API v2 废弃，会返回 400
+        # 改为拉取后本地过滤 phase
         if disease:
             params["query.cond"] = disease
         if drug:
@@ -251,17 +266,31 @@ def search_studies(
 
         data = http_get(f"{CTGOV_API}/studies", params)
         total = data.get("totalCount", "?")
-        studies = data.get("studies", [])
+        studies_raw = data.get("studies", [])
+
+        # 本地按 phase 过滤
+        if phase_set:
+            studies = []
+            for s in studies_raw:
+                ps = s.get("protocolSection", {}) or {}
+                study_phases = ps.get("designModule", {}).get("phases") or []
+                if isinstance(study_phases, str):
+                    study_phases = [study_phases]
+                if {p.upper() for p in study_phases} & phase_set:
+                    studies.append(s)
+        else:
+            studies = studies_raw
 
         if pulled == 0:
             print(f"  CT.gov 返回总计 {total} 条匹配试验")
 
         out.extend(studies)
         pulled += len(studies)
-        print(f"  已拉取: {pulled}/{max_studies} (本页 {len(studies)} 条)")
+        print(f"  已拉取: {pulled}/{max_studies} (本页原始 {len(studies_raw)} 条, 过滤后 {len(studies)} 条)")
 
         page_token = data.get("nextPageToken")
-        if not page_token or not studies:
+        # Do not stop on filtered-empty page: later pages may still contain matching phases.
+        if not page_token or not studies_raw:
             break
         time.sleep(SLEEP_BETWEEN_PAGES)
 

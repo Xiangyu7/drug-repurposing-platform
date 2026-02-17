@@ -1,0 +1,17 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+#
+# Rules:
+# 1) disease_key is used for:
+#    - kg_explain disease config: kg_explain/configs/diseases/<disease_key>.yaml
+#    - dsmeta config: dsmeta_signature_pipeline/configs/<disease_key>.yaml
+#    - cross input auto-discovery under dsmeta outputs
+# 2) disease_query is used by CT.gov + LLM retrieval (if empty, key with '_' -> spaces)
+# 3) origin_disease_ids is optional (comma-separated); if present, origin bridge uses --disease-ids.
+#    If empty, runner falls back to --disease <disease_query> fuzzy match.
+# 4) inject_yaml is optional; if present, passed to generate_disease_bridge.py --inject.
+#
+# Examples:
+# atherosclerosis|atherosclerosis|EFO_0003914,MONDO_0021661|kg_explain/configs/inject_atherosclerosis.yaml
+# type2_diabetes|type 2 diabetes|EFO_0001360|
+# ulcerative_colitis|ulcerative colitis|EFO_0000729|
+# heart_failure|heart failure||

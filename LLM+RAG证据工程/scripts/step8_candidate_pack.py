@@ -16,11 +16,12 @@ Writes:
 
 import argparse
 import json
+import math
 import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 
@@ -46,6 +47,351 @@ STOP_WORDS = {
     "solution","suspension","gel","cream","patch","spray","drops","drop",
     "mg","g","mcg","ug","iu","ml",
 }
+
+DOCKING_POLICY_VERSION = "v1"
+ENDPOINT_HINTS: Dict[str, List[str]] = {
+    "PLAQUE_IMAGING": [
+        "athero", "plaque", "foam", "endothelial", "vascular", "ldl", "lipid",
+    ],
+    "PAD_FUNCTION": [
+        "angiogenesis", "perfusion", "vascular", "ischemia", "endothelial", "microvascular",
+    ],
+    "CV_EVENTS": [
+        "thromb", "platelet", "coag", "inflamm", "vascular", "cardio", "myocard",
+    ],
+    "LIPID": [
+        "lipid", "ldl", "hdl", "cholesterol", "pcsk9", "hmgcr", "lpl",
+    ],
+    "INFLAMMATION": [
+        "inflam", "il-", "nf", "tnf", "immune", "cytokine",
+    ],
+    "OTHER": [
+        "vascular", "inflam", "lipid", "endothelial", "athero", "cardio",
+    ],
+}
+STRUCTURE_SCORE = {
+    "PDB+AlphaFold": 1.0,
+    "PDB": 1.0,
+    "AlphaFold_only": 0.55,
+    "none": 0.0,
+}
+STRUCTURE_TIER = {
+    "PDB+AlphaFold": 3,
+    "PDB": 3,
+    "AlphaFold_only": 2,
+    "none": 1,
+}
+
+
+def _to_int(v: Any, default: int = 0) -> int:
+    try:
+        return int(float(v))
+    except (TypeError, ValueError):
+        return default
+
+
+def _to_float(v: Any, default: float = 0.0) -> float:
+    try:
+        x = float(v)
+        if math.isfinite(x):
+            return x
+    except (TypeError, ValueError):
+        pass
+    return default
+
+
+def _to_bool(v: Any) -> bool:
+    if isinstance(v, bool):
+        return v
+    s = str(v or "").strip().lower()
+    return s in {"1", "true", "yes", "y"}
+
+
+def _tokenize(text: str) -> Set[str]:
+    toks = re.findall(r"[a-z0-9]{3,}", str(text or "").lower())
+    return set(toks)
+
+
+def _normalize_structure_source(raw: str, has_af: bool, pdb_ids: List[str]) -> str:
+    s = str(raw or "").strip()
+    if s in {"PDB+AlphaFold", "PDB", "AlphaFold_only", "none"}:
+        return s
+    if pdb_ids and has_af:
+        return "PDB+AlphaFold"
+    if pdb_ids:
+        return "PDB"
+    if has_af:
+        return "AlphaFold_only"
+    return "none"
+
+
+def _normalize_pdb_ids(values: Any) -> List[str]:
+    if isinstance(values, list):
+        raw = values
+    elif values is None:
+        raw = []
+    else:
+        raw = [x for x in str(values).split(",")]
+    out: List[str] = []
+    seen: Set[str] = set()
+    for x in raw:
+        v = str(x or "").strip().upper()
+        if not v:
+            continue
+        if v in seen:
+            continue
+        seen.add(v)
+        out.append(v)
+    return out
+
+
+def _target_identity(t: Dict[str, Any]) -> str:
+    chembl = str(t.get("target_chembl_id", "")).strip()
+    if chembl:
+        return f"CHEMBL::{chembl}"
+    name = str(t.get("target_name", "")).strip().lower()
+    uni = str(t.get("uniprot", "")).strip().upper()
+    if name or uni:
+        return f"NAMEUNI::{name}::{uni}"
+    return "UNKNOWN"
+
+
+def _better_target(lhs: Dict[str, Any], rhs: Dict[str, Any]) -> bool:
+    lk = (
+        STRUCTURE_TIER.get(str(lhs.get("structure_source", "none")), 1),
+        _to_int(lhs.get("pdb_count", 0)),
+        int(bool(str(lhs.get("uniprot", "")).strip())),
+        len(str(lhs.get("mechanism_of_action", "")).strip()),
+    )
+    rk = (
+        STRUCTURE_TIER.get(str(rhs.get("structure_source", "none")), 1),
+        _to_int(rhs.get("pdb_count", 0)),
+        int(bool(str(rhs.get("uniprot", "")).strip())),
+        len(str(rhs.get("mechanism_of_action", "")).strip()),
+    )
+    return lk > rk
+
+
+def _normalize_target_details(raw_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    merged: Dict[str, Dict[str, Any]] = {}
+    for item in raw_list:
+        if not isinstance(item, dict):
+            continue
+        pdb_ids = _normalize_pdb_ids(item.get("pdb_ids", []))
+        has_af = _to_bool(item.get("has_alphafold", False))
+        entry = {
+            "target_chembl_id": str(item.get("target_chembl_id", "")).strip(),
+            "target_name": str(item.get("target_name", "")).strip(),
+            "mechanism_of_action": str(item.get("mechanism_of_action", "")).strip(),
+            "uniprot": str(item.get("uniprot", "")).strip().upper(),
+            "pdb_ids": pdb_ids,
+            "pdb_count": max(_to_int(item.get("pdb_count", len(pdb_ids))), len(pdb_ids)),
+            "has_alphafold": has_af,
+            "structure_source": _normalize_structure_source(item.get("structure_source", ""), has_af, pdb_ids),
+        }
+        key = _target_identity(entry)
+        prev = merged.get(key)
+        if prev is None:
+            merged[key] = entry
+            continue
+
+        if _better_target(entry, prev):
+            keep = entry
+            other = prev
+        else:
+            keep = prev
+            other = entry
+
+        # Merge supplementary fields while preserving deterministic ordering.
+        keep_pdb = _normalize_pdb_ids(keep.get("pdb_ids", []) + other.get("pdb_ids", []))
+        keep["pdb_ids"] = keep_pdb
+        keep["pdb_count"] = max(_to_int(keep.get("pdb_count", 0)), _to_int(other.get("pdb_count", 0)), len(keep_pdb))
+        keep["has_alphafold"] = _to_bool(keep.get("has_alphafold", False)) or _to_bool(other.get("has_alphafold", False))
+        if not str(keep.get("uniprot", "")).strip():
+            keep["uniprot"] = str(other.get("uniprot", "")).strip().upper()
+        if not str(keep.get("mechanism_of_action", "")).strip():
+            keep["mechanism_of_action"] = str(other.get("mechanism_of_action", "")).strip()
+        if not str(keep.get("target_name", "")).strip():
+            keep["target_name"] = str(other.get("target_name", "")).strip()
+        keep["structure_source"] = _normalize_structure_source(
+            keep.get("structure_source", ""),
+            _to_bool(keep.get("has_alphafold", False)),
+            keep_pdb,
+        )
+        merged[key] = keep
+    return list(merged.values())
+
+
+def _build_mechanism_context(dossier: Dict[str, Any]) -> str:
+    llm = (dossier or {}).get("llm_structured") or {}
+    chunks: List[str] = []
+    for key in ("proposed_mechanisms", "key_risks"):
+        for item in (llm.get(key) or []):
+            s = str(item or "").strip()
+            if s:
+                chunks.append(s)
+    for ev in (llm.get("supporting_evidence") or [])[:10]:
+        claim = str((ev or {}).get("claim", "")).strip()
+        if claim:
+            chunks.append(claim)
+    return " ".join(chunks)
+
+
+def _endpoint_match_score(target_text: str, endpoint_type: str) -> float:
+    hints = ENDPOINT_HINTS.get(str(endpoint_type or "").upper(), ENDPOINT_HINTS["OTHER"])
+    t = str(target_text or "").lower()
+    if not hints:
+        return 0.0
+    hit = sum(1 for kw in hints if kw in t)
+    return hit / float(len(hints))
+
+
+def _structure_provider_and_id(target: Dict[str, Any]) -> Tuple[str, str]:
+    pdb_ids = target.get("pdb_ids", []) or []
+    if pdb_ids:
+        return "PDB", str(pdb_ids[0])
+    has_af = _to_bool(target.get("has_alphafold", False))
+    uni = str(target.get("uniprot", "")).strip().upper()
+    if has_af and uni:
+        return "AlphaFold", f"AF-{uni}-F1"
+    return "none", ""
+
+
+def _select_docking_targets(
+    target_details_raw: str,
+    mechanism_context: str,
+    endpoint_type: str,
+    primary_n: int,
+    backup_n: int,
+    structure_policy: str,
+) -> Dict[str, Any]:
+    risk_flags: List[str] = []
+    raw = str(target_details_raw or "").strip()
+    if not raw:
+        raw_targets: List[Dict[str, Any]] = []
+    else:
+        try:
+            obj = json.loads(raw)
+            raw_targets = obj if isinstance(obj, list) else []
+            if not isinstance(obj, list):
+                risk_flags.append("MALFORMED_TARGET_DETAILS")
+        except (json.JSONDecodeError, TypeError):
+            raw_targets = []
+            risk_flags.append("MALFORMED_TARGET_DETAILS")
+
+    targets = _normalize_target_details(raw_targets)
+    if not targets:
+        risk_flags.append("NO_TARGET_DETAILS")
+
+    context_tokens = _tokenize(mechanism_context)
+    for t in targets:
+        target_text = " ".join([
+            str(t.get("target_name", "")),
+            str(t.get("mechanism_of_action", "")),
+            str(t.get("uniprot", "")),
+            str(t.get("target_chembl_id", "")),
+        ]).strip()
+        target_tokens = _tokenize(target_text)
+        inter = len(target_tokens & context_tokens)
+        mech_score = (inter / float(len(target_tokens))) if target_tokens else 0.0
+        endpoint_score = _endpoint_match_score(target_text, endpoint_type)
+        source = str(t.get("structure_source", "none"))
+        struct_score = STRUCTURE_SCORE.get(source, 0.0)
+        pdb_depth = min(math.log1p(max(_to_int(t.get("pdb_count", 0)), 0)) / math.log1p(50), 1.0)
+        total = (
+            0.55 * struct_score
+            + 0.20 * pdb_depth
+            + 0.20 * mech_score
+            + 0.05 * endpoint_score
+        )
+        t["docking_structure_score"] = round(struct_score, 6)
+        t["docking_pdb_depth_score"] = round(pdb_depth, 6)
+        t["docking_mechanism_match_score"] = round(mech_score, 6)
+        t["docking_endpoint_match_score"] = round(endpoint_score, 6)
+        t["docking_selection_score"] = round(total, 6)
+
+    ranked = sorted(
+        targets,
+        key=lambda t: (
+            -STRUCTURE_TIER.get(str(t.get("structure_source", "none")), 1),
+            -_to_float(t.get("docking_selection_score", 0.0)),
+            -_to_int(t.get("pdb_count", 0)),
+            str(t.get("target_chembl_id", "")).strip(),
+            str(t.get("target_name", "")).strip().lower(),
+        ),
+    )
+
+    n_primary = max(1, _to_int(primary_n, 1))
+    n_backup = max(0, _to_int(backup_n, 2))
+    primary = ranked[0] if ranked else None
+    backups = ranked[n_primary:n_primary + n_backup]
+
+    primary_provider = "none"
+    primary_structure_id = ""
+    primary_source = "none"
+    primary_uniprot = ""
+    primary_score = 0.0
+    primary_tid = ""
+    primary_name = ""
+    if primary:
+        primary_provider, primary_structure_id = _structure_provider_and_id(primary)
+        primary_source = str(primary.get("structure_source", "none"))
+        primary_uniprot = str(primary.get("uniprot", "")).strip().upper()
+        primary_score = _to_float(primary.get("docking_selection_score", 0.0))
+        primary_tid = str(primary.get("target_chembl_id", "")).strip()
+        primary_name = str(primary.get("target_name", "")).strip()
+
+    if primary_provider == "PDB":
+        feasibility = "READY_PDB"
+    elif primary_provider == "AlphaFold":
+        feasibility = "AF_FALLBACK"
+    else:
+        feasibility = "NO_STRUCTURE"
+
+    if structure_policy != "pdb_first":
+        risk_flags.append("UNSUPPORTED_POLICY_FALLBACK")
+    if primary_provider == "AlphaFold":
+        risk_flags.append("AF_ONLY_PRIMARY")
+    if feasibility == "NO_STRUCTURE":
+        risk_flags.append("NO_PRIMARY_STRUCTURE")
+    if primary and not primary_uniprot:
+        risk_flags.append("NO_UNIPROT")
+
+    backup_payload: List[Dict[str, Any]] = []
+    for b in backups:
+        provider, sid = _structure_provider_and_id(b)
+        backup_payload.append({
+            "target_chembl_id": str(b.get("target_chembl_id", "")).strip(),
+            "target_name": str(b.get("target_name", "")).strip(),
+            "uniprot": str(b.get("uniprot", "")).strip().upper(),
+            "structure_source": str(b.get("structure_source", "none")),
+            "structure_provider": provider,
+            "structure_id": sid,
+            "selection_score": round(_to_float(b.get("docking_selection_score", 0.0)), 6),
+        })
+
+    # Preserve order while removing duplicates in flags.
+    uniq_flags: List[str] = []
+    seen_flags: Set[str] = set()
+    for flag in risk_flags:
+        if not flag or flag in seen_flags:
+            continue
+        seen_flags.add(flag)
+        uniq_flags.append(flag)
+
+    return {
+        "docking_primary_target_chembl_id": primary_tid,
+        "docking_primary_target_name": primary_name,
+        "docking_primary_uniprot": primary_uniprot,
+        "docking_primary_structure_source": primary_source,
+        "docking_primary_structure_provider": primary_provider,
+        "docking_primary_structure_id": primary_structure_id,
+        "docking_backup_targets_json": json.dumps(backup_payload, ensure_ascii=False),
+        "docking_feasibility_tier": feasibility,
+        "docking_target_selection_score": round(primary_score, 6),
+        "docking_risk_flags": ";".join(uniq_flags),
+        "docking_policy_version": DOCKING_POLICY_VERSION,
+    }
 
 def normalize_basic(x: str) -> str:
     s = str(x).lower().strip()
@@ -150,10 +496,34 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--step7_dir", default="output/step7")
     ap.add_argument("--neg", default="data/poolA_negative_drug_level.csv")
+    ap.add_argument("--bridge", default="", help="Bridge CSV with target info (auto-detected if empty)")
     ap.add_argument("--outdir", default="output/step8")
     ap.add_argument("--target_disease", default="atherosclerosis")
     ap.add_argument("--topk", type=int, default=3)
     ap.add_argument("--prefer_go", type=int, default=1, help="1: GO优先；0: 纯按rank_key排序")
+    ap.add_argument(
+        "--docking_primary_n",
+        type=int,
+        default=1,
+        help="Number of primary docking targets to keep (default 1, first target exported as primary).",
+    )
+    ap.add_argument(
+        "--docking_backup_n",
+        type=int,
+        default=2,
+        help="Number of backup docking targets to serialize (default 2).",
+    )
+    ap.add_argument(
+        "--docking_structure_policy",
+        default="pdb_first",
+        help="Docking structure policy (default: pdb_first).",
+    )
+    ap.add_argument(
+        "--docking_block_on_no_pdb",
+        type=int,
+        default=0,
+        help="1=drop candidates without primary PDB structure; 0=non-blocking downgrade (default).",
+    )
     ap.add_argument(
         "--include_explore",
         type=int,
@@ -205,7 +575,36 @@ def main():
         else:
             neg["_canon"] = ""
 
+    # Load bridge CSV for target info (drug → target/UniProt/mechanism)
+    bridge_target_map: Dict[str, str] = {}  # drug_id → targets summary
+    bridge_target_details: Dict[str, str] = {}  # drug_id → target_details JSON
+    bridge_path = Path(args.bridge).resolve() if args.bridge else None
+    if not bridge_path or not bridge_path.exists():
+        # Auto-detect: look for bridge CSVs in common locations
+        for candidate in [
+            outdir.parent / "bridge_origin_reassess.csv",
+            outdir.parent / "bridge_repurpose_cross.csv",
+            outdir.parent.parent / "kg_explain" / "output" / "bridge_repurpose_cross.csv",
+            outdir.parent.parent / "kg_explain" / "output" / "bridge_origin_reassess.csv",
+        ]:
+            if candidate.exists():
+                bridge_path = candidate
+                break
+    if bridge_path and bridge_path.exists():
+        try:
+            bridge_df_raw = pd.read_csv(bridge_path, dtype=str).fillna("")
+            if "targets" in bridge_df_raw.columns and "drug_id" in bridge_df_raw.columns:
+                for _, br in bridge_df_raw.iterrows():
+                    did = str(br.get("drug_id", "")).strip()
+                    if did:
+                        bridge_target_map[did] = str(br.get("targets", ""))
+                        bridge_target_details[did] = str(br.get("target_details", ""))
+                print(f"[INFO] Loaded target info for {len(bridge_target_map)} drugs from {bridge_path.name}")
+        except Exception as e:
+            print(f"[WARN] Failed to load bridge CSV for target info: {e}")
+
     rows = []
+    dossier_lookup: Dict[Tuple[str, str], Dict[str, Any]] = {}
     for c in cards:
         canon = str(c.get("canonical_name","")).strip()
         # Cards may use "dossier_path" or "dossier_json" depending on version
@@ -235,9 +634,11 @@ def main():
                      for _, r in tr.head(3).iterrows()]
                 )
 
+        drug_id = c.get("drug_id", "")
+        dossier_lookup[(drug_id, canon)] = dossier
         rows.append({
             "canonical_name": canon,
-            "drug_id": c.get("drug_id",""),
+            "drug_id": drug_id,
             "gate": c.get("gate") or c.get("gate_decision",""),
             "decision_channel": c.get("decision_channel", "exploit"),
             "endpoint_type": c.get("endpoint_type",""),
@@ -250,6 +651,8 @@ def main():
             "neg_trial_summary": neg_trial_summary,
             "dossier_json": dossier_json,
             "dossier_md": dossier_md,
+            "targets": bridge_target_map.get(drug_id, ""),
+            "target_details": bridge_target_details.get(drug_id, ""),
         })
 
     df = pd.DataFrame(rows)
@@ -312,6 +715,37 @@ def main():
     except ImportError:
         print("[WARN] Release gate not available, skipping")
 
+    docking_rows: List[Dict[str, Any]] = []
+    for _, r in shortlist.iterrows():
+        drug_id = str(r.get("drug_id", "")).strip()
+        canon = str(r.get("canonical_name", "")).strip()
+        endpoint_type = str(r.get("endpoint_type", "")).strip()
+        dossier = dossier_lookup.get((drug_id, canon), {})
+        mechanism_context = _build_mechanism_context(dossier)
+        docking_rows.append(
+            _select_docking_targets(
+                target_details_raw=str(r.get("target_details", "")),
+                mechanism_context=mechanism_context,
+                endpoint_type=endpoint_type,
+                primary_n=int(args.docking_primary_n),
+                backup_n=int(args.docking_backup_n),
+                structure_policy=str(args.docking_structure_policy),
+            )
+        )
+    shortlist = pd.concat(
+        [shortlist.reset_index(drop=True), pd.DataFrame(docking_rows)],
+        axis=1,
+    )
+
+    if int(args.docking_block_on_no_pdb) == 1:
+        before = len(shortlist)
+        shortlist = shortlist[shortlist["docking_feasibility_tier"] == "READY_PDB"].copy()
+        removed = before - len(shortlist)
+        if removed > 0:
+            print(f"[INFO] docking_block_on_no_pdb=1 removed {removed} non-PDB candidate(s)")
+        if shortlist.empty:
+            raise ValueError("All shortlist candidates dropped by docking_block_on_no_pdb=1")
+
     shortlist["contract_version"] = STEP8_SHORTLIST_VERSION
     enforcer = ContractEnforcer(strict=strict_contract)
     enforcer.check_step8_shortlist(shortlist)
@@ -333,7 +767,15 @@ def main():
             "novelty_score","uncertainty_score",
             "unique_supporting_pmids_count","supporting_sentence_count",
             "unique_harm_pmids_count","harm_or_neutral_sentence_count",
-            "topic_match_ratio","neg_trials_n","neg_trial_summary","safety_blacklist_hit","dossier_md"
+            "topic_match_ratio","neg_trials_n","neg_trial_summary","safety_blacklist_hit",
+            "targets",
+            "docking_feasibility_tier",
+            "docking_primary_target_chembl_id",
+            "docking_primary_structure_provider",
+            "docking_primary_structure_id",
+            "docking_target_selection_score",
+            "docking_risk_flags",
+            "dossier_md",
         ]
         s = shortlist.copy()
         s["rank_key"] = s["rank_key"].round(2)
@@ -374,11 +816,43 @@ def main():
                 "harm_or_neutral_sentence_count": r.get("harm_or_neutral_sentence_count",""),
                 "neg_trials_n": r.get("neg_trials_n",""),
                 "safety_blacklist_hit": r.get("safety_blacklist_hit",""),
+                "targets": r.get("targets",""),
                 "dossier_md": r.get("dossier_md",""),
             }])
             meta_df.to_excel(writer, sheet_name=sheet, index=False, startrow=0)
 
             start = len(meta_df) + 2
+
+            # Target info table (for molecular docking readiness)
+            target_details_raw = str(r.get("target_details", "")).strip()
+            target_rows = []
+            if target_details_raw:
+                try:
+                    target_rows = json.loads(target_details_raw)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if target_rows:
+                # Build target table with structure source info
+                t_records = []
+                for t in target_rows:
+                    pdb_ids = t.get("pdb_ids", [])
+                    t_records.append({
+                        "Target ChEMBL ID": t.get("target_chembl_id", ""),
+                        "Target Name": t.get("target_name", ""),
+                        "UniProt": t.get("uniprot", ""),
+                        "Mechanism of Action": t.get("mechanism_of_action", ""),
+                        "Structure Source": t.get("structure_source", "unknown"),
+                        "PDB Count": t.get("pdb_count", 0),
+                        "PDB IDs (top 5)": ", ".join(pdb_ids) if pdb_ids else "",
+                    })
+                tdf = pd.DataFrame(t_records)
+                tdf.to_excel(writer, sheet_name=sheet, index=False, startrow=start)
+                start += len(tdf) + 3
+            else:
+                pd.DataFrame({"Targets": ["(no ChEMBL target data)"]}).to_excel(
+                    writer, sheet_name=sheet, index=False, startrow=start)
+                start += 4
+
             pd.DataFrame({"Proposed mechanisms": mech[:20]}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
             start += max(4, min(24, len(mech)+3))
             pd.DataFrame({"Key risks": risks[:20]}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
@@ -391,11 +865,45 @@ def main():
                 trials_df.to_excel(writer, sheet_name=sheet, index=False, startrow=start)
 
             # MD one-pager
+            # Build target lines for markdown
+            target_md_lines = []
+            if target_rows:
+                for t in target_rows:
+                    uni = t.get("uniprot", "")
+                    src = t.get("structure_source", "unknown")
+                    pdb_count = t.get("pdb_count", 0)
+                    pdb_ids = t.get("pdb_ids", [])
+
+                    tline = f"- **{t.get('target_name','')}** ({t.get('target_chembl_id','')})"
+                    if uni:
+                        tline += f" | UniProt: [{uni}](https://www.uniprot.org/uniprot/{uni})"
+
+                    # Structure source badge
+                    if src == "PDB+AlphaFold":
+                        tline += f" | Structure: **PDB** ({pdb_count} entries) + AlphaFold"
+                    elif src == "PDB":
+                        tline += f" | Structure: **PDB** ({pdb_count} entries)"
+                    elif src == "AlphaFold_only":
+                        tline += f" | Structure: AlphaFold only (no experimental PDB)"
+                    else:
+                        tline += " | Structure: none"
+
+                    if pdb_ids:
+                        tline += f" | Top PDB: {', '.join(pdb_ids[:3])}"
+
+                    moa_text = t.get("mechanism_of_action", "")
+                    if moa_text:
+                        tline += f" | {moa_text}"
+                    target_md_lines.append(tline)
+
             md_lines += [
                 f"## {name}",
                 f"- Gate: **{r.get('gate','')}** ({r.get('decision_channel','exploit')}) | Score: {r.get('total_score_0_100','')} | Endpoint: {r.get('endpoint_type','')}",
                 f"- Unique supporting PMIDs: **{r.get('unique_supporting_pmids_count','')}** | Harm sentences: {r.get('harm_or_neutral_sentence_count','')}",
                 f"- Topic match ratio: {r.get('topic_match_ratio','')} | Novelty: {r.get('novelty_score', 0.0)} | Uncertainty: {r.get('uncertainty_score', 0.0)}",
+                "",
+                "### Known targets (ChEMBL)",
+                *( target_md_lines if target_md_lines else ["- (no ChEMBL target data)"] ),
                 "",
                 "### Mechanism hypotheses (auto)",
                 *( [f"- {x}" for x in mech[:6]] if mech else ["- (missing; see dossier)"] ),
@@ -428,6 +936,8 @@ def main():
     input_files = [step7_cards_path]
     if neg_path and neg_path.exists():
         input_files.append(neg_path)
+    if bridge_path and bridge_path.exists():
+        input_files.append(bridge_path)
     input_files.extend(
         Path(p).resolve()
         for p in df["dossier_json"].astype(str).tolist()
@@ -443,12 +953,25 @@ def main():
         config={
             "step7_dir": str(step7_dir),
             "neg": str(neg_path) if neg_path else "",
+            "bridge_path": str(bridge_path) if bridge_path else "",
             "outdir": str(outdir),
             "target_disease": args.target_disease,
             "topk": int(args.topk),
             "prefer_go": int(args.prefer_go),
             "include_explore": int(args.include_explore),
             "min_explore_slots": int(args.min_explore_slots),
+            "docking_primary_n": int(args.docking_primary_n),
+            "docking_backup_n": int(args.docking_backup_n),
+            "docking_structure_policy": str(args.docking_structure_policy),
+            "docking_block_on_no_pdb": int(args.docking_block_on_no_pdb),
+            "docking_policy_version": DOCKING_POLICY_VERSION,
+            "docking_policy": {
+                "version": DOCKING_POLICY_VERSION,
+                "primary_n": int(args.docking_primary_n),
+                "backup_n": int(args.docking_backup_n),
+                "structure_policy": str(args.docking_structure_policy),
+                "block_on_no_pdb": int(args.docking_block_on_no_pdb),
+            },
             "strict_contract": strict_contract,
         },
         summary={
@@ -456,6 +979,11 @@ def main():
             "shortlist_count": int(len(shortlist)),
             "go_candidates": int((df["gate"] == "GO").sum()),
             "explore_candidates": int(((df["gate"] == "MAYBE") & (df["decision_channel"] == "explore")).sum()),
+            "docking_summary": {
+                "ready_pdb_count": int((shortlist["docking_feasibility_tier"] == "READY_PDB").sum()),
+                "af_fallback_count": int((shortlist["docking_feasibility_tier"] == "AF_FALLBACK").sum()),
+                "no_structure_count": int((shortlist["docking_feasibility_tier"] == "NO_STRUCTURE").sum()),
+            },
         },
         contracts={
             STEP7_CARDS_SCHEMA: STEP7_CARDS_VERSION,

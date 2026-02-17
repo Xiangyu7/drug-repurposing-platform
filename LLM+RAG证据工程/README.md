@@ -4,7 +4,18 @@
 
 ---
 
-## 最近更新（2026-02-12）
+## 最近更新（2026-02-17）
+
+- **工业级 TopN 调度（与主仓 runner 对齐）**:
+  - 评分驱动 + 预算约束 + 质量门控 + 最多一次扩容（禁止无限扩容）
+  - 默认 `TOPN_PROFILE=stable`，`TOPN_ORIGIN/TOPN_CROSS=auto`
+  - 每次 run 产出 `topn_decision_*.json` 与 `topn_quality_*.json` 审计文件
+- **Step6 预算参数升级** (`scripts/step6_evidence_extraction.py`):
+  - `--pubmed_retmax` (默认 120)
+  - `--pubmed_parse_max` (默认 60)
+  - `--max_rerank_docs` (默认 40)
+  - `--max_evidence_docs` (默认 12)
+- `ops/quickstart.sh` 默认采用工业级自动 topn 策略（保持手动数字 topn 兼容）
 
 - **Release Gate** (`scoring/release_gate.py`): Step8 自动拦截 NO-GO 药物, GO 比例检查, 人工审核质量门控 (kill/miss rate, IRR Kappa)
 - **Contract Enforcer** (`contracts_enforcer.py`): Step7/8/9 所有输出 schema 强制校验 (strict 模式 raise / soft 模式 warn)
@@ -186,13 +197,14 @@ data/seed_nct_list.csv  (种子 NCT ID 列表)
     │
     │  候选打包:
     │  • 按总分排序 → top-K 短名单
-    │  • 生成每药单页摘要 (one-pager)
-    │  • 打包 Excel 工作簿 (多 sheet)
+    │  • 从 bridge CSV 读取靶点信息 (targets + PDB/AlphaFold 标记)
+    │  • 生成每药单页摘要 (one-pager, 含靶点结构表)
+    │  • 打包 Excel 工作簿 (多 sheet, 含靶点结构表)
     ▼
   output/step8/
-  ├── step8_shortlist_topK.csv     排序短名单
-  ├── step8_candidate_pack_from_step7.xlsx  Excel 报告 (短名单 + 每药详情)
-  ├── step8_one_pagers_topK.md     Markdown 单页摘要
+  ├── step8_shortlist_topK.csv     排序短名单 (含 targets + target_details 列)
+  ├── step8_candidate_pack_from_step7.xlsx  Excel 报告 (短名单 + 每药靶点结构表)
+  ├── step8_one_pagers_topK.md     Markdown 单页摘要 (含靶点/UniProt/PDB)
   └── step8_manifest.json          Step8 运行清单 (provenance)
 
     ▼ ─── Step 9: 验证方案 ──────────────────────────────────
@@ -231,10 +243,38 @@ data/seed_nct_list.csv  (种子 NCT ID 列表)
 | `output/step6/step6_rank_v2.csv` | 证据排序 (支持/反对计数 + 置信度) |
 | `output/step7/step7_gating_decision.csv` | 门控决策 (GO/MAYBE/NO-GO) |
 | `output/step7/step7_cards.json` | 假设卡片 (每药机制假设 + 证据) |
-| `output/step8/step8_candidate_pack_from_step7.xlsx` | ★ Excel 候选报告 (短名单 + 详情) |
+| `output/step8/step8_shortlist_topK.csv` | 候选短名单 (含 targets + target_details + docking就绪字段) |
+| `output/step8/step8_candidate_pack_from_step7.xlsx` | ★ Excel 候选报告 (每药 Sheet 含靶点结构表) |
+| `output/step8/step8_one_pagers_topK.md` | Markdown 候选报告 (含靶点/UniProt/PDB 链接) |
 | `output/step8/step8_manifest.json` | Step8 运行清单 (输入/输出哈希 + 配置) |
 | `output/step9/step9_validation_plan.csv` | 验证方案 (实验设计 + 成功标准) |
 | `output/step9/step9_manifest.json` | Step9 运行清单 (输入/输出哈希 + 配置) |
+
+### Step8 靶点信息 (2026-02-17 工业版升级)
+
+Step8 从 bridge CSV 自动读取靶点数据，并按 `PDB优先 + AlphaFold回退` 自动生成对接就绪字段，输出到三个地方:
+
+1. **CSV** (`step8_shortlist_topK.csv`): 新增 `targets`、`target_details` 和 docking 字段:
+   - `docking_primary_target_chembl_id`, `docking_primary_target_name`, `docking_primary_uniprot`
+   - `docking_primary_structure_source`, `docking_primary_structure_provider`, `docking_primary_structure_id`
+   - `docking_backup_targets_json` (默认主靶1+备选2)
+   - `docking_feasibility_tier` (`READY_PDB` / `AF_FALLBACK` / `NO_STRUCTURE`)
+   - `docking_target_selection_score`, `docking_risk_flags`, `docking_policy_version`
+2. **Excel** (每药 Sheet): 新增靶点结构表
+   - Target ChEMBL ID | Target Name | UniProt | Mechanism of Action | Structure Source | PDB Count | PDB IDs (top 5)
+3. **Markdown** (`step8_one_pagers_topK.md`): 新增 `### Known targets (ChEMBL)` 段落，含 UniProt 链接和结构来源标记
+
+Structure Source / Docking tier 含义:
+- **PDB+AlphaFold**: 有实验晶体结构 → 优先选 PDB 做分子对接
+- **AlphaFold_only**: 仅有 AI 预测结构 → 对接结果需谨慎
+- **none**: 无结构 → 无法做对接
+
+新增参数:
+- `--bridge <path>` (可选, 自动检测 bridge CSV 位置)
+- `--docking_primary_n` (默认 1)
+- `--docking_backup_n` (默认 2)
+- `--docking_structure_policy` (默认 `pdb_first`)
+- `--docking_block_on_no_pdb` (默认 0, 非阻断降级)
 
 ---
 
@@ -263,6 +303,32 @@ ollama pull nomic-embed-text
 
 ## 运行
 
+### 推荐启动（工业级，建议）
+
+从主仓库根目录启动（推荐）：
+
+```bash
+cd "/Users/xinyueke/Desktop/Drug Repurposing"
+
+# 单病种快速验证（默认 origin_only）
+bash ops/quickstart.sh --single atherosclerosis
+
+# 单病种 A+B 全跑（Cross + Origin）
+RUN_MODE=dual bash ops/quickstart.sh --single atherosclerosis
+
+# 24/7 常驻（工业级 topn 自动策略）
+TOPN_PROFILE=stable RUN_MODE=dual bash ops/quickstart.sh --mode dual --run-only
+```
+
+说明：
+1. 默认 `TOPN_ORIGIN/TOPN_CROSS=auto`，由策略自动决定 Stage1 topn。
+2. 仅当 shortlist 质量不过线时触发 Stage2，且最多扩容一次。
+3. 若要强制旧行为，仍可手动指定 `TOPN_ORIGIN=<int> TOPN_CROSS=<int>`。
+4. 每个疾病 run 会写审计文件到 `runtime/work/<disease>/<run_id>/llm/`：
+   - `topn_decision_origin_stage1.json` / `topn_quality_origin_stage1.json`
+   - `topn_decision_cross_stage1.json` / `topn_quality_cross_stage1.json`
+   - 对应 `*_stage2.json`（触发或跳过原因）
+
 ### 启动 Ollama (前提)
 
 ```bash
@@ -278,7 +344,11 @@ python scripts/step6_evidence_extraction.py \
     --neg data/poolA_negative_drug_level.csv \
     --out output/step6 \
     --target_disease atherosclerosis \
-    --topn 50
+    --topn 14 \
+    --pubmed_retmax 120 \
+    --pubmed_parse_max 60 \
+    --max_rerank_docs 40 \
+    --max_evidence_docs 12
 ```
 
 ### Step 7: 评分 + 门控
@@ -333,7 +403,9 @@ cd ../LLM+RAG证据工程
 python scripts/step6_evidence_extraction.py \
     --rank_in ../kg_explain/output/bridge_repurpose_cross.csv \
     --out output/step6_repurpose_cross \
-    --target_disease atherosclerosis --topn 50
+    --target_disease atherosclerosis --topn 12 \
+    --pubmed_retmax 120 --pubmed_parse_max 60 \
+    --max_rerank_docs 40 --max_evidence_docs 12
 
 # Direction B: 原疾病重评估 (bridge_origin_reassess.csv)
 #   筛选目标疾病相关药物 → 评估"失败药物是否真的无效"
@@ -347,10 +419,13 @@ cd ../LLM+RAG证据工程
 python scripts/step6_evidence_extraction.py \
     --rank_in ../kg_explain/output/bridge_origin_reassess.csv \
     --out output/step6_origin_reassess \
-    --target_disease atherosclerosis --topn 83
+    --target_disease atherosclerosis --topn 14 \
+    --pubmed_retmax 120 --pubmed_parse_max 60 \
+    --max_rerank_docs 40 --max_evidence_docs 12
 ```
 
 两个方向的 Step7-9 各自独立运行，输出到 `step7_repurpose_cross/` 和 `step7_origin_reassess/` 等目录。
+若希望使用自动 topn + 质量门控扩容，请走主仓 `ops/run_24x7_all_directions.sh` 或 `ops/quickstart.sh`。
 
 ### ← dsmeta (签名 → SigReverse → 药物列表)
 

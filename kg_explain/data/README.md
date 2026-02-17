@@ -26,11 +26,23 @@
 ## output/ 输出文件
 
 - bridge_repurpose_cross.csv          Direction A: 跨疾病迁移 bridge (每药最高分疾病)
-  列: drug_id, canonical_name, chembl_pref_name, max_mechanism_score, top_disease, final_score, n_trials, trial_statuses, trial_source, example_condition, why_stopped
+  列: drug_id, canonical_name, chembl_pref_name, max_mechanism_score, top_disease, final_score, n_trials, trial_statuses, trial_source, example_condition, why_stopped, **targets**, **target_details**
 
 - bridge_origin_reassess.csv          Direction B: 原疾病重评估 bridge (目标疾病 + 文献注入)
-  列: drug_id, canonical_name, chembl_pref_name, max_mechanism_score, max_mechanism_score_global, top_disease, final_score, endpoint_type, n_trials, trial_statuses, trial_source, example_condition, why_stopped, ci_lower, ci_upper, ci_width, confidence_tier, n_evidence_paths, source
+  列: drug_id, canonical_name, chembl_pref_name, max_mechanism_score, max_mechanism_score_global, top_disease, final_score, endpoint_type, n_trials, trial_statuses, trial_source, example_condition, why_stopped, ci_lower, ci_upper, ci_width, confidence_tier, n_evidence_paths, source, **targets**, **target_details**
   source 列: "kg" (KG 发现), "literature" (文献注入), "kg+literature" (两者重叠)
+
+### 靶点列说明 (2026-02-16 新增)
+
+- **targets**: 人类可读靶点摘要 (分号分隔)
+  示例: `PCSK9 (CHEMBL2929) [UniProt:Q8NBP7] [PDB+AlphaFold] — Subtilisin/kexin type 9 inhibitor`
+- **target_details**: JSON 数组，每个靶点包含:
+  - target_chembl_id, target_name, mechanism_of_action, uniprot
+  - pdb_ids (前 5 个实验 PDB ID), pdb_count (PDB 条目总数)
+  - has_alphafold (是否有 AlphaFold 预测)
+  - structure_source: PDB+AlphaFold | PDB | AlphaFold_only | none
+
+数据来源: edge_drug_target.csv + node_target.csv + target_xref.csv 自动 join
 
 ## 数据流
 

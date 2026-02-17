@@ -39,7 +39,11 @@ except ImportError:
     pass
 
 import pandas as pd
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except Exception:  # pragma: no cover - fallback for broken/missing tqdm metadata
+    def tqdm(iterable, *args, **kwargs):
+        return iterable
 
 # ---------------------------
 # Structured logging (replaces bare print)
@@ -428,7 +432,12 @@ def cosine(a: List[float], b: List[float]) -> float:
     nb = math.sqrt(sum(x*x for x in b)) + 1e-12
     return dot / (na*nb)
 
-def rerank_with_embeddings(query: str, ranked: List[Tuple[float, Dict[str, Any]]], topk: int = 25) -> List[Dict[str, Any]]:
+def rerank_with_embeddings(
+    query: str,
+    ranked: List[Tuple[float, Dict[str, Any]]],
+    topk: int = 25,
+    max_rerank_docs: Optional[int] = None,
+) -> List[Dict[str, Any]]:
     """Optional embedding rerank on top of BM25.
 
     MAX_RERANK_DOCS controls how many BM25 docs are sent to the embedder.
@@ -441,7 +450,8 @@ def rerank_with_embeddings(query: str, ranked: List[Tuple[float, Dict[str, Any]]
     if not docs:
         return []
 
-    docs = docs[:max(1, int(MAX_RERANK_DOCS))]
+    rerank_limit = max(1, int(max_rerank_docs if max_rerank_docs is not None else MAX_RERANK_DOCS))
+    docs = docs[:rerank_limit]
     qemb = ollama_embed([query], OLLAMA_EMBED_MODEL)
     if not qemb:
         return [d for _, d in ranked[:topk]]
@@ -874,9 +884,21 @@ def build_query(drug: str, target_disease: str, endpoint_type: str) -> str:
         return f'("{drug}") AND ("{target_disease}")'
     return routes[0]["query"]
 
-def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint_type_hint: str,
-                neg_path: Optional[str], out_dir: Path, cache_dir: Path, all_drug_names: List[str],
-                aliases: Optional[List[str]] = None) -> Tuple[Path, Path, Dict[str, Any]]:
+def process_one(
+    drug_id: str,
+    canonical_name: str,
+    target_disease: str,
+    endpoint_type_hint: str,
+    neg_path: Optional[str],
+    out_dir: Path,
+    cache_dir: Path,
+    all_drug_names: List[str],
+    aliases: Optional[List[str]] = None,
+    pubmed_retmax: int = 120,
+    pubmed_parse_max: int = 60,
+    max_rerank_docs: int = 40,
+    max_evidence_docs: int = 12,
+) -> Tuple[Path, Path, Dict[str, Any]]:
     # cache layout
     base = cache_dir / safe_filename(drug_id) / safe_filename(canonical_name)
     base.mkdir(parents=True, exist_ok=True)
@@ -921,6 +943,11 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
     route_stats: List[Dict[str, Any]] = []
 
     # 1) multi-route retrieve PMIDs + docs
+    pubmed_retmax = max(1, int(pubmed_retmax))
+    pubmed_parse_max = max(1, int(pubmed_parse_max))
+    max_rerank_docs = max(1, int(max_rerank_docs))
+    max_evidence_docs = max(1, int(max_evidence_docs))
+
     if FORCE_REBUILD or is_empty(pmids_path) or is_empty(docs_path) or (REFRESH_EMPTY_CACHE and (is_empty(pmids_path) or is_empty(docs_path))):
         for idx, route in enumerate(query_routes):
             rname = safe_filename(route.get("route", f"route{idx+1}"))
@@ -928,15 +955,15 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
             r_pmids_path = base / f"pmids_{rname}.json"
             r_docs_path = base / f"docs_{rname}.json"
 
-            pmids = pubmed_esearch(rquery, retmax=180)
+            pmids = pubmed_esearch(rquery, retmax=pubmed_retmax)
             route_pmids_map[rname] = pmids
             write_json(r_pmids_path, {"route": rname, "query": rquery, "pmids": pmids})
 
             all_route_docs: List[Dict[str, Any]] = []
-            for i in range(0, min(len(pmids), 180), 50):
+            for i in range(0, min(len(pmids), pubmed_retmax), 50):
                 batch = pmids[i:i + 50]
                 xml = pubmed_efetch_xml(batch)
-                parsed = parse_pubmed_xml(xml, max_articles=80)
+                parsed = parse_pubmed_xml(xml, max_articles=pubmed_parse_max)
                 all_route_docs.extend(parsed)
                 if idx == 0 and i == 0:
                     write_text(xml_path, xml)
@@ -1035,7 +1062,7 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
         fused_ranked = bm25_rank(query, all_docs, topk=80)
 
     # 4) stage-2 rerank with embeddings (optional)
-    reranked_docs = rerank_with_embeddings(query, fused_ranked, topk=30)
+    reranked_docs = rerank_with_embeddings(query, fused_ranked, topk=30, max_rerank_docs=max_rerank_docs)
     top_docs = reranked_docs[:10]  # for md display
 
     top30_pmids = {str(d.get("pmid", "")) for d in reranked_docs[:30]}
@@ -1063,7 +1090,7 @@ def process_one(drug_id: str, canonical_name: str, target_disease: str, endpoint
     pre_removed = 0
     pre_removed_cross_drug = 0
     llm_items_total = 0
-    for d in reranked_docs[:18]:
+    for d in reranked_docs[:max_evidence_docs]:
         pmid = d.get("pmid","")
         title = d.get("title","")
         abstract = d.get("abstract","") or ""
@@ -1326,6 +1353,10 @@ def main():
     ap.add_argument("--out", default="output/step6", help="Output directory.")
     ap.add_argument("--target_disease", default="atherosclerosis")
     ap.add_argument("--topn", type=int, default=50)
+    ap.add_argument("--pubmed_retmax", type=int, default=int(os.getenv("STEP6_PUBMED_RETMAX", "120")))
+    ap.add_argument("--pubmed_parse_max", type=int, default=int(os.getenv("STEP6_PUBMED_PARSE_MAX", "60")))
+    ap.add_argument("--max_rerank_docs", type=int, default=int(os.getenv("STEP6_MAX_RERANK_DOCS", "40")))
+    ap.add_argument("--max_evidence_docs", type=int, default=int(os.getenv("STEP6_MAX_EVIDENCE_DOCS", "12")))
     args = ap.parse_args()
 
     rank = pd.read_csv(args.rank_in)
@@ -1391,13 +1422,21 @@ def main():
                 json_path, md_path, dossier = process_one(
                     drug_id, canon, args.target_disease, endpoint_hint,
                     args.neg if args.neg else None, out_dir, cache_dir, all_drug_names,
-                    aliases=drug_aliases
+                    aliases=drug_aliases,
+                    pubmed_retmax=args.pubmed_retmax,
+                    pubmed_parse_max=args.pubmed_parse_max,
+                    max_rerank_docs=args.max_rerank_docs,
+                    max_evidence_docs=args.max_evidence_docs,
                 )
         else:
             json_path, md_path, dossier = process_one(
                 drug_id, canon, args.target_disease, endpoint_hint,
                 args.neg if args.neg else None, out_dir, cache_dir, all_drug_names,
-                aliases=drug_aliases
+                aliases=drug_aliases,
+                pubmed_retmax=args.pubmed_retmax,
+                pubmed_parse_max=args.pubmed_parse_max,
+                max_rerank_docs=args.max_rerank_docs,
+                max_evidence_docs=args.max_evidence_docs,
             )
 
         dossier_json_paths.append(str(json_path))
@@ -1462,6 +1501,10 @@ def main():
             "out": str(out_dir),
             "target_disease": args.target_disease,
             "topn": int(args.topn),
+            "pubmed_retmax": int(args.pubmed_retmax),
+            "pubmed_parse_max": int(args.pubmed_parse_max),
+            "max_rerank_docs": int(args.max_rerank_docs),
+            "max_evidence_docs": int(args.max_evidence_docs),
             "max_retries": int(MAX_RETRIES),
             "retry_sleep": float(RETRY_SLEEP),
             "ollama_host": OLLAMA_HOST,

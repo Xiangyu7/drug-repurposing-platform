@@ -1,12 +1,12 @@
 {
   "kg_explain_version": "0.7.0",
-  "timestamp": "2026-02-12T15:19:42.230182+00:00",
+  "timestamp": "2026-02-16T15:08:28.904022+00:00",
   "disease": "atherosclerosis",
   "condition": "atherosclerosis",
-  "drug_source": "signature",
-  "signature_path": "../sigreverse/data/output_atherosclerosis",
+  "drug_source": "ctgov",
+  "signature_path": null,
   "ranker_version": "v5",
-  "pipeline_elapsed_sec": 1138.06,
+  "pipeline_elapsed_sec": 869.14,
   "config_summary": {
     "mode": "v5",
     "condition": "atherosclerosis",
@@ -28,52 +28,71 @@
     "topk_pairs_per_drug": 50
   },
   "cache_stats": {
-    "hits": 2784,
+    "hits": 5819,
     "misses": 61,
     "expired": 0,
     "puts": 0,
     "errors": 0,
-    "total_requests": 2845,
-    "hit_rate": 0.9786,
-    "n_cached_files": 7249,
-    "total_size_mb": 82.8,
+    "total_requests": 5880,
+    "hit_rate": 0.9896,
+    "n_cached_files": 7246,
+    "total_size_mb": 81.62,
     "ttl_seconds": 0
   },
   "step_timings": [
     {
-      "step": "[1/10] 基因签名 → 药物反查",
-      "elapsed_sec": 0.0,
-      "status": "error",
-      "error": "[Errno 21] Is a directory: '../sigreverse/data/output_atherosclerosis'"
+      "step": "[1/10] CT.gov 失败试验",
+      "elapsed_sec": 1.5,
+      "status": "ok"
+    },
+    {
+      "step": "[2/10] RxNorm 映射",
+      "elapsed_sec": 0.03,
+      "status": "ok"
+    },
+    {
+      "step": "[3/10] 药物规范名称",
+      "elapsed_sec": 0.02,
+      "status": "ok"
+    },
+    {
+      "step": "[4/10] ChEMBL 药物映射",
+      "elapsed_sec": 0.05,
+      "status": "ok"
+    },
+    {
+      "step": "[5/10] Drug→Target",
+      "elapsed_sec": 0.03,
+      "status": "ok"
     },
     {
       "step": "[6/10] Target Xref + Ensembl",
-      "elapsed_sec": 0.13,
+      "elapsed_sec": 0.18,
       "status": "ok"
     },
     {
       "step": "[7/10] Target→Pathway",
-      "elapsed_sec": 23.7,
+      "elapsed_sec": 312.57,
       "status": "ok"
     },
     {
       "step": "[8/10] Gene→Disease",
-      "elapsed_sec": 0.06,
+      "elapsed_sec": 0.13,
       "status": "ok"
     },
     {
       "step": "[9/10] 构建中间边",
-      "elapsed_sec": 5.1,
+      "elapsed_sec": 8.12,
       "status": "ok"
     },
     {
       "step": "[10/10] V5 额外数据 (FAERS, Phenotype, Indications)",
-      "elapsed_sec": 178.73,
+      "elapsed_sec": 166.56,
       "status": "ok"
     },
     {
       "step": "[Final] v5 排序",
-      "elapsed_sec": 930.34,
+      "elapsed_sec": 379.96,
       "status": "ok"
     }
   ],
@@ -81,6 +100,6 @@
     "rank_csv": "output/drug_disease_rank_v5.csv",
     "evidence_paths": "output/evidence_paths_v5.jsonl",
     "evidence_pack_dir": "output/evidence_pack_v5",
-    "bridge_csv": "output/bridge_for_llm_rag.csv"
+    "bridge_csv": "output/bridge_repurpose_cross.csv"
   }
 }

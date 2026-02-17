@@ -1,1 +1,162 @@
-drug_normalized,n_trials,trial_statuses,trial_source,example_condition,example_whyStopped
+drug_normalized,n_trials,trial_statuses,trial_source,example_name,example_condition,example_whyStopped
+0.9% sodium chloride injection solution,1,TERMINATED,STOPPED,0.9% sodium chloride injection solution,Atherosclerosis | Hypercholesterolemia,
+10 x 10^6 cells,1,TERMINATED,STOPPED,10 x 10^6 cells,Peripheral Arterial Disease | Diabetic Foot,Business decision with all subjects completing at least 1 year follow-up
+18f-fpprgd2,1,WITHDRAWN,STOPPED,18F-FPPRGD2,"Aortic Aneurysm, Abdominal | Carotid Atherosclerosis",Resources not secured
+3 x 10^6 cells,1,TERMINATED,STOPPED,3 x 10^6 cells,Peripheral Arterial Disease | Diabetic Foot,Business decision with all subjects completing at least 1 year follow-up
+30 x 10^6 cells,1,TERMINATED,STOPPED,30 x 10^6 cells,Peripheral Arterial Disease | Diabetic Foot,Business decision with all subjects completing at least 1 year follow-up
+6% hydroxyethylstarch,1,TERMINATED,STOPPED,6% Hydroxyethylstarch,Peripheral Vascular Disease,Very slow enrollment.Study entry criteria not in line w/local standards of care
+acetylsalicylic acid,1,WITHDRAWN,STOPPED,Acetylsalicylic Acid,Chronic Total Occlusion | Atherosclerosis | Coronary Artery Disease | Peripheral Artery Disease,Sponsor decision
+adenosine infusion treatment,1,TERMINATED,STOPPED,adenosine infusion treatment,Resistant Hypertension,The study terminated early due to the difficulty of recruiting candidates.
+alirocumab,1,TERMINATED,STOPPED,Alirocumab,Stroke | Intracranial Atherosclerosis | Intraplaque Hemorrhage,Funding withdrawn
+alirocumab 150 mg/ml subcutaneous injection,1,TERMINATED,STOPPED,Alirocumab 150 MG/ML subcutaneous injection,Saphenous Vein Graft Atherosclerosis,Withdrawal of medication and funding support by Sponsor
+aliskiren,3,"COMPLETED,TERMINATED","COMPLETED_NEGATIVE,STOPPED",Aliskiren,Atherosclerosis,Safety concerns with approved medication identified in an unrelated trial
+angiotensin 1-7,1,TERMINATED,STOPPED,Angiotensin 1-7,Peripheral Arterial Disease,Study funding ended prior to completion.
+ascorbic acid,1,TERMINATED,STOPPED,ascorbic acid,Peripheral Arterial Disease,Insufficient enrollment
+aspirin,4,"TERMINATED,WITHDRAWN",STOPPED,Aspirin,Coronary Artery Disease | Stents | Atherosclerosis,cannot use bioabsorbable scaffold
+aspirin + ticagrelor,1,TERMINATED,STOPPED,Aspirin + Ticagrelor,Peripheral Arterial Disease,AZ discontinued study
+aspirin 25 mg bid,1,TERMINATED,STOPPED,Aspirin 25 mg bid,Peripheral Arterial Disease,Could not enroll subjects who met the stringent inclusion/exclusion criteria.
+aspirin tablet,1,WITHDRAWN,STOPPED,Aspirin tablet,Coronary Artery Disease | Atherosclerosis | Heart Attack,"study withdrawn, no participants enrolled, changes in the study design planned"
+atenolol,1,TERMINATED,STOPPED,Atenolol,Essential Hypertension | Carotid Plaque,Low recruitment
+atorvastatin,4,"TERMINATED,WITHDRAWN",STOPPED,atorvastatin,Peripheral Arterial Disease,Insufficient enrollment
+atorvastatin 20 mg + pioglitazone 30 mg,1,TERMINATED,STOPPED,Atorvastatin 20 mg + Pioglitazone 30 mg,Atherosclerosis | Coronary Artery Disease,
+atorvastatin 20mg,1,TERMINATED,STOPPED,Atorvastatin 20mg,Atherosclerosis | Coronary Artery Disease,
+"atorvastatin, aspirin, losartan, amlodipine",1,TERMINATED,STOPPED,"atorvastatin, aspirin, losartan, amlodipine",Carotid Artery Stenosis | Atherosclerosis | Stroke,Due to the clear advantage of carotid endarterectomy
+autologous asc (for adipose-derived stem/stroma cell),1,TERMINATED,STOPPED,Autologous ASC (for Adipose-derived Stem/Stroma Cell),Critical Limb Ischemia and Peripheral Artery Disease,organizational difficulties for the collection of adipose tissue and for the supply of the experimental drug
+autologous cd133+ cells,1,TERMINATED,STOPPED,autologous CD133+ cells,Critical Limb Ischemia | Arterial Occlusive Disease | Vascular Diseases,Failure to mobilize adequate CD34+ stem cells for minimum study treatment dose.
+biktarvy,1,WITHDRAWN,STOPPED,Biktarvy,Coronary Artery Disease | Hiv,COVID19 emergency. No patients randomised
+biwh 3,1,TERMINATED,STOPPED,BIWH 3,Peripheral Arterial Disease,
+bms-823778,1,WITHDRAWN,STOPPED,BMS-823778,Atherosclerotic Cardiovascular Disease,
+bms-844421,1,TERMINATED,STOPPED,BMS-844421,Atherosclerosis | Hypercholesterolemia,
+bupivacaine liposome,1,TERMINATED,STOPPED,Bupivacaine liposome,Peripheral Arterial Disease,Lack of funds
+canakinumab (acz885),1,TERMINATED,STOPPED,Canakinumab (ACZ885),Peripheral Artery Disease,The study got terminated based on result from primary endpoint analysis
+cangrelor,1,TERMINATED,STOPPED,Cangrelor,Atherosclerosis | Acute Coronary Syndrome (ACS),Insufficient evidence of the clinical effectiveness of cangrelor
+cellgram-cli,1,WITHDRAWN,STOPPED,Cellgram-CLI,Critical Limb Ischemia,Study was stopped by sponsers internal reason.
+cholecalciferol,2,"COMPLETED,TERMINATED","COMPLETED_NEGATIVE,STOPPED",Cholecalciferol,Peripheral Arterial Disease,Insufficient recruitment
+cilostazol,1,TERMINATED,STOPPED,Cilostazol,Peripheral Arterial Disease | Claudication (Finding),Original PI left institution
+cilostazol 100 mg,2,TERMINATED,STOPPED,Cilostazol 100 mg,Intermittent Claudication,Randomization Error
+cilostazol 200 mg,1,TERMINATED,STOPPED,Cilostazol 200 mg,Intermittent Claudication,
+clopidogrel,6,"TERMINATED,WITHDRAWN",STOPPED,Clopidogrel,Coronary Artery Disease | Stents | Atherosclerosis,cannot use bioabsorbable scaffold
+colchicine,1,WITHDRAWN,STOPPED,Colchicine,Coronary Artery Disease | Atherosclerosis | Heart Attack,"study withdrawn, no participants enrolled, changes in the study design planned"
+comparator,1,TERMINATED,STOPPED,Comparator,Peripheral Artery Disease (PAD),
+contrast-enhanced ultrasound,1,WITHDRAWN,STOPPED,Contrast-Enhanced Ultrasound,Fibromuscular Dysplasia of Arteries | Segmental Arterial Mediolysis | Spontaneous Coronary Artery Dissection | Atherosclerosis of Artery,Closed by Investigator
+control systolic blood pressure less than 120 mmhg,1,TERMINATED,STOPPED,control systolic blood pressure less than 120 mmHg,Coronary Artery Disease | Hypertension,Slow patients enrollment
+control systolic blood pressure less than 140 mmhg,1,TERMINATED,STOPPED,control systolic blood pressure less than 140 mmHg,Coronary Artery Disease | Hypertension,Slow patients enrollment
+cord blood stem cell injection,1,TERMINATED,STOPPED,Cord blood stem cell injection,Critical Limb Ischemia,Only patient enrolled on study died -the cause of death not study related
+dabigatran,1,TERMINATED,STOPPED,Dabigatran,Coronary Heart Disease | Atrial Fibrillation | Acute Coronary Syndrome | Atherosclerosis,Slow recruitment; Study was terminated for futility reasons
+dipyridamole 200 mg bid,1,TERMINATED,STOPPED,Dipyridamole 200 mg bid,Peripheral Arterial Disease,Could not enroll subjects who met the stringent inclusion/exclusion criteria.
+dipyridamole 200mg and aspirin 25mg bid:,1,TERMINATED,STOPPED,Dipyridamole 200mg and Aspirin 25mg bid:,Peripheral Arterial Disease,Could not enroll subjects who met the stringent inclusion/exclusion criteria.
+dlbs1033,1,TERMINATED,STOPPED,DLBS1033,Diabetes | Peripheral Arterial Disease,Recruitment rate is unexpectedly too low (insufficient number of eligible patients).
+double atorvastatin,1,TERMINATED,STOPPED,Double Atorvastatin,Hypercholesterolemia | Atherosclerosis | Coronary Artery Disease,Slow enrollment \[HIGH SCREEN FAILURE RATE\]
+dual antiplatelet (dapt) therapy,1,TERMINATED,STOPPED,Dual Antiplatelet (DAPT) Therapy,Coronary Artery Disease | Atherosclerosis | Stent Placement,"The DSMC March 16, 2022 reviewed of Interim Analysis and recommendation due to no glaring outcomes found to date."
+entresto,1,TERMINATED,STOPPED,Entresto,Peripheral Arterial Disease,Recruitment
+evolocumab,2,TERMINATED,STOPPED,Evolocumab,Coronary Artery Disease | Atherosclerosis | Hyperlipidemias,Funding withdrawn
+extended release niacin,2,TERMINATED,STOPPED,Extended release niacin,Cardiovascular Diseases | Heart Diseases | Cerebrovascular Accident | Coronary Disease | Atherosclerosis | Myocardial Infarction,AIM-HIGH was stopped on the recommendation of the DSMB because of lack of efficacy of niacin in preventing primary outcome events.
+extended release nicotinic acid (niaspan),1,TERMINATED,STOPPED,Extended Release Nicotinic Acid (Niaspan),Dialysis | Cardiovascular Disease | Atherosclerosis | Inflammation,The funding source is not going to fund this anymore. Only two subjects completed the study therefore meaningful analysis not possible.
+ezetimibe,2,TERMINATED,STOPPED,Ezetimibe,Hypercholesterolemia | Atherosclerosis,slow subject recruitment and lack of medical and scientific merit due to change in new standard of therapy during that same period.
+ezetimibe + atorvastatin,1,TERMINATED,STOPPED,Ezetimibe + Atorvastatin,Hypercholesterolemia | Atherosclerosis | Coronary Artery Disease,Slow enrollment \[HIGH SCREEN FAILURE RATE\]
+ezetimibe + simvastatin,1,TERMINATED,STOPPED,Ezetimibe + Simvastatin,Hypercholesterolemia | Atherosclerosis,Slow enrollment
+ezetimibe 10mg,1,TERMINATED,STOPPED,Ezetimibe 10mg,Inflammation | Atherosclerosis | Hypercholesterolemia,Lack of recruitment- Fellow responsible for study graduated
+ezetrol (ezetimibe),1,WITHDRAWN,STOPPED,Ezetrol (Ezetimibe),Atherosclerosis,
+fasudil hydrochloride,1,TERMINATED,STOPPED,Fasudil Hydrochloride,Carotid Stenosis,Slow enrollment
+fentanyl injection,1,WITHDRAWN,STOPPED,Fentanyl Injection,"Virtual Reality | Atherosclerosis | Coronary Artery Disease | Anxiety | Pain, Acute | Vasospasm;Peripheral",No patients enrolled
+gemfibrozil,1,WITHDRAWN,STOPPED,Gemfibrozil,Atherosclerosis,"The study chair changed his employment, the realization of the study was not possible"
+gfh312,1,WITHDRAWN,STOPPED,GFH312,Intermittent Claudication | Peripheral Artery Disease,The study was terminated by sponsor for reasons of adjusted clinical development strategy.
+glimepiride,1,COMPLETED,COMPLETED_NEGATIVE,Glimepiride,Diabetes Mellitus,
+heme arginate + l-arginine,1,TERMINATED,STOPPED,Heme arginate + L-arginine,Atherosclerotic Cardiovascular Disease,Recruitment faillure. Similar study published by others. Not yet entered treatment phase.
+hemoglobin glutamer 250 - bovine,1,TERMINATED,STOPPED,Hemoglobin glutamer 250 - bovine,Peripheral Vascular Disease,Very slow enrollment.Study entry criteria not in line w/local standards of care
+heparin,1,WITHDRAWN,STOPPED,Heparin,Chronic Total Occlusion | Atherosclerosis | Coronary Artery Disease | Peripheral Artery Disease,Sponsor decision
+hgf plasmid (amg0001),1,TERMINATED,STOPPED,HGF Plasmid (AMG0001),Critical Limb Ischemia,
+high dose erythropoietin,1,TERMINATED,STOPPED,High dose erythropoietin,Anemia | CKD | Atherosclerosis | Cardiovascular,Lack of enrollment
+icosapent ethyl,1,TERMINATED,STOPPED,Icosapent ethyl,Covid19 | Atherosclerosis | Cardiovascular Diseases | Upper Respiratory Tract Infections,The study was suspended by the IRB of record and subsequently terminated
+injection of 68ga-dotatate,1,TERMINATED,STOPPED,injection of 68Ga-DOTATATE,Coronary Arteriosclerosis,Financial issues
+isovue,1,TERMINATED,STOPPED,Isovue,Non-Obstructive Coronary Atherosclerosis,Study was terminated due to funding expiration.
+jardiance,1,WITHDRAWN,STOPPED,Jardiance,Coronary Artery Disease | Atherosclerosis | Heart Attack,"study withdrawn, no participants enrolled, changes in the study design planned"
+l-arginine + heme arginate,1,TERMINATED,STOPPED,L-arginine + heme arginate,Atherosclerotic Cardiovascular Disease,Recruitment faillure. Similar study published by others. Not yet entered treatment phase.
+leqvio,1,WITHDRAWN,STOPPED,LEQVIO,Coronary Artery Disease | Atherosclerosis | Heart Attack,"study withdrawn, no participants enrolled, changes in the study design planned"
+lomitapide,1,WITHDRAWN,STOPPED,Lomitapide,Homozygous Familial Hypercholesterolemia,
+lovaza,1,WITHDRAWN,STOPPED,lovaza,Peripheral Artery Disease,No subject meeting criteria
+low dose erythropoietin,1,TERMINATED,STOPPED,Low dose erythropoietin,Anemia | CKD | Atherosclerosis | Cardiovascular,Lack of enrollment
+low dose methotrexate,1,COMPLETED,COMPLETED_NEGATIVE,Low dose methotrexate,Vascular Inflammation | Atherosclerotic Cardiovascular Disease,
+matching placebo,2,TERMINATED,STOPPED,Matching placebo,Critical Limb Ischemia,Due to business decision
+matching placebo subcutaneous injection,1,TERMINATED,STOPPED,Matching Placebo subcutaneous injection,Saphenous Vein Graft Atherosclerosis,Withdrawal of medication and funding support by Sponsor
+medi6012,1,TERMINATED,STOPPED,MEDI6012,Cardiovascular Diseases,Early termination due to COVID-19
+mesendo,1,SUSPENDED,STOPPED,MESENDO,Heart Disease | Blocked Arteries | Coronary Ischemia | Coronary Disease | Coronary Artery Disease | Coronary Atherosclerosis,Suspended due to lack of funding.
+metformin,1,TERMINATED,STOPPED,Metformin,Peripheral Arterial Disease | Intermittent Claudication,The trial has been terminated due to difficulties with recruitment.
+metformin 1000 mg,1,TERMINATED,STOPPED,Metformin 1000 mg,Peripheral Artery Disease,study was not funded
+metoprolol,1,TERMINATED,STOPPED,Metoprolol,Non-Obstructive Coronary Atherosclerosis,Study was terminated due to funding expiration.
+midazolam injection,1,WITHDRAWN,STOPPED,Midazolam injection,"Virtual Reality | Atherosclerosis | Coronary Artery Disease | Anxiety | Pain, Acute | Vasospasm;Peripheral",No patients enrolled
+mln1202,1,WITHDRAWN,STOPPED,MLN1202,Atherosclerotic Cardiovascular Disease,Study has withdrawn.
+montelukast sodium,1,TERMINATED,STOPPED,Montelukast Sodium,Coronary Artery Disease | Acute Coronary Syndrome,Diffic;ulty recruiting
+mycophenolate mofetil,1,TERMINATED,STOPPED,mycophenolate mofetil,Atherosclerosis | Kidney Failure,See termination reason in detailed description.
+n-acetylcysteine,1,WITHDRAWN,STOPPED,N-acetylcysteine,Atherosclerosis of Artery | Peripheral Artery Disease | Diabetes Mellitus | Inflammation | Oxidative Stress,Lack of available resources needed to conduct study.
+natural source vitamin e 400iu/day,1,TERMINATED,STOPPED,Natural source Vitamin E 400IU/day,Diabetes | Myocardial Infarction | Cardiovascular Disease,interim analysis showed significant differences between two treatment groups
+nexlizet,1,WITHDRAWN,STOPPED,Nexlizet,Coronary Artery Disease | Atherosclerosis | Heart Attack,"study withdrawn, no participants enrolled, changes in the study design planned"
+niacin/laropiprant,1,TERMINATED,STOPPED,niacin/laropiprant,HIV | Atherosclerosis,Withdrawal of IMP from the market. Data on risk-benefit ratio pending.
+niacin/laropiprant combination,1,TERMINATED,STOPPED,Niacin/Laropiprant combination,Peripheral Arterial Disease,Tredaptive has been suspended worldwide
+nitroglycerin,1,TERMINATED,STOPPED,Nitroglycerin,Non-Obstructive Coronary Atherosclerosis,Study was terminated due to funding expiration.
+nitroglycerin 0.4 mg sublingual,1,WITHDRAWN,STOPPED,Nitroglycerin 0.4 mg sublingual,Healthy,No subjects were enrolled into the study
+olmesartan medoxomil,1,TERMINATED,STOPPED,olmesartan medoxomil,Essential Hypertension | Carotid Plaque,Low recruitment
+optimal medical care,1,WITHDRAWN,STOPPED,Optimal Medical Care,Peripheral Arterial Disease | Atherosclerosis | Cardiovascular Diseases,Re-registered
+pactimibe sulfate,1,TERMINATED,STOPPED,Pactimibe sulfate,Atherosclerosis | Heterozygous Familial Hypercholesterolemia,
+pda-002,1,WITHDRAWN,STOPPED,PDA-002,Diabetic Foot | Peripheral Arterial Disease,Discontinued due to significant delays in the expected availability of data.
+phenprocoumon,1,TERMINATED,STOPPED,Phenprocoumon,Coronary Heart Disease | Atrial Fibrillation | Acute Coronary Syndrome | Atherosclerosis,Slow recruitment; Study was terminated for futility reasons
+pioglitazone,1,COMPLETED,COMPLETED_NEGATIVE,Pioglitazone,Diabetes Mellitus,
+placebo,35,"COMPLETED,TERMINATED,WITHDRAWN","COMPLETED_NEGATIVE,STOPPED",Placebo,Atherosclerotic Cardiovascular Disease,Study has withdrawn.
+placebo (for rimonabant),1,TERMINATED,STOPPED,Placebo (for Rimonabant),Carotid Artery Plaque | Arteriosclerosis | Obesity | Metabolic Syndrome X,Company decision taken in light of demands by certain national health authorities
+placebo bolus & placebo infusion,1,TERMINATED,STOPPED,Placebo bolus & placebo infusion,Atherosclerosis | Acute Coronary Syndrome (ACS),Insufficient evidence of the clinical effectiveness of cangrelor
+placebo capsules - end of infusion,1,TERMINATED,STOPPED,Placebo capsules - end of infusion,Atherosclerosis | Acute Coronary Syndrome (ACS),Insufficient evidence of the clinical effectiveness of cangrelor
+placebo capsules - end of pci,1,TERMINATED,STOPPED,Placebo capsules - end of PCI,Atherosclerosis | Acute Coronary Syndrome (ACS),Insufficient evidence of the clinical effectiveness of cangrelor
+placebo group,1,TERMINATED,STOPPED,Placebo group,Peripheral Arterial Disease,Recruitment
+placebo matching with bms-823778,1,WITHDRAWN,STOPPED,Placebo matching with BMS-823778,Atherosclerotic Cardiovascular Disease,
+placebo oral tablet,1,TERMINATED,STOPPED,Placebo Oral Tablet,Carotid Stenosis,Slow enrollment
+placebos,1,WITHDRAWN,STOPPED,Placebos,Peripheral Artery Disease,We could not secure adequate medication
+plerixafor,1,TERMINATED,STOPPED,Plerixafor,Diabetes | Wounds | Critical Limb Ischemia,Safety reasons
+pmr 135 mg,1,TERMINATED,STOPPED,PMR 135 mg,Intermittent Claudication,Randomization Error
+polypill: red heart pill,1,WITHDRAWN,STOPPED,Polypill: Red Heart Pill,Cardiovascular Disease,Funding never attained
+prednisone,1,TERMINATED,STOPPED,prednisone,Atherosclerosis | Kidney Failure,See termination reason in detailed description.
+pregabalin,1,TERMINATED,STOPPED,pregabalin,Critical Limb Ischemia | Arterial Occlusive Disease | Pain | Ischemia,low inclusion rate
+ranolazine,2,"TERMINATED,WITHDRAWN",STOPPED,Ranolazine,Peripheral Arterial Disease,Insufficient enrollment
+remodulin (treprostinil sodium) injection,1,TERMINATED,STOPPED,Remodulin (treprostinil sodium) Injection,Peripheral Vascular Disease,
+remodulin® (treprostinil sodium) injection,1,TERMINATED,STOPPED,Remodulin® (treprostinil sodium) Injection,Critical Limb Ischemia | Peripheral Vascular Disease | Foot Ulcers | Rest Leg Pain,
+repatha,1,TERMINATED,STOPPED,Repatha,Ischemic Stroke,Funding Discontinued
+rex-001,2,TERMINATED,STOPPED,REX-001,"Peripheral Arterial Disease (PAD) | Diabetes Mellitus (DM) | Diabetes Mellitus, Type 1 | Diabetes Mellitus, Type 2 | Cardiovascular Disease | Critical Limb Ischemia (CLI)",Independent Data Monitoring Committee recommendation to stop due to futility
+rimonabant,1,TERMINATED,STOPPED,Rimonabant,Carotid Artery Plaque | Arteriosclerosis | Obesity | Metabolic Syndrome X,Company decision taken in light of demands by certain national health authorities
+rosiglitazone,1,SUSPENDED,STOPPED,Rosiglitazone,"Diabetes Mellitus, Atherosclerosis",no fund
+rosiglitazone/placebo,1,TERMINATED,STOPPED,rosiglitazone/placebo,Diabetes Mellitus,Terminated at 50% enrollment due to recent concerns about rosiglitazone
+rosuvastatin,4,"TERMINATED,WITHDRAWN",STOPPED,Rosuvastatin,Hypercholesterolemia | Atherosclerosis | Coronary Artery Disease,Slow enrollment \[HIGH SCREEN FAILURE RATE\]
+rv-p1501,1,WITHDRAWN,STOPPED,RV-P1501,Peripheral Arterial Occlusive Disease | Critical Limb Ischemia,Incomplete enrollment process
+saline,1,TERMINATED,STOPPED,Saline,Peripheral Arterial Disease,Study funding ended prior to completion.
+"sapropterin dihydrochloride (bh4, tetrahydrobiopterin)",1,WITHDRAWN,STOPPED,"Sapropterin Dihydrochloride (BH4, tetrahydrobiopterin)",Peripheral Artery Disease | Peripheral Arterial Disease,discontinued due to change in operating plans prior to study initiation and enrollment
+serine proteinase-1 (serp-1),1,TERMINATED,STOPPED,Serine proteinase-1 (Serp-1),Unstable Angina | Coronary Atherosclerosis | Coronary Restenosis,Third dose group not recruited due to slow enrollment.
+sevelamer carbonate (renvela),1,TERMINATED,STOPPED,Sevelamer Carbonate (Renvela),Dialysis | Cardiovascular Disease | Atherosclerosis | Inflammation | Hyperphosphatemia,The study stopped due to lack of funding.
+sildenafil,1,TERMINATED,STOPPED,Sildenafil,"Arthritis, Rheumatoid | Atherosclerosis","Slow recruitment, lack of continued funding"
+simvastatin,2,TERMINATED,STOPPED,Simvastatin,Cardiovascular Diseases | Heart Diseases | Cerebrovascular Accident | Coronary Disease | Atherosclerosis | Myocardial Infarction,AIM-HIGH was stopped on the recommendation of the DSMB because of lack of efficacy of niacin in preventing primary outcome events.
+simvastatin 40mg,1,TERMINATED,STOPPED,Simvastatin 40mg,Inflammation | Atherosclerosis | Hypercholesterolemia,Lack of recruitment- Fellow responsible for study graduated
+sirolimus,1,TERMINATED,STOPPED,sirolimus,Atherosclerosis | Kidney Failure,See termination reason in detailed description.
+slv342,1,TERMINATED,STOPPED,SLV342,Pharmacokinetics,Terminated on 14 Sep 2010 due to strategic considerations
+sp-8356,1,TERMINATED,STOPPED,SP-8356,Atherosclerosis | Ischemic Stroke,"Only Part 1 was conducted but not Part 2. Due to the low exposures, definitive safety conclusions could not be made for the targeted exposure levels in the future."
+spironolactone,1,TERMINATED,STOPPED,Spironolactone,Type2 Diabetes | Hyperkalemia,The study could not enroll patients owing to the inclusion exclusion criteria
+statin,1,WITHDRAWN,STOPPED,Statin,Coronary Artery Disease | Atherosclerosis | Heart Attack,"study withdrawn, no participants enrolled, changes in the study design planned"
+statin therapy,1,TERMINATED,STOPPED,Statin therapy,Atherosclerosis,The study was stopped when the original principal investigator moved to a new institution.
+statseal,1,WITHDRAWN,STOPPED,Statseal,Arterial Occlusion | Cardiovascular Diseases | Atherosclerosis | Hematoma,Initiating PI left our institution.
+stem cell infusion,1,TERMINATED,STOPPED,Stem cell infusion,Critical Limb Ischemia (CLI),Patients' numebr randomized not achieved. Investigators team with lack of interest and commitment. The sponsor closed prematurely patients' recruitment.
+sugar pill,1,TERMINATED,STOPPED,Sugar pill,Peripheral Arterial Disease,Tredaptive has been suspended worldwide
+tacrolimus,1,TERMINATED,STOPPED,tacrolimus,Atherosclerosis | Kidney Failure,See termination reason in detailed description.
+temsirolimus,1,TERMINATED,STOPPED,Temsirolimus,Peripheral Arterial Disease,Halted due to pandemic.
+temsirolimus and dexamethasone sodium phosphate,1,TERMINATED,STOPPED,Temsirolimus and dexamethasone sodium phosphate,Peripheral Arterial Disease,Halted due to pandemic.
+ticagrelor,5,"TERMINATED,WITHDRAWN",STOPPED,Ticagrelor,Coronary Artery Disease | Stents | Atherosclerosis,cannot use bioabsorbable scaffold
+ticagrelor 90mg,1,TERMINATED,STOPPED,Ticagrelor 90mg,"Peripheral Artery Disease | Clopidogrel, Poor Metabolism of | Peripheral Vascular Disease | Artery Disease | Peripheral Arterial Occlusive Disease",Poor recruitment
+trilipix,1,WITHDRAWN,STOPPED,TriLipix,Coronary Atherosclerosis,Lack of patient population
+urinary kallikrein,1,WITHDRAWN,STOPPED,Urinary Kallikrein,Intracranial Arteriosclerosis | Collateral Circulation | Anterior Cerebral Circulation Infarction,
+urokinase,1,TERMINATED,STOPPED,urokinase,Diabetic Foot | Critical Limb Ischemia,recruition number was not reached
+usual medication,1,WITHDRAWN,STOPPED,Usual medication,Cardiovascular Disease,Funding never attained
+vascepa,1,WITHDRAWN,STOPPED,Vascepa,Coronary Artery Disease | Atherosclerosis | Heart Attack,"study withdrawn, no participants enrolled, changes in the study design planned"
+veliflapon (dg-031),1,SUSPENDED,STOPPED,veliflapon (DG-031),Acute Coronary Syndrome,
+vitamin c,1,TERMINATED,STOPPED,Vitamin C,Cardiovascular Diseases | Carotid Artery Diseases | Intracranial Arteriosclerosis | Cerebrovascular Disorders | Heart Diseases | Vascular Diseases | Atherosclerosis,
+vitamin e,1,TERMINATED,STOPPED,Vitamin E,Cardiovascular Diseases | Carotid Artery Diseases | Intracranial Arteriosclerosis | Cerebrovascular Disorders | Heart Diseases | Vascular Diseases | Atherosclerosis,
+vonapanitase,1,WITHDRAWN,STOPPED,vonapanitase,Peripheral Artery Disease,Change in operating plans
+vorapaxar,2,"TERMINATED,WITHDRAWN",STOPPED,Vorapaxar,Atherosclerosis | Myocardial Ischemia | Myocardial Infarction,The trial was terminated at the request of the Data and Safety Monitoring Board.
+vytorin (ezetimibe + simvastatin),1,WITHDRAWN,STOPPED,Vytorin (Ezetimibe + Simvastatin),Atherosclerosis,
+warfarin,1,TERMINATED,STOPPED,Warfarin,"Stroke | Cerebral Infarction | Atherosclerosis | Constriction, Pathologic",
+yamani-15/5 chemical solution,1,WITHDRAWN,STOPPED,Yamani-15/5 chemical solution,Peripheral Arterial Disease,Unable to enroll subjects
+yq23,1,TERMINATED,STOPPED,YQ23,Critical Limb Ischemia,Due to business decision
