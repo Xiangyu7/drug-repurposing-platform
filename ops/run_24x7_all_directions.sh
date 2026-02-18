@@ -40,6 +40,7 @@ set -Eeuo pipefail
 # 运行模式:
 #   RUN_MODE=dual        — 双路线 (Direction A + B)
 #   RUN_MODE=origin_only — 仅 Direction B
+#   RUN_MODE=cross_only  — 仅 Direction A (跨疾病迁移)
 #
 # Disease list format (pipe-separated, 4 columns):
 #   disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
@@ -1083,13 +1084,17 @@ process_disease() {
   local step8_cross=""
   local step9_cross=""
 
-  # ----- A) Cross route (optional, RUN_MODE=dual) -----
-  # [P1-5] Cross failure no longer blocks Origin route
-  if [[ "${RUN_MODE}" == "dual" ]]; then
+  # ----- A) Cross route (optional, RUN_MODE=dual or cross_only) -----
+  # [P1-5] Cross failure no longer blocks Origin route (in dual mode)
+  if [[ "${RUN_MODE}" == "dual" || "${RUN_MODE}" == "cross_only" ]]; then
     local dsmeta_cfg="${DSMETA_DIR}/configs/${disease_key}.yaml"
     if [[ ! -f "${dsmeta_cfg}" ]]; then
       log "[WARN] Cross: missing dsmeta config: ${dsmeta_cfg}, skipping cross route"
       cross_status="failed"
+      if [[ "${RUN_MODE}" == "cross_only" ]]; then
+        fail_disease "${disease_key}" "${run_id}" "cross_dsmeta_cfg" "missing dsmeta config for cross_only mode" "${cross_status}" "${origin_status}"
+        return 1
+      fi
     else
       # Run cross route in a block; failure sets cross_status but doesn't return
       if run_cross_route "${disease_key}" "${disease_query}" "${run_id}" \
@@ -1097,6 +1102,10 @@ process_disease() {
         cross_status="success"
       else
         cross_status="failed"
+        if [[ "${RUN_MODE}" == "cross_only" ]]; then
+          fail_disease "${disease_key}" "${run_id}" "cross_route" "cross route failed in cross_only mode" "${cross_status}" "${origin_status}"
+          return 1
+        fi
         log "[WARN] Cross route failed for ${disease_key}, continuing with Origin route"
       fi
     fi
@@ -1105,6 +1114,13 @@ process_disease() {
     log "[INFO] RUN_MODE=${RUN_MODE}: skip cross route for ${disease_key}"
   fi
 
+  # ----- B) Origin route (skip if cross_only) -----
+  if [[ "${RUN_MODE}" == "cross_only" ]]; then
+    origin_status="skipped"
+    log "[INFO] RUN_MODE=cross_only: skip origin route for ${disease_key}"
+  fi
+
+  if [[ "${RUN_MODE}" != "cross_only" ]]; then
   # ----- B) Origin route -----
   if ! run_cmd "Origin: kg ctgov" --timeout 3600 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source ctgov; then
     fail_disease "${disease_key}" "${run_id}" "origin_kg_ctgov" "kg ctgov pipeline failed" "${cross_status}" "${origin_status}"
@@ -1249,6 +1265,8 @@ process_disease() {
   annotate_route_manifest_summary "${step9_origin}" "origin" "${origin_selected_stage}" "${origin_selected_topn}" "${origin_quality_passed:-0}" "${origin_decision_stage1}" "${origin_quality_stage1}" "${origin_decision_stage2}" "${origin_quality_stage2}"
 
   origin_status="success"
+
+  fi  # end of: if [[ "${RUN_MODE}" != "cross_only" ]]
 
   if ! archive_results \
     "${disease_key}" "${disease_query}" "${run_id}" "${run_date}" "${result_dir}" \
@@ -1514,10 +1532,10 @@ check_ollama_health() {
 }
 
 case "${RUN_MODE}" in
-  dual|origin_only)
+  dual|origin_only|cross_only)
     ;;
   *)
-    log "[ERROR] Invalid RUN_MODE='${RUN_MODE}'. Allowed: dual | origin_only"
+    log "[ERROR] Invalid RUN_MODE='${RUN_MODE}'. Allowed: dual | origin_only | cross_only"
     exit 1
     ;;
 esac

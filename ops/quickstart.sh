@@ -79,7 +79,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --single <key>   Run pipeline once for a single disease"
             echo ""
             echo "Options:"
-            echo "  --mode <mode>    Run mode: dual | origin_only (default: origin_only)"
+            echo "  --mode <mode>    Run mode: dual | origin_only | cross_only (default: origin_only)"
             echo "  --list <file>    Disease list file (default: auto-select)"
             echo "  --cycles <n>     Max cycles (default: 0=infinite)"
             echo ""

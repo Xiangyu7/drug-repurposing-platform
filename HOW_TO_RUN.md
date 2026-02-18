@@ -278,7 +278,7 @@ bash ops/start_m1_serial.sh --dry-run    # preview only
 
 ```bash
 # Example: customize and launch
-export RUN_MODE=dual                # dual | origin_only
+export RUN_MODE=dual                # dual | origin_only | cross_only
 export MAX_CYCLES=1                 # 0=infinite loop, 1=run once
 export SLEEP_SECONDS=300            # interval between cycles
 export TOPN_PROFILE=stable          # stable | balanced | recall
@@ -395,6 +395,9 @@ docker compose up --build
 
 # Run a single disease (Direction B only)
 docker compose run app bash ops/quickstart.sh --single atherosclerosis
+
+# Run a single disease (Direction A only)
+docker compose run app bash ops/quickstart.sh --single atherosclerosis --mode cross_only
 
 # Run a single disease (Direction A + B)
 docker compose run app bash ops/quickstart.sh --single atherosclerosis --mode dual
