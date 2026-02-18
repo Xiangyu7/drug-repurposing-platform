@@ -42,6 +42,11 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
     networks:
       - dr-net
 
@@ -106,6 +111,14 @@ services:
       # - ./ops/disease_list_b_only.txt:/app/ops/disease_list_b_only.txt
       # - ./kg_explain/configs:/app/kg_explain/configs
       # - ./dsmeta_signature_pipeline/configs:/app/dsmeta_signature_pipeline/configs
+    # Graceful shutdown: send SIGTERM so runner can clean up lock files
+    stop_signal: SIGTERM
+    stop_grace_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "5"
     networks:
       - dr-net
 

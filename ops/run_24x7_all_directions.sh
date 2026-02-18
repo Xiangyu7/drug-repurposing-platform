@@ -155,6 +155,8 @@ LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"
 MAX_CYCLES="${MAX_CYCLES:-0}"
 RUN_MODE="${RUN_MODE:-dual}" # dual | origin_only
 STEP_TIMEOUT="${STEP_TIMEOUT:-1800}" # 30 min per step default
+DSMETA_DISK_MIN_GB="${DSMETA_DISK_MIN_GB:-8}"  # min free GB before dsmeta (GEO downloads are large)
+DSMETA_CLEANUP="${DSMETA_CLEANUP:-1}"          # auto-clean dsmeta workdir after each disease
 LOCK_NAME="${LOCK_NAME:-${RUN_MODE}}"
 LOCK_FILE="${STATE_ROOT}/runner_${LOCK_NAME}.lock"
 
@@ -202,6 +204,13 @@ RUN_LOG="${LOG_DIR}/runner_${RUN_MODE}_$(date '+%Y%m%d_%H%M%S')_$$.log"
 
 log() {
   printf '[%s] %s\n' "$(date '+%F %T')" "$*" | tee -a "${RUN_LOG}"
+}
+
+# Progress marker — clearly visible in logs for grep/monitoring
+# Usage: progress "disease_key" "3/8" "step name"
+progress() {
+  local disease="$1" step="$2" desc="$3"
+  log "▶▶▶ [${disease}] PROGRESS ${step}: ${desc}"
 }
 
 trim() {
@@ -1050,6 +1059,7 @@ process_disease() {
   fi
 
   log "=== Disease start: key=${disease_key}, query=${disease_query}, origin_ids=${origin_ids_input:-N/A}, inject=${inject_path:-N/A}, run_id=${run_id} ==="
+  progress "${disease_key}" "1/8" "Screen drugs (CT.gov)"
 
   if ! ensure_kg_disease_config "${disease_key}" "${disease_query}"; then
     fail_disease "${disease_key}" "${run_id}" "ensure_kg_config" "cannot ensure kg disease config" "${cross_status}" "${origin_status}"
@@ -1122,6 +1132,8 @@ process_disease() {
 
   if [[ "${RUN_MODE}" != "cross_only" ]]; then
   # ----- B) Origin route -----
+  progress "${disease_key}" "5/8" "Origin: KG ranking (CT.gov mode)"
+
   if ! run_cmd "Origin: kg ctgov" --timeout 3600 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source ctgov; then
     fail_disease "${disease_key}" "${run_id}" "origin_kg_ctgov" "kg ctgov pipeline failed" "${cross_status}" "${origin_status}"
     return 1
@@ -1201,6 +1213,7 @@ process_disease() {
     return 1
   fi
   log "[INFO] Origin stage1 resolved topn=${origin_topn}"
+  progress "${disease_key}" "6/8" "Origin: LLM evidence (Step6-9, topn=${origin_topn})"
 
   if ! run_route_llm_stage "Origin" "origin" "stage1" "${bridge_origin}" "${neg_csv}" "${step6_origin}" "${step7_origin}" "${step8_origin}" "${step9_origin}" "${disease_query}" "${origin_topn}" "${TOPK_ORIGIN}" "${SHORTLIST_MIN_GO_ORIGIN}" "${origin_quality_stage1}"; then
     fail_disease "${disease_key}" "${run_id}" "origin_stage1" "origin stage1 pipeline failed" "${cross_status}" "${origin_status}"
@@ -1268,6 +1281,8 @@ process_disease() {
 
   fi  # end of: if [[ "${RUN_MODE}" != "cross_only" ]]
 
+  progress "${disease_key}" "8/8" "Archiving results"
+
   if ! archive_results \
     "${disease_key}" "${disease_query}" "${run_id}" "${run_date}" "${result_dir}" \
     "${cross_status}" "${origin_status}" "${origin_ids_input}" "${origin_ids_effective}" \
@@ -1301,6 +1316,14 @@ run_cross_route() {
   local kg_manifest="$7"
   local neg_csv="$8"
 
+  progress "${disease_key}" "2/8" "Cross: dsmeta gene signature"
+
+  # Pre-check: dsmeta downloads GEO data (50-100MB per dataset), ensure enough disk space
+  if ! check_disk_space "${DSMETA_DISK_MIN_GB:-8}"; then
+    log "[ERROR] Cross: insufficient disk space for dsmeta (need ≥${DSMETA_DISK_MIN_GB:-8}GB free)"
+    return 1
+  fi
+
   if ! run_cmd "Cross: dsmeta (${disease_key})" --timeout 3600 run_in_dir "${DSMETA_DIR}" "${DSMETA_PY}" run.py --config "${dsmeta_cfg}"; then
     log "[ERROR] Cross: dsmeta pipeline failed"
     cleanup_dsmeta_workdir "${disease_key}"
@@ -1325,6 +1348,8 @@ run_cross_route() {
     return 1
   fi
 
+  progress "${disease_key}" "3/8" "Cross: SigReverse (LINCS L1000)"
+
   sig_out_dir="${disease_work}/sigreverse_output"
   mkdir -p "${sig_out_dir}"
   if ! run_cmd "Cross: sigreverse" run_in_dir "${SIG_DIR}" "${SIG_PY}" scripts/run.py --config configs/default.yaml --in "${CROSS_SIGREVERSE_INPUT}" --out "${sig_out_dir}"; then
@@ -1336,6 +1361,8 @@ run_cross_route() {
     log "[ERROR] Cross: missing sigreverse output"
     return 1
   fi
+
+  progress "${disease_key}" "4/8" "Cross: KG ranking (signature mode)"
 
   if ! run_cmd "Cross: kg signature" --timeout 3600 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source signature --signature-path "${CROSS_SIGNATURE_META}"; then
     log "[ERROR] Cross: kg signature pipeline failed"
@@ -1394,6 +1421,7 @@ run_cross_route() {
     return 1
   fi
   log "[INFO] Cross stage1 resolved topn=${cross_topn}"
+  progress "${disease_key}" "7/8" "Cross: LLM evidence (Step6-9, topn=${cross_topn})"
 
   if ! run_route_llm_stage "Cross" "cross" "stage1" "${bridge_cross}" "${neg_csv}" "${step6_cross}" "${step7_cross}" "${step8_cross}" "${step9_cross}" "${disease_query}" "${cross_topn}" "${TOPK_CROSS}" "${SHORTLIST_MIN_GO_CROSS}" "${cross_quality_stage1}"; then
     log "[ERROR] Cross: stage1 pipeline failed"

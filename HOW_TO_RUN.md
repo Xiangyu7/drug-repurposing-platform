@@ -312,11 +312,85 @@ bash ops/check_status.sh --all
 
 # Tail live logs
 tail -f logs/continuous_runner/runner_dual_*.log
+
+# Track progress markers (shows which step each disease is on)
+grep "PROGRESS" logs/continuous_runner/runner_dual_*.log
+
+# View results for a specific disease
+bash ops/show_results.sh atherosclerosis
+
+# View all diseases with results
+bash ops/show_results.sh
 ```
 
 ---
 
-## 8. Output Structure
+## 8. Operations Scripts
+
+### 8.1 Retry a Failed Disease
+
+```bash
+# Retry Direction B (default)
+bash ops/retry_disease.sh atherosclerosis
+
+# Retry both directions
+bash ops/retry_disease.sh atherosclerosis --mode dual
+
+# Retry Direction A only
+bash ops/retry_disease.sh atherosclerosis --mode cross_only
+
+# Skip cleanup of previous artifacts
+bash ops/retry_disease.sh atherosclerosis --no-clean
+```
+
+### 8.2 View Results
+
+```bash
+# List all diseases with results
+bash ops/show_results.sh
+
+# Show detail for one disease
+bash ops/show_results.sh atherosclerosis
+
+# Copy results to another directory
+bash ops/show_results.sh atherosclerosis --copy /tmp/export
+```
+
+### 8.3 Cleanup Disk Space
+
+```bash
+# Preview what would be cleaned (dry run)
+bash ops/cleanup.sh --dry-run --all 7
+
+# Clean everything older than 7 days
+bash ops/cleanup.sh --all 7
+
+# Clean only work directories older than 3 days
+bash ops/cleanup.sh --work 3
+
+# Clean only quarantine older than 14 days
+bash ops/cleanup.sh --quarantine 14
+
+# Clean only logs older than 30 days
+bash ops/cleanup.sh --logs 30
+```
+
+### 8.4 Restart / Stop Runners
+
+```bash
+# Stop all runners
+bash ops/restart_runner.sh --stop
+
+# Restart a specific runner
+bash ops/restart_runner.sh --runner dual
+
+# Restart all active runners
+bash ops/restart_runner.sh
+```
+
+---
+
+## 9. Output Structure
 
 ```
 runtime/
@@ -336,7 +410,7 @@ runtime/
 
 ---
 
-## 9. Common Issues
+## 10. Common Issues
 
 | Problem | Cause | Solution |
 |---|---|---|
@@ -352,7 +426,7 @@ runtime/
 
 ---
 
-## 10. Running Tests
+## 11. Running Tests
 
 ```bash
 # kg_explain tests (287 tests)
@@ -367,7 +441,7 @@ cd LLM+RAG证据工程 && .venv/bin/python -m pytest tests/ -x -q
 
 ---
 
-## 11. Docker Deployment (Recommended for Cloud Servers)
+## 12. Docker Deployment (Recommended for Cloud Servers)
 
 Docker packages the entire environment (Python + R + Bioconductor + all dependencies) into a single image, eliminating environment setup issues on cloud servers.
 
@@ -480,7 +554,60 @@ docker-compose.yml
 
 ---
 
-## 12. Quick Reference
+## 13. Environment Variables Reference
+
+### Core Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `RUN_MODE` | `dual` | Run mode: `dual` (A+B), `origin_only` (B), `cross_only` (A) |
+| `MAX_CYCLES` | `0` | Max cycles (0=infinite, 1=run once) |
+| `SLEEP_SECONDS` | `300` | Seconds between cycles |
+| `STEP_TIMEOUT` | `1800` | Per-step timeout in seconds |
+
+### TopN / Quality Control
+
+| Variable | Default | Description |
+|---|---|---|
+| `TOPN_PROFILE` | `stable` | Profile: `stable`, `balanced`, `recall` |
+| `TOPN_CROSS` | `auto` | Direction A bridge topn: `auto` or integer |
+| `TOPN_ORIGIN` | `auto` | Direction B bridge topn: `auto` or integer |
+| `TOPN_STAGE2_ENABLE` | `1` | Allow second-stage expansion if quality low |
+| `TOPN_MAX_EXPAND_ROUNDS` | `1` | Max expansion rounds |
+| `STRICT_CONTRACT` | `1` | Strict data contract enforcement |
+
+### Disk & Cleanup
+
+| Variable | Default | Description |
+|---|---|---|
+| `DISK_MIN_GB` | `5` | Min free disk space (GB) before cycle starts |
+| `DSMETA_DISK_MIN_GB` | `8` | Min free disk space (GB) before dsmeta runs |
+| `DSMETA_CLEANUP` | `1` | Auto-clean dsmeta workdir after each disease |
+| `RETENTION_DAYS` | `7` | Work/quarantine retention (days) |
+| `LOG_RETENTION_DAYS` | `30` | Log retention (days) |
+| `CACHE_RETENTION_DAYS` | `1` | KG HTTP cache retention (days) |
+
+### API / External Services
+
+| Variable | Default | Description |
+|---|---|---|
+| `OLLAMA_HOST` | `http://localhost:11434` | Ollama API endpoint |
+| `NCBI_API_KEY` | _(empty)_ | NCBI API key for faster PubMed access |
+| `API_BACKOFF_SECONDS` | `600` | Wait time when all APIs are down |
+| `SCREEN_MAX_STUDIES` | `500` | Max CT.gov studies to screen per disease |
+
+### LLM Step6 Budget
+
+| Variable | Default | Description |
+|---|---|---|
+| `STEP6_PUBMED_RETMAX` | `120` | Max PubMed articles to retrieve |
+| `STEP6_PUBMED_PARSE_MAX` | `60` | Max articles to parse |
+| `STEP6_MAX_RERANK_DOCS` | `40` | Max documents for reranking |
+| `STEP6_MAX_EVIDENCE_DOCS` | `12` | Max evidence documents per drug |
+
+---
+
+## 14. Quick Reference
 
 ```bash
 # === MOST COMMON COMMANDS ===
@@ -488,8 +615,14 @@ docker-compose.yml
 # First time setup
 bash ops/quickstart.sh --setup-only
 
-# Run everything for one disease
+# Run everything for one disease (Direction B)
 bash ops/quickstart.sh --single atherosclerosis
+
+# Run everything for one disease (Direction A + B)
+bash ops/quickstart.sh --single atherosclerosis --mode dual
+
+# Run everything for one disease (Direction A only)
+bash ops/quickstart.sh --single atherosclerosis --mode cross_only
 
 # Run full pipeline on cloud server
 bash ops/start_day1_aliyun.sh
@@ -499,6 +632,26 @@ bash ops/start_m1_serial.sh
 
 # Check what's happening
 bash ops/check_status.sh
+
+# === OPERATIONS ===
+
+# Retry a failed disease
+bash ops/retry_disease.sh atherosclerosis --mode dual
+
+# View results
+bash ops/show_results.sh atherosclerosis
+
+# Stop all runners
+bash ops/restart_runner.sh --stop
+
+# Clean up disk (dry run first)
+bash ops/cleanup.sh --dry-run --all 7
+bash ops/cleanup.sh --all 7
+
+# Track progress
+grep "PROGRESS" logs/continuous_runner/runner_*.log
+
+# === INDIVIDUAL MODULES ===
 
 # Run only KG for one disease
 cd kg_explain && .venv/bin/python -m src.kg_explain.cli pipeline --disease atherosclerosis --version v5

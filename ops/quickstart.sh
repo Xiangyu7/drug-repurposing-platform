@@ -216,6 +216,56 @@ check_environment() {
         fail "\n${errors} critical errors found. Fix them before proceeding."
         return 1
     fi
+
+    # Disease list validation
+    info ""
+    info "Disease List Validation:"
+    local list_errors=0
+    for list_file in "${OPS_DIR}/disease_list_day1_origin.txt" "${OPS_DIR}/disease_list_day1_dual.txt" "${OPS_DIR}/disease_list_b_only.txt"; do
+        if [[ ! -f "${list_file}" ]]; then continue; fi
+        local fname
+        fname="$(basename "${list_file}")"
+        local line_num=0
+        local list_ok=1
+        while IFS= read -r line || [[ -n "${line:-}" ]]; do
+            line_num=$((line_num + 1))
+            # Skip comments and empty lines
+            local trimmed
+            trimmed="$(echo "${line}" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            if [[ -z "${trimmed}" || "${trimmed:0:1}" == "#" ]]; then continue; fi
+            # Check format: must have at least disease_key|disease_query
+            local field_count
+            field_count="$(echo "${trimmed}" | awk -F'|' '{print NF}')"
+            if [[ "${field_count}" -lt 2 ]]; then
+                warn "  ${fname}:${line_num}: missing '|' separator (got ${field_count} fields)"
+                list_ok=0
+                list_errors=$((list_errors + 1))
+            fi
+            # Check disease_key is not empty
+            local dkey
+            dkey="$(echo "${trimmed}" | cut -d'|' -f1 | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            if [[ -z "${dkey}" ]]; then
+                warn "  ${fname}:${line_num}: empty disease_key"
+                list_ok=0
+                list_errors=$((list_errors + 1))
+            fi
+            # Check disease_query is not empty
+            local dquery
+            dquery="$(echo "${trimmed}" | cut -d'|' -f2 | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            if [[ -z "${dquery}" ]]; then
+                warn "  ${fname}:${line_num}: empty disease_query for key '${dkey}'"
+                list_ok=0
+                list_errors=$((list_errors + 1))
+            fi
+        done < "${list_file}"
+        if [[ "${list_ok}" -eq 1 ]]; then
+            ok "  ${fname}: valid"
+        fi
+    done
+    if [[ "${list_errors}" -gt 0 ]]; then
+        warn "${list_errors} disease list format warning(s) found"
+    fi
+
     ok "\nEnvironment check passed!"
     return 0
 }
@@ -429,6 +479,7 @@ run_single_disease() {
     # Create temporary disease list
     local tmp_list
     tmp_list=$(mktemp)
+    trap 'rm -f "${tmp_list}"' EXIT INT TERM
     local disease_query="${SINGLE_DISEASE//_/ }"
 
     # Check if we have origin IDs
