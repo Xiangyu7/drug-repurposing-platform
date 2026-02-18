@@ -69,15 +69,29 @@ def bootstrap_ci(
     }
 
 
-def assign_confidence_tier(ci_width: float) -> str:
-    """Assign a confidence tier based on CI width.
+def assign_confidence_tier(ci_width: float, n_paths: int = 0) -> str:
+    """Assign a confidence tier based on CI width AND evidence volume.
+
+    A narrow CI from a single path is unreliable (no variance ≠ certainty),
+    so we require a minimum number of evidence paths for HIGH/MEDIUM tiers.
 
     Args:
         ci_width: Width of the confidence interval
+        n_paths: Number of evidence paths for this pair
 
     Returns:
-        "HIGH" (ci_width < 0.10), "MEDIUM" (< 0.25), or "LOW"
+        "HIGH", "MEDIUM", or "LOW"
     """
+    # Too few paths → LOW regardless of CI width
+    if n_paths <= 1:
+        return "LOW"
+    if n_paths <= 2:
+        # 2 paths: cap at MEDIUM even if CI is narrow
+        if ci_width < 0.25:
+            return "MEDIUM"
+        return "LOW"
+
+    # 3+ paths: use CI width thresholds
     if ci_width < 0.10:
         return "HIGH"
     elif ci_width < 0.25:
@@ -130,7 +144,7 @@ def add_uncertainty_to_ranking(
             "ci_lower": result["ci_lower"],
             "ci_upper": result["ci_upper"],
             "ci_width": result["ci_width"],
-            "confidence_tier": assign_confidence_tier(result["ci_width"]),
+            "confidence_tier": assign_confidence_tier(result["ci_width"], n_paths=result["n_paths"]),
             "n_evidence_paths": result["n_paths"],
         })
 

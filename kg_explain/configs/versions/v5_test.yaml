@@ -1,0 +1,47 @@
+# V5 最小测试配置: 只取少量数据快速验证管道
+mode: v5
+
+# 只取1页试验 (~20药物)
+trial_filter:
+  max_pages: 1
+
+# CT.gov 不取 COMPLETED (减少数据量)
+ctgov:
+  also_completed: false
+
+# HTTP 减少并发
+http:
+  max_workers: 4
+
+rank:
+  topk_paths_per_pair: 3
+  topk_pairs_per_drug: 10
+  hub_penalty_lambda: 1.0
+  support_gene_boost: 0.15
+  safety_penalty_weight: 0.3
+  trial_failure_penalty: 0.2
+  phenotype_overlap_boost: 0.1
+
+# FAERS 最小量
+faers:
+  min_report_count: 5
+  min_prr: 1.5
+  max_drugs: 20
+  top_ae_per_drug: 10
+
+# 表型最小量
+phenotype:
+  source: opentargets
+  min_score: 0.3
+  max_phenotypes_per_disease: 10
+
+# Signature: 放宽条件以确保能找到药物
+signature:
+  max_phase: 1
+  max_genes: 50
+  gene_source: both
+
+serious_ae_keywords:
+  - death
+  - fatal
+  - life-threatening

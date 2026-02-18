@@ -33,6 +33,6 @@ def run_pipeline(cfg) -> dict:
         return run_v3(cfg)
     if m in ("v4", "4"):
         return run_v4(cfg)
-    if m in ("v5", "5", "default"):
+    if m in ("v5", "5", "v5_test", "default"):
         return run_v5(cfg)
     raise ValueError(f"未知模式: {m}")

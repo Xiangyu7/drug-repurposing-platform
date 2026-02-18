@@ -21,9 +21,29 @@ from pathlib import Path
 from typing import Optional, Any
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, retry_if_exception
 
 from .config import ensure_dir
+
+
+def _is_retryable(exc: BaseException) -> bool:
+    """判断异常是否应该重试.
+
+    4xx 客户端错误 (如 404) 不应重试, 因为重试不会改变结果.
+    仅对 5xx 服务器错误、网络连接失败和超时进行重试.
+
+    注意: requests.ReadTimeout 继承自 requests.ConnectionError,
+    已被 isinstance 覆盖, 但为清晰起见显式列出.
+    """
+    if isinstance(exc, requests.HTTPError):
+        if exc.response is not None and 400 <= exc.response.status_code < 500:
+            return False
+        return True
+    return isinstance(exc, (
+        requests.ConnectionError,  # 含 ReadTimeout 基类
+        requests.Timeout,          # ConnectTimeout + ReadTimeout
+        TimeoutError,              # stdlib
+    ))
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +124,7 @@ class HTTPCache:
             return True
 
     def get(self, key: str) -> Optional[dict | list]:
-        """获取缓存 (过期条目视为未命中)."""
+        """获取缓存 (过期条目视为未命中). 所有统计计数在锁内递增."""
         p = self._path(key)
         with self._lock:
             if p.exists():
@@ -118,12 +138,12 @@ class HTTPCache:
                     self._hits += 1
                     return data
                 except (json.JSONDecodeError, OSError) as e:
-                    logger.warning("缓存文件损坏, 将重新获取: %s (%s)", p.name, e)
+                    logger.warning("缓存文件损坏, 将重新获取: %s (%s: %s)", p.name, type(e).__name__, e)
                     self._errors += 1
                     self._misses += 1
                     return None
             self._misses += 1
-        return None
+            return None
 
     def set(self, key: str, value: dict | list) -> None:
         """设置缓存."""
@@ -181,7 +201,7 @@ class HTTPCache:
     reraise=True,
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=1, max=20),
-    retry=retry_if_exception_type((requests.RequestException, TimeoutError)),
+    retry=retry_if_exception(_is_retryable),
 )
 def http_get_json(
     url: str,
@@ -211,7 +231,7 @@ def http_get_json(
     reraise=True,
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=1, max=20),
-    retry=retry_if_exception_type((requests.RequestException, TimeoutError)),
+    retry=retry_if_exception(_is_retryable),
 )
 def http_post_json(
     url: str,

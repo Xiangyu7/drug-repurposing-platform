@@ -14,7 +14,9 @@ import time
 import pytest
 from pathlib import Path
 
-from kg_explain.cache import HTTPCache, sha1
+import requests
+
+from kg_explain.cache import HTTPCache, sha1, _is_retryable
 
 
 class TestSha1:
@@ -207,3 +209,58 @@ class TestHTTPCacheInit:
         cache_dir = tmp_path / "deep" / "nested"
         cache = HTTPCache(cache_dir)
         assert cache.root.exists()
+
+
+class TestIsRetryable:
+    """Tests for _is_retryable retry policy."""
+
+    def _make_http_error(self, status_code):
+        """Helper to create an HTTPError with a given status code."""
+        resp = requests.models.Response()
+        resp.status_code = status_code
+        return requests.HTTPError(response=resp)
+
+    def test_404_not_retryable(self):
+        assert _is_retryable(self._make_http_error(404)) is False
+
+    def test_400_not_retryable(self):
+        assert _is_retryable(self._make_http_error(400)) is False
+
+    def test_403_not_retryable(self):
+        assert _is_retryable(self._make_http_error(403)) is False
+
+    def test_429_not_retryable(self):
+        """Rate limit (429) is 4xx, should not retry (server says stop)."""
+        assert _is_retryable(self._make_http_error(429)) is False
+
+    def test_500_retryable(self):
+        assert _is_retryable(self._make_http_error(500)) is True
+
+    def test_502_retryable(self):
+        assert _is_retryable(self._make_http_error(502)) is True
+
+    def test_503_retryable(self):
+        assert _is_retryable(self._make_http_error(503)) is True
+
+    def test_connection_error_retryable(self):
+        assert _is_retryable(requests.ConnectionError("conn refused")) is True
+
+    def test_timeout_retryable(self):
+        assert _is_retryable(requests.Timeout("timed out")) is True
+
+    def test_read_timeout_retryable(self):
+        assert _is_retryable(requests.ReadTimeout("read timed out")) is True
+
+    def test_connect_timeout_retryable(self):
+        assert _is_retryable(requests.ConnectTimeout("connect timed out")) is True
+
+    def test_stdlib_timeout_retryable(self):
+        assert _is_retryable(TimeoutError("stdlib timeout")) is True
+
+    def test_http_error_no_response_retryable(self):
+        """HTTPError with no response object should be retryable."""
+        assert _is_retryable(requests.HTTPError()) is True
+
+    def test_value_error_not_retryable(self):
+        """Non-network errors should not be retryable."""
+        assert _is_retryable(ValueError("bad json")) is False

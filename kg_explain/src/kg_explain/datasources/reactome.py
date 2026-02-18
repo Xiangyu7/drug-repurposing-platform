@@ -30,9 +30,18 @@ _SMALL_ABORT_ABS = 8
 
 
 def _reactome_pathways_for_uniprot(cache: HTTPCache, uniprot: str) -> list[dict]:
-    """获取UniProt蛋白参与的通路"""
+    """获取UniProt蛋白参与的通路.
+
+    HTTP 404 表示该蛋白在 Reactome 中无通路数据 (例如非人类蛋白),
+    属于预期情况, 直接返回空列表而非抛出异常.
+    """
     url = f"{REACTOME_API}/data/mapping/UniProt/{uniprot}/pathways"
-    js = cached_get_json(cache, url, params=None)
+    try:
+        js = cached_get_json(cache, url, params=None)
+    except requests.HTTPError as e:
+        if e.response is not None and e.response.status_code == 404:
+            return []
+        raise
     if isinstance(js, list):
         return js
     return js.get("pathways") or js.get("results") or []

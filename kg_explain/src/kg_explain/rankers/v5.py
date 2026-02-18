@@ -187,10 +187,11 @@ def run_v5(cfg: Config) -> dict[str, Path]:
     data_dir = cfg.data_dir
     rank_cfg = cfg.rank
 
-    # 加载配置参数
-    safety_penalty_w = float(rank_cfg.get("safety_penalty_weight", 0.3))
-    trial_penalty_w = float(rank_cfg.get("trial_failure_penalty", 0.2))
-    phenotype_boost_w = float(rank_cfg.get("phenotype_overlap_boost", 0.1))
+    # 加载配置参数 (范围校验: 权重必须在 [0, 1])
+    safety_penalty_w = max(0.0, min(1.0, float(rank_cfg.get("safety_penalty_weight", 0.3))))
+    trial_penalty_w = max(0.0, min(1.0, float(rank_cfg.get("trial_failure_penalty", 0.2))))
+    phenotype_boost_w = max(0.0, min(1.0, float(rank_cfg.get("phenotype_overlap_boost", 0.1))))
+    phenotype_cap = int(cfg.phenotype.get("max_phenotypes_per_disease", 10))
     serious_ae_kw = cfg.serious_ae_keywords
     min_prr = float(cfg.faers.get("min_prr", 0))
 
@@ -235,7 +236,8 @@ def run_v5(cfg: Config) -> dict[str, Path]:
 
         penalty = 0.0
         ae_evidence = []
-        for _, ae in drug_aes.head(10).iterrows():
+        # Sort by report_count DESC for deterministic top-10 selection
+        for _, ae in drug_aes.sort_values("report_count", ascending=False).head(10).iterrows():
             term = ae.get("ae_term", "")
             count = float(ae.get("report_count", 0))
             prr = float(ae.get("prr", 0)) if has_prr else 0.0
@@ -291,7 +293,7 @@ def run_v5(cfg: Config) -> dict[str, Path]:
         disease_phes = phe_df[phe_df["diseaseId"] == disease_id]
         return [
             {"id": p.get("phenotypeId", ""), "name": p.get("phenotypeName", ""), "score": float(p.get("score", 0))}
-            for _, p in disease_phes.head(10).iterrows()
+            for _, p in disease_phes.head(phenotype_cap).iterrows()
         ]
 
     # ===== Pass 1: compute scores for ALL pairs =====
@@ -322,7 +324,7 @@ def run_v5(cfg: Config) -> dict[str, Path]:
 
         # Risk decay keeps score positive and monotonic w.r.t. penalties.
         risk_multiplier = np.exp(-safety_penalty_w * safety_pen - trial_penalty_w * trial_pen)
-        n_pheno = min(len(phenotypes), 10) if phenotypes else 0
+        n_pheno = min(len(phenotypes), phenotype_cap) if phenotypes else 0
         phenotype_boost = phenotype_boost_w * np.log1p(n_pheno)
         phenotype_multiplier = 1.0 + phenotype_boost
         final_score = base_score * risk_multiplier * phenotype_multiplier
@@ -500,8 +502,8 @@ def run_v5(cfg: Config) -> dict[str, Path]:
     for old_pack in ep_dir.glob("*.json"):
         try:
             old_pack.unlink()
-        except OSError:
-            pass
+        except OSError as e:
+            logger.warning("无法删除旧 evidence pack: %s (%s)", old_pack.name, e)
     for pack in evidence_packs:
         safe = (pack["drug"] + "__" + pack["disease"]["id"]).replace("/", "_").replace(":", "_")
         (ep_dir / f"{safe}.json").write_text(

@@ -101,7 +101,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
     # pipeline: 运行完整管道
     p_pipeline = subparsers.add_parser("pipeline", help="运行完整管道")
     p_pipeline.add_argument("--disease", default="atherosclerosis", help="疾病名称")
-    p_pipeline.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5"], help="排序版本")
+    p_pipeline.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5", "v5_test"], help="排序版本")
     p_pipeline.add_argument("--skip-fetch", action="store_true", help="跳过数据获取")
     p_pipeline.add_argument("--drug-source", default="ctgov", choices=["ctgov", "signature"],
                             help="药物来源: ctgov (CT.gov失败试验) 或 signature (基因签名反查)")
@@ -110,7 +110,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
 
     # rank: 仅运行排序
     p_rank = subparsers.add_parser("rank", help="运行排序算法")
-    p_rank.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5"], help="排序版本")
+    p_rank.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5", "v5_test"], help="排序版本")
     p_rank.add_argument("--config", help="配置文件路径")
 
     # fetch: 数据获取
@@ -156,7 +156,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
 
     # benchmark: 评估排序质量
     p_bench = subparsers.add_parser("benchmark", help="评估排序结果 (需提供 gold-standard CSV)")
-    p_bench.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5"], help="排序版本")
+    p_bench.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5", "v5_test"], help="排序版本")
     p_bench.add_argument("--gold", required=True, help="Gold-standard CSV (需含 drug_normalized, diseaseId)")
     p_bench.add_argument("--ks", default="5,10,20", help="K 值列表, 逗号分隔 (默认: 5,10,20)")
 
@@ -383,7 +383,7 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
         step_timings.append(t)
 
         # Step 10: V5 extras
-        if args.version == "v5":
+        if args.version in ("v5", "v5_test"):
             def _step10():
                 builders.build_trial_ae(data_dir)
 
@@ -407,21 +407,12 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
 
                 phe_cfg = cfg.phenotype
                 diseases = read_csv(data_dir / "edge_target_disease_ot.csv", dtype=str)["diseaseId"].dropna().unique().tolist()
-                # Ensure core cardiovascular disease IDs are included for phenotype fetching
-                _CORE_CV_DISEASES = [
-                    "EFO_0003914",   # atherosclerosis
-                    "EFO_0000378",   # coronary artery disease
-                    "EFO_0004698",   # myocardial infarction
-                    "EFO_0003770",   # peripheral arterial disease
-                    "EFO_0000537",   # hyperlipidemia
-                    "EFO_0001360",   # type 2 diabetes
-                    "EFO_0000729",   # stroke / cerebrovascular disease
-                    "EFO_0001645",   # coronary heart disease
-                    "EFO_0003884",   # heart failure
-                ]
-                for did in _CORE_CV_DISEASES:
-                    if did not in diseases:
-                        diseases.append(did)
+                # Ensure core disease IDs (from config) are included for phenotype fetching
+                core_ids = cfg.raw.get("core_disease_ids", [])
+                if isinstance(core_ids, list):
+                    for did in core_ids:
+                        if did and did not in diseases:
+                            diseases.append(did)
                 datasources.fetch_disease_phenotypes(
                     data_dir, cache, diseases,
                     min_score=float(phe_cfg.get("min_score", 0.3)),

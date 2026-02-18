@@ -23,7 +23,7 @@ import yaml
 logger = logging.getLogger("kg_explain.config")
 
 # ── 常量: 合理范围 ──
-_VALID_MODES = {"v1", "v2", "v3", "v4", "v5", "1", "2", "3", "4", "5", "default"}
+_VALID_MODES = {"v1", "v2", "v3", "v4", "v5", "v5_test", "1", "2", "3", "4", "5", "default"}
 _MAX_TIMEOUT = 600  # 秒
 _MAX_RETRIES = 20
 _MAX_PAGE_SIZE = 5000

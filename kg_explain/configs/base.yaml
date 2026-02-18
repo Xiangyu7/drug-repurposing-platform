@@ -58,6 +58,18 @@ rank:
   hub_penalty_lambda: 1.0
   support_gene_boost: 0.15
 
+# 表型查询时额外纳入的核心疾病 EFO ID (确保它们的表型被获取)
+core_disease_ids:
+  - EFO_0003914   # atherosclerosis
+  - EFO_0000378   # coronary artery disease
+  - EFO_0004698   # myocardial infarction
+  - EFO_0003770   # peripheral arterial disease
+  - EFO_0000537   # hyperlipidemia
+  - EFO_0001360   # type 2 diabetes
+  - EFO_0000729   # stroke / cerebrovascular disease
+  - EFO_0001645   # coronary heart disease
+  - EFO_0003884   # heart failure
+
 # 质量门控
 quality_gate:
   thresholds:

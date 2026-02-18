@@ -116,31 +116,47 @@ class TestBootstrapCI:
 class TestConfidenceTier:
     """Tests for assign_confidence_tier function."""
 
-    def test_high_confidence(self):
-        """CI width < 0.10 should be HIGH."""
-        assert assign_confidence_tier(0.05) == "HIGH"
-        assert assign_confidence_tier(0.0) == "HIGH"
-        assert assign_confidence_tier(0.099) == "HIGH"
+    def test_high_confidence_with_enough_paths(self):
+        """CI width < 0.10 with 3+ paths should be HIGH."""
+        assert assign_confidence_tier(0.05, n_paths=5) == "HIGH"
+        assert assign_confidence_tier(0.0, n_paths=3) == "HIGH"
+        assert assign_confidence_tier(0.099, n_paths=10) == "HIGH"
 
-    def test_medium_confidence(self):
-        """CI width >= 0.10 and < 0.25 should be MEDIUM."""
-        assert assign_confidence_tier(0.10) == "MEDIUM"
-        assert assign_confidence_tier(0.15) == "MEDIUM"
-        assert assign_confidence_tier(0.249) == "MEDIUM"
+    def test_medium_confidence_with_enough_paths(self):
+        """CI width >= 0.10 and < 0.25 with 3+ paths should be MEDIUM."""
+        assert assign_confidence_tier(0.10, n_paths=3) == "MEDIUM"
+        assert assign_confidence_tier(0.15, n_paths=5) == "MEDIUM"
+        assert assign_confidence_tier(0.249, n_paths=4) == "MEDIUM"
 
-    def test_low_confidence(self):
-        """CI width >= 0.25 should be LOW."""
-        assert assign_confidence_tier(0.25) == "LOW"
-        assert assign_confidence_tier(0.5) == "LOW"
-        assert assign_confidence_tier(1.0) == "LOW"
+    def test_low_confidence_wide_ci(self):
+        """CI width >= 0.25 should be LOW regardless of n_paths."""
+        assert assign_confidence_tier(0.25, n_paths=10) == "LOW"
+        assert assign_confidence_tier(0.5, n_paths=5) == "LOW"
+        assert assign_confidence_tier(1.0, n_paths=3) == "LOW"
+
+    def test_single_path_always_low(self):
+        """Single path should always be LOW, even with zero CI width."""
+        assert assign_confidence_tier(0.0, n_paths=1) == "LOW"
+        assert assign_confidence_tier(0.0, n_paths=0) == "LOW"
+
+    def test_two_paths_capped_at_medium(self):
+        """Two paths should cap at MEDIUM even with narrow CI."""
+        assert assign_confidence_tier(0.0, n_paths=2) == "MEDIUM"
+        assert assign_confidence_tier(0.05, n_paths=2) == "MEDIUM"
+        assert assign_confidence_tier(0.30, n_paths=2) == "LOW"
 
     def test_exact_boundary_high_medium(self):
-        """Exact boundary 0.10: should be MEDIUM (not HIGH)."""
-        assert assign_confidence_tier(0.10) == "MEDIUM"
+        """Exact boundary 0.10 with enough paths: should be MEDIUM (not HIGH)."""
+        assert assign_confidence_tier(0.10, n_paths=5) == "MEDIUM"
 
     def test_exact_boundary_medium_low(self):
-        """Exact boundary 0.25: should be LOW (not MEDIUM)."""
-        assert assign_confidence_tier(0.25) == "LOW"
+        """Exact boundary 0.25 with enough paths: should be LOW (not MEDIUM)."""
+        assert assign_confidence_tier(0.25, n_paths=5) == "LOW"
+
+    def test_legacy_no_n_paths_defaults_to_low(self):
+        """Calling without n_paths (default=0) should return LOW."""
+        assert assign_confidence_tier(0.0) == "LOW"
+        assert assign_confidence_tier(0.05) == "LOW"
 
 
 # ---------------------------------------------------------------------------
@@ -233,6 +249,23 @@ class TestAddUncertaintyToRanking:
         ]
         result = add_uncertainty_to_ranking(rank_df, paths)
         # Only the first path with valid score=0.6 should be counted
+        assert result.iloc[0]["n_evidence_paths"] == 1
+        # Single valid path → LOW confidence (not HIGH)
+        assert result.iloc[0]["confidence_tier"] == "LOW"
+
+    def test_single_path_pair_gets_low_confidence(self):
+        """A drug-disease pair with only 1 evidence path should be LOW confidence."""
+        rank_df = pd.DataFrame({
+            "drug_normalized": ["aspirin"],
+            "diseaseId": ["EFO_001"],
+            "final_score": [0.9],
+        })
+        paths = [
+            {"drug": "aspirin", "diseaseId": "EFO_001", "path_score": 0.9},
+        ]
+        result = add_uncertainty_to_ranking(rank_df, paths)
+        assert result.iloc[0]["confidence_tier"] == "LOW"
+        assert result.iloc[0]["ci_width"] == 0.0
         assert result.iloc[0]["n_evidence_paths"] == 1
 
     def test_original_columns_preserved(self, sample_rank_df, sample_evidence_paths):
