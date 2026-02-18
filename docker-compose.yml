@@ -1,0 +1,141 @@
+# ============================================================
+# Drug Repurposing Platform — Docker Compose
+# ============================================================
+#
+# Services:
+#   app          — Main pipeline (Python 3.11 + R 4.3 + all modules)
+#   ollama       — LLM inference server
+#   ollama-init  — One-shot model puller (runs once then exits)
+#
+# Usage:
+#   docker compose up --build          # First run: build + start + pull models
+#   docker compose run app bash ops/quickstart.sh --single atherosclerosis
+#   docker compose up -d app           # Background 24/7 mode
+#   docker compose logs -f app         # View live logs
+#   docker compose run app bash        # Interactive shell
+#   docker compose down                # Stop (keeps data)
+#   docker compose down -v             # Stop + delete all data
+# ============================================================
+
+services:
+
+  # ── Ollama: LLM + Embedding Server ────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: dr-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    # GPU support (NVIDIA): uncomment below
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - dr-net
+
+  # ── Ollama Model Bootstrap ────────────────────────────────
+  # Pulls required models once, then exits
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: dr-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "=== Pulling LLM model: qwen2.5:7b-instruct (~4.7 GB) ==="
+        OLLAMA_HOST=http://ollama:11434 ollama pull qwen2.5:7b-instruct
+        echo "=== Pulling embedding model: nomic-embed-text (~274 MB) ==="
+        OLLAMA_HOST=http://ollama:11434 ollama pull nomic-embed-text
+        echo "=== All models ready ==="
+    restart: "no"
+    networks:
+      - dr-net
+
+  # ── Main Application ──────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dr-pipeline
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      # Ollama service address (overrides .env default of localhost)
+      OLLAMA_HOST: "http://ollama:11434"
+      # Pipeline configuration
+      RUN_MODE: "origin_only"
+      MAX_CYCLES: "1"
+      SLEEP_SECONDS: "300"
+      TOPN_PROFILE: "stable"
+      STRICT_CONTRACT: "1"
+      DSMETA_CLEANUP: "1"
+      # Uncomment and fill in for faster PubMed access:
+      # NCBI_API_KEY: "your_key_here"
+    volumes:
+      # ── Persistent data (survives container rebuild) ──
+      - dr-runtime:/app/runtime
+      - dr-logs:/app/logs
+      - dr-kg-output:/app/kg_explain/output
+      - dr-kg-data:/app/kg_explain/data
+      - dr-kg-cache:/app/kg_explain/cache
+      - dr-dsmeta-outputs:/app/dsmeta_signature_pipeline/outputs
+      - dr-dsmeta-work:/app/dsmeta_signature_pipeline/work
+      - dr-sig-data:/app/sigreverse/data
+      - dr-llm-output:/app/LLM+RAG证据工程/output
+      - dr-llm-data:/app/LLM+RAG证据工程/data
+      - dr-data:/app/data
+      # ── Optional: bind-mount for live config editing ──
+      # Uncomment to edit disease lists / configs without rebuilding:
+      # - ./ops/disease_list_day1_origin.txt:/app/ops/disease_list_day1_origin.txt
+      # - ./ops/disease_list_day1_dual.txt:/app/ops/disease_list_day1_dual.txt
+      # - ./ops/disease_list_b_only.txt:/app/ops/disease_list_b_only.txt
+      # - ./kg_explain/configs:/app/kg_explain/configs
+      # - ./dsmeta_signature_pipeline/configs:/app/dsmeta_signature_pipeline/configs
+    networks:
+      - dr-net
+
+volumes:
+  ollama-models:
+    name: dr-ollama-models
+  dr-runtime:
+    name: dr-runtime
+  dr-logs:
+    name: dr-logs
+  dr-kg-output:
+    name: dr-kg-output
+  dr-kg-data:
+    name: dr-kg-data
+  dr-kg-cache:
+    name: dr-kg-cache
+  dr-dsmeta-outputs:
+    name: dr-dsmeta-outputs
+  dr-dsmeta-work:
+    name: dr-dsmeta-work
+  dr-sig-data:
+    name: dr-sig-data
+  dr-llm-output:
+    name: dr-llm-output
+  dr-llm-data:
+    name: dr-llm-data
+  dr-data:
+    name: dr-data
+
+networks:
+  dr-net:
+    driver: bridge
+    name: dr-network

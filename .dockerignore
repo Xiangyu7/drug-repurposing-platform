@@ -1,0 +1,82 @@
+# ============================================================
+# .dockerignore — Exclude from Docker build context
+# ============================================================
+
+# --- Git ---
+.git
+.github
+.gitignore
+
+# --- Python artifacts ---
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.egg-info/
+**/dist/
+**/build/
+**/.eggs/
+
+# --- Virtual environments (not used in Docker) ---
+**/.venv/
+**/venv/
+**/env/
+
+# --- Secrets ---
+.env
+**/.env
+!**/.env.example
+
+# --- OS ---
+**/.DS_Store
+**/Thumbs.db
+
+# --- IDE ---
+**/.cursor/
+**/.claude/
+**/.pytest_cache/
+**/.vscode/
+**/.idea/
+
+# --- Coverage / test artifacts ---
+**/.coverage
+**/htmlcov/
+**/*.sqlite
+
+# --- Large caches (regenerable) ---
+**/cache/
+**/*_cache/
+**/ctgov_cache/
+**/pubmed_cache/
+**/pubmed_cache_best/
+
+# --- Large outputs (regenerable, mapped as volumes) ---
+kg_explain/output/
+kg_explain/data/
+sigreverse/data/cache/
+sigreverse/data/output*/
+dsmeta_signature_pipeline/work/
+dsmeta_signature_pipeline/outputs/
+LLM+RAG证据工程/output/
+LLM+RAG证据工程/archive/
+LLM+RAG证据工程/data/
+
+# --- Logs ---
+**/*.log
+**/logs/
+
+# --- Runtime (auto-generated) ---
+runtime/
+data/
+
+# --- Misc ---
+*.html
+*.bak
+*.parquet
+dr_pipeline.log
+
+# --- Docker files (avoid recursive context) ---
+docker-compose*.yml
+Dockerfile
+.dockerignore
+LLM+RAG证据工程/docker-compose.monitoring.yml
+LLM+RAG证据工程/monitoring/

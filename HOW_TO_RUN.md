@@ -367,7 +367,117 @@ cd LLM+RAG证据工程 && .venv/bin/python -m pytest tests/ -x -q
 
 ---
 
-## 11. Quick Reference
+## 11. Docker Deployment (Recommended for Cloud Servers)
+
+Docker packages the entire environment (Python + R + Bioconductor + all dependencies) into a single image, eliminating environment setup issues on cloud servers.
+
+### Prerequisites
+
+Install Docker on the server:
+```bash
+# Ubuntu / Debian
+curl -fsSL https://get.docker.com | sh
+
+# Verify
+docker --version
+docker compose version
+```
+
+### Quick Start
+
+```bash
+# Clone the repo
+git clone https://github.com/Xiangyu7/drug-repurposing-platform.git
+cd drug-repurposing-platform
+
+# First run: build image + start Ollama + pull models (~15 min)
+docker compose up --build
+
+# Run a single disease (Direction B only)
+docker compose run app bash ops/quickstart.sh --single atherosclerosis
+
+# Run a single disease (Direction A + B)
+docker compose run app bash ops/quickstart.sh --single atherosclerosis --mode dual
+
+# Check environment
+docker compose run app bash ops/quickstart.sh --check-only
+```
+
+### Background / 24x7 Mode
+
+```bash
+# Start in background
+docker compose up -d app
+
+# View live logs
+docker compose logs -f app
+
+# Stop (keeps all data)
+docker compose down
+
+# Stop and delete all data
+docker compose down -v
+```
+
+### Useful Commands
+
+```bash
+# Interactive shell (debug inside container)
+docker compose run app bash
+
+# Check Ollama models
+docker compose exec ollama ollama list
+
+# View pipeline status inside container
+docker compose run app bash ops/check_status.sh
+
+# Rebuild image after code changes
+docker compose build
+docker compose up -d app
+```
+
+### Edit Disease Lists
+
+Disease lists are text files. Edit them before running, or bind-mount them in `docker-compose.yml`:
+
+```bash
+# Edit on the server, then run
+vi ops/disease_list_day1_origin.txt
+docker compose run app bash ops/quickstart.sh --run-only
+```
+
+Or uncomment the bind-mount lines in `docker-compose.yml` to live-edit configs:
+```yaml
+volumes:
+  - ./ops/disease_list_day1_origin.txt:/app/ops/disease_list_day1_origin.txt
+  - ./dsmeta_signature_pipeline/configs:/app/dsmeta_signature_pipeline/configs
+```
+
+### GPU Support (NVIDIA)
+
+Uncomment the GPU section in `docker-compose.yml` under the `ollama` service:
+```yaml
+deploy:
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: all
+          capabilities: [gpu]
+```
+
+### Architecture
+
+```
+docker-compose.yml
+  ├── app (main)        → Python 3.11 + R 4.3 + all 4 modules (~3.5 GB)
+  ├── ollama (LLM)      → qwen2.5:7b-instruct + nomic-embed-text
+  └── ollama-init       → auto-pulls models on first run, then exits
+```
+
+---
+
+## 12. Quick Reference
 
 ```bash
 # === MOST COMMON COMMANDS ===
