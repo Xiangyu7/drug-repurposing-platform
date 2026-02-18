@@ -340,13 +340,28 @@ setup_venvs() {
         "${ROOT_DIR}/LLM+RAG证据工程/.venv" \
         "${ROOT_DIR}/LLM+RAG证据工程/requirements.txt"
 
-    # dsmeta: conda environment (can't auto-create, inform user)
-    if [[ -d "${ROOT_DIR}/dsmeta_signature_pipeline/.venv" ]]; then
+    # dsmeta: venv + pip (R/Bioconductor installed globally via apt)
+    local dsmeta_venv="${ROOT_DIR}/dsmeta_signature_pipeline/.venv"
+    if [[ -d "${dsmeta_venv}" && -x "${dsmeta_venv}/bin/python3" ]]; then
         ok "dsmeta/.venv already exists"
     else
-        warn "dsmeta needs conda environment (R + Bioconductor dependencies)"
-        warn "  Run: cd ${ROOT_DIR}/dsmeta_signature_pipeline && mamba env create -f environment.yml"
-        warn "  Or create venv manually if R dependencies are already installed globally"
+        [[ -d "${dsmeta_venv}" ]] && rm -rf "${dsmeta_venv}"
+        info "Creating dsmeta/.venv..."
+        python3 -m venv "${dsmeta_venv}"
+        "${dsmeta_venv}/bin/pip" install --upgrade pip -q
+        # Install Python deps from environment.yml (pip-installable subset)
+        "${dsmeta_venv}/bin/pip" install \
+            pandas numpy scipy pyyaml tqdm rich requests \
+            pytest pytest-cov gseapy -q
+        ok "dsmeta/.venv created and Python dependencies installed"
+        # Check R availability
+        if command -v Rscript &>/dev/null; then
+            ok "  R found globally — dsmeta R scripts will use system R"
+        else
+            warn "  R not found — Direction A (dsmeta) won't work without R"
+            warn "  Install: sudo apt install -y r-base r-base-dev"
+            warn "  Then:    sudo Rscript -e 'install.packages(\"BiocManager\"); BiocManager::install(c(\"limma\",\"GEOquery\",\"Biobase\",\"affy\",\"fgsea\"))'"
+        fi
     fi
 
     # ops dependencies (for auto_discover_geo.py)
