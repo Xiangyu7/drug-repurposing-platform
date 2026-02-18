@@ -26,11 +26,36 @@ Drug Repurposing/
 
 | Software | Required By | Install |
 |---|---|---|
-| Python 3.11+ | All | `brew install python` / `apt install python3` |
-| R 4.3+ | dsmeta | `brew install r` / `apt install r-base` |
+| Python 3.10+ | All | `brew install python` / `apt install python3` |
+| R 4.1+ | Direction A (dsmeta) | See below |
 | Ollama | LLM+RAG | `curl -fsSL https://ollama.com/install.sh \| sh` |
-| conda/mamba | dsmeta (recommended) | `brew install miniforge` |
 | git | All | pre-installed on most systems |
+
+### Cloud Server (Ubuntu/Debian) One-Line Setup
+
+```bash
+# 1. Install system dependencies (Python venv + R + Bioconductor)
+sudo apt update && sudo apt install -y python3.10-venv r-base r-base-dev \
+    libcurl4-openssl-dev libxml2-dev libssl-dev
+
+# 2. Install R/Bioconductor packages (needed for Direction A / dsmeta)
+sudo Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(c("limma","GEOquery","Biobase","affy","fgsea"))'
+
+# 3. Install all Python venvs + pip packages (4 modules)
+bash ops/quickstart.sh --setup-only
+
+# 4. Verify everything
+bash ops/quickstart.sh --check-only
+```
+
+> **Note:** If you only need Direction B (origin_only), skip steps 1-2 (R is not required).
+
+### Mac (Homebrew) Setup
+
+```bash
+brew install python r
+bash ops/quickstart.sh --setup-only
+```
 
 ### Hardware Recommendations
 
@@ -94,23 +119,33 @@ python3 -m venv .venv
 
 ### 4.3 dsmeta_signature_pipeline
 
-**Option A: conda (recommended, includes R + Bioconductor)**
-```bash
-cd dsmeta_signature_pipeline
-mamba env create -f environment.yml
-conda activate dsmeta
-```
+**Option A: quickstart (recommended)**
 
-**Option B: system R + Python venv**
+`bash ops/quickstart.sh --setup-only` handles this automatically. It creates the venv and installs all Python dependencies.
+
+**Option B: manual setup**
 ```bash
 cd dsmeta_signature_pipeline
 python3 -m venv .venv
 .venv/bin/pip install --upgrade pip
-.venv/bin/pip install pandas numpy scipy pyyaml tqdm rich requests pytest
+.venv/bin/pip install -r requirements.txt
+```
 
-# Install R packages manually (in R console):
-# install.packages(c("data.table", "optparse", "ggplot2", "jsonlite", "yaml", "metafor", "RobustRankAggreg"))
-# BiocManager::install(c("GEOquery", "limma", "fgsea", "BiocParallel"))
+**R dependencies (required for Direction A):**
+```bash
+# Ubuntu/Debian
+sudo apt install -y r-base r-base-dev libcurl4-openssl-dev libxml2-dev libssl-dev
+sudo Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(c("limma","GEOquery","Biobase","affy","fgsea"))'
+
+# Additional CRAN packages (optional, for full dsmeta pipeline)
+sudo Rscript -e 'install.packages(c("data.table","optparse","ggplot2","jsonlite","yaml","metafor","RobustRankAggreg"), repos="https://cloud.r-project.org")'
+```
+
+**Option C: conda (includes R + Bioconductor in one command)**
+```bash
+cd dsmeta_signature_pipeline
+mamba env create -f environment.yml
+conda activate dsmeta
 ```
 
 ### 4.4 LLM+RAG
@@ -415,7 +450,9 @@ runtime/
 | Problem | Cause | Solution |
 |---|---|---|
 | `No module named 'xxx'` | venv not activated / not created | Run `bash ops/quickstart.sh --setup-only` |
-| R packages missing | dsmeta needs Bioconductor | Use conda: `mamba env create -f environment.yml` |
+| `python3-venv not available` | Missing system package | `sudo apt install python3.10-venv` (auto-detected by quickstart) |
+| R packages missing | dsmeta needs Bioconductor | `sudo Rscript -e 'BiocManager::install(c("limma","GEOquery","fgsea"))'` |
+| R not found | Direction A needs R | `sudo apt install -y r-base r-base-dev` |
 | Ollama connection refused | Ollama not running | `ollama serve &` then `ollama list` |
 | Ollama slow (~5min/drug) | CPU-only inference | Normal for 7B model on CPU; use GPU if available |
 | WikiPathways 404 | GMT download URL outdated | Auto-skipped; Reactome still works |
