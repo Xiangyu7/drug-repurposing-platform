@@ -275,37 +275,70 @@ check_environment() {
 setup_venvs() {
     header "Phase 2: Setup Virtual Environments"
 
-    # kg_explain venv
-    local kg_venv="${ROOT_DIR}/kg_explain/.venv"
-    if [[ -d "${kg_venv}" ]]; then
-        ok "kg_explain/.venv already exists"
-    else
-        info "Creating kg_explain/.venv..."
-        python3 -m venv "${kg_venv}"
-        "${kg_venv}/bin/pip" install --upgrade pip -q
-        if [[ -f "${ROOT_DIR}/kg_explain/requirements.txt" ]]; then
-            "${kg_venv}/bin/pip" install -r "${ROOT_DIR}/kg_explain/requirements.txt" -q
-            ok "kg_explain/.venv created and dependencies installed"
+    # ── Pre-check: ensure python3-venv is available ──
+    if ! python3 -m venv --help &>/dev/null; then
+        warn "python3-venv module not available"
+        # Detect OS and auto-install
+        if command -v apt &>/dev/null; then
+            local py_ver
+            py_ver="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+            info "Installing python${py_ver}-venv via apt..."
+            sudo apt update -qq && sudo apt install -y "python${py_ver}-venv" 2>&1
+            if python3 -m venv --help &>/dev/null; then
+                ok "python${py_ver}-venv installed successfully"
+            else
+                fail "Failed to install python${py_ver}-venv. Please run manually:"
+                fail "  sudo apt install python${py_ver}-venv"
+                return 1
+            fi
+        elif command -v yum &>/dev/null; then
+            info "Installing python3-venv via yum..."
+            sudo yum install -y python3-venv 2>&1 || {
+                fail "Failed to install python3-venv. Please install manually."
+                return 1
+            }
         else
-            ok "kg_explain/.venv created (no requirements.txt found)"
+            fail "Cannot auto-install python3-venv. Please install it manually:"
+            fail "  Debian/Ubuntu: sudo apt install python3.x-venv"
+            fail "  CentOS/RHEL:  sudo yum install python3-venv"
+            return 1
         fi
     fi
 
-    # sigreverse venv
-    local sig_venv="${ROOT_DIR}/sigreverse/.venv"
-    if [[ -d "${sig_venv}" ]]; then
-        ok "sigreverse/.venv already exists"
-    else
-        info "Creating sigreverse/.venv..."
-        python3 -m venv "${sig_venv}"
-        "${sig_venv}/bin/pip" install --upgrade pip -q
-        if [[ -f "${ROOT_DIR}/sigreverse/requirements.txt" ]]; then
-            "${sig_venv}/bin/pip" install -r "${ROOT_DIR}/sigreverse/requirements.txt" -q
-            ok "sigreverse/.venv created and dependencies installed"
-        else
-            ok "sigreverse/.venv created (no requirements.txt found)"
+    # ── Helper: create venv + install requirements ──
+    _create_venv() {
+        local name="$1" venv_path="$2" req_path="$3"
+        if [[ -d "${venv_path}" && -x "${venv_path}/bin/python3" ]]; then
+            ok "${name}/.venv already exists"
+            return 0
         fi
-    fi
+        # Clean up broken venv if exists
+        [[ -d "${venv_path}" ]] && rm -rf "${venv_path}"
+        info "Creating ${name}/.venv..."
+        python3 -m venv "${venv_path}"
+        "${venv_path}/bin/pip" install --upgrade pip -q
+        if [[ -f "${req_path}" ]]; then
+            "${venv_path}/bin/pip" install -r "${req_path}" -q
+            ok "${name}/.venv created and dependencies installed"
+        else
+            ok "${name}/.venv created (no requirements.txt found)"
+        fi
+    }
+
+    # kg_explain
+    _create_venv "kg_explain" \
+        "${ROOT_DIR}/kg_explain/.venv" \
+        "${ROOT_DIR}/kg_explain/requirements.txt"
+
+    # sigreverse
+    _create_venv "sigreverse" \
+        "${ROOT_DIR}/sigreverse/.venv" \
+        "${ROOT_DIR}/sigreverse/requirements.txt"
+
+    # LLM+RAG
+    _create_venv "LLM+RAG证据工程" \
+        "${ROOT_DIR}/LLM+RAG证据工程/.venv" \
+        "${ROOT_DIR}/LLM+RAG证据工程/requirements.txt"
 
     # dsmeta: conda environment (can't auto-create, inform user)
     if [[ -d "${ROOT_DIR}/dsmeta_signature_pipeline/.venv" ]]; then
@@ -314,22 +347,6 @@ setup_venvs() {
         warn "dsmeta needs conda environment (R + Bioconductor dependencies)"
         warn "  Run: cd ${ROOT_DIR}/dsmeta_signature_pipeline && mamba env create -f environment.yml"
         warn "  Or create venv manually if R dependencies are already installed globally"
-    fi
-
-    # LLM+RAG venv
-    local llm_venv="${ROOT_DIR}/LLM+RAG证据工程/.venv"
-    if [[ -d "${llm_venv}" ]]; then
-        ok "LLM+RAG/.venv already exists"
-    else
-        info "Creating LLM+RAG/.venv..."
-        python3 -m venv "${llm_venv}"
-        "${llm_venv}/bin/pip" install --upgrade pip -q
-        if [[ -f "${ROOT_DIR}/LLM+RAG证据工程/requirements.txt" ]]; then
-            "${llm_venv}/bin/pip" install -r "${ROOT_DIR}/LLM+RAG证据工程/requirements.txt" -q
-            ok "LLM+RAG/.venv created and dependencies installed"
-        else
-            ok "LLM+RAG/.venv created (no requirements.txt found)"
-        fi
     fi
 
     # ops dependencies (for auto_discover_geo.py)
