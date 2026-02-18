@@ -1113,14 +1113,18 @@ process_disease() {
 
   if ! run_cmd "Origin: manifest gate" kg_manifest_gate "${kg_manifest}" "ctgov"; then
     # fallback: check default location if --output-dir not supported
-    local kg_manifest_fallback="${KG_DIR}/output/pipeline_manifest.json"
-    if [[ -f "${kg_manifest_fallback}" ]]; then
-      cp "${kg_manifest_fallback}" "${kg_manifest}"
-      if ! run_cmd "Origin: manifest gate (fallback)" kg_manifest_gate "${kg_manifest}" "ctgov"; then
-        fail_disease "${disease_key}" "${run_id}" "origin_manifest_gate" "kg ctgov manifest check failed" "${cross_status}" "${origin_status}"
-        return 1
-      fi
+    local kg_manifest_fallback_new="${KG_DIR}/output/${disease_key}/pipeline_manifest.json"
+    local kg_manifest_fallback_legacy="${KG_DIR}/output/pipeline_manifest.json"
+    if [[ -f "${kg_manifest_fallback_new}" ]]; then
+      cp "${kg_manifest_fallback_new}" "${kg_manifest}"
+    elif [[ -f "${kg_manifest_fallback_legacy}" ]]; then
+      cp "${kg_manifest_fallback_legacy}" "${kg_manifest}"
     else
+      fail_disease "${disease_key}" "${run_id}" "origin_manifest_gate" "kg ctgov manifest check failed" "${cross_status}" "${origin_status}"
+      return 1
+    fi
+
+    if ! run_cmd "Origin: manifest gate (fallback)" kg_manifest_gate "${kg_manifest}" "ctgov"; then
       fail_disease "${disease_key}" "${run_id}" "origin_manifest_gate" "kg ctgov manifest check failed" "${cross_status}" "${origin_status}"
       return 1
     fi
@@ -1322,14 +1326,18 @@ run_cross_route() {
 
   if ! run_cmd "Cross: manifest gate" kg_manifest_gate "${kg_manifest}" "signature"; then
     # fallback: check default location
-    local kg_manifest_fallback="${KG_DIR}/output/pipeline_manifest.json"
-    if [[ -f "${kg_manifest_fallback}" ]]; then
-      cp "${kg_manifest_fallback}" "${kg_manifest}"
-      if ! run_cmd "Cross: manifest gate (fallback)" kg_manifest_gate "${kg_manifest}" "signature"; then
-        log "[ERROR] Cross: kg signature manifest check failed"
-        return 1
-      fi
+    local kg_manifest_fallback_new="${KG_DIR}/output/${disease_key}/pipeline_manifest.json"
+    local kg_manifest_fallback_legacy="${KG_DIR}/output/pipeline_manifest.json"
+    if [[ -f "${kg_manifest_fallback_new}" ]]; then
+      cp "${kg_manifest_fallback_new}" "${kg_manifest}"
+    elif [[ -f "${kg_manifest_fallback_legacy}" ]]; then
+      cp "${kg_manifest_fallback_legacy}" "${kg_manifest}"
     else
+      log "[ERROR] Cross: kg signature manifest check failed"
+      return 1
+    fi
+
+    if ! run_cmd "Cross: manifest gate (fallback)" kg_manifest_gate "${kg_manifest}" "signature"; then
       log "[ERROR] Cross: kg signature manifest check failed"
       return 1
     fi
