@@ -2,12 +2,34 @@
 
 统一的HTTP请求重试逻辑，避免在多个脚本中重复。
 """
+import os
+import socket
 import time
 import requests
 import logging
 from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Force IPv4: some Docker/VM environments have broken IPv6, causing
+# "Network is unreachable" even though IPv4 works fine.
+# Set FORCE_IPV4=1 (or auto-detect) to monkey-patch socket.getaddrinfo.
+# ---------------------------------------------------------------------------
+def _patch_ipv4_only():
+    """Filter out IPv6 addresses from DNS resolution."""
+    _orig = socket.getaddrinfo
+
+    def _ipv4_only(*args, **kwargs):
+        responses = _orig(*args, **kwargs)
+        filtered = [r for r in responses if r[0] == socket.AF_INET]
+        return filtered if filtered else responses  # fallback to original if no IPv4
+
+    socket.getaddrinfo = _ipv4_only
+    logger.info("HTTP: forced IPv4-only DNS resolution")
+
+if os.getenv("FORCE_IPV4", "1") == "1":
+    _patch_ipv4_only()
 
 # 默认超时（可被覆盖）
 DEFAULT_TIMEOUT = 30
