@@ -1,0 +1,13 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE9800	Expression signature of cardiac muscle as a potential diagnostic or prognostic t	887	Homo sapiens	30	0	0	low	11.0			0	
+GSE254539	CXCL10 and IFN-γ Mediate Myocarditis Post-COVID19 mRNA Vaccination.	24676;24247	Homo sapiens; Mus musculus	42	0	0	low	20.0			0	
+GSE254537	Inhibition of CXCL10 and IFN-γ ameliorates myocarditis in preclinical models of 	24676	Homo sapiens	24	0	0	low	0.0			0	excluded: mouse
+GSE296680	Using plasma cell-free mRNA to profile immune response and myocardial damage in 	24676	Homo sapiens	26	0	0	low	20.0			0	
+GSE228597	Immunologic drivers of immune checkpoint inhibitor therapy myocarditis, fatality	18573;24676	Homo sapiens	75	0	0	low	0.0			0	excluded: single-cell
+GSE230227	Cytokinopathy with aberrant cytotoxic lymphocytes and profibrotic myeloid respon	24676	Homo sapiens	33	0	0	low	0.0			0	excluded: single-cell
+GSE213486	T cells specific for alpha-myosin drive immunotherapy related myocarditis	18573;19057	Homo sapiens; Mus musculus	9	0	0	low	0.0			0	excluded: murine
+GSE180045	Identification of Pathogenic Immune Cell Subsets in Checkpoint Inhibitor-induced	24676;24247	Homo sapiens; Mus musculus	65	0	0	low	0.0			0	excluded: scrna
+GSE167030	A monocyte/dendritic cell molecular signature of SARS-CoV2-related multisystem  	24676	Homo sapiens	59	0	0	low	20.0			0	
+GSE167029	A monocyte/dendritic cell molecular signature of SARS-CoV2-related multisystem  	24676	Homo sapiens	27	0	0	low	0.0			0	excluded: single-cell
+GSE167028	A monocyte/dendritic cell molecular signature of SARS-CoV2-related multisystem  	24676	Homo sapiens	32	0	0	low	0.0			0	excluded: single-cell
+GSE120567	Dilated cardiomyopathy vs Myocarditis	11154	Homo sapiens	16	0	0	low	17.0			0	

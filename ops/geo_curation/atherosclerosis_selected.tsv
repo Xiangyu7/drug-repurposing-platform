@@ -1,0 +1,3 @@
+disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
+atherosclerosis	GSE28829	GPL570	16	13	advanced atherosclerotic	early atherosclerotic	selected	Human plaque progression cohort, tissue-level microarray
+atherosclerosis	GSE43292	GPL6244	31	32	tissue: atheroma plaque	tissue: macroscopically intact	selected	Human carotid plaque vs intact tissue, robust sample size

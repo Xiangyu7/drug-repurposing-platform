@@ -1,0 +1,55 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE235307	Gene expression and atrial fibrillation prediction	16699	Homo sapiens	119	0	0	low	20.0			0	
+GSE156835	MiR-181b Targets Semaphorin 3a to Mediate TGF-β-induced Endothelial to Mesenchym	17586	Homo sapiens	6	0	0	low	20.0			0	
+GSE154436	Fibrotic Remodelling of Epicardial Adipose Tissue in Patients with Atrial Fibril	23126	Homo sapiens	6	0	0	low	20.0			0	
+GSE143924	Transcriptome analysis from human epicardial adipose tissue biopsies analyzed ac	25483	Homo sapiens	30	0	0	low	20.0			0	
+GSE129409	The integrative regulatory network of circRNA, microRNA and mRNA in atrial fibri	21825	Homo sapiens	6	0	0	low	0.0			0	excluded: microrna
+GSE31821	Gene expression and miRNA profiles in atrial fibrillation. Role of miR-21.	570	Homo sapiens	6	0	0	low	0.0			0	excluded: mirna
+GSE108660	Profiling of long non-coding RNAs associated with atrial fibrillation in patient	19612	Homo sapiens	10	0	0	low	0.0			0	excluded: lncrna
+GSE62871	Right atrial tissue gene expression data from human patients in sinus rhythm (SR	17077	Homo sapiens	16	0	0	low	17.0			0	
+GSE86569	Different expression of inflammation-related proteins in human heart failure	17586	Homo sapiens	22	0	0	low	17.0			0	
+GSE75092	The long noncoding RNA expression profiles of paroxysmal atrial fibrillation ide	16956	Homo sapiens	9	0	0	low	0.0			0	excluded: lncrna
+GSE79768	Atrial fibrillation is associated with altered left-to-right atria gene expressi	570	Homo sapiens	26	0	0	low	17.0			0	
+GSE66724	Hsp70 protects from stroke in atrial fibrillation patients by preventing thrombo	570	Homo sapiens	16	0	0	low	17.0			0	
+GSE76899	Integrated Analysis of Dysregulated lncRNA and mRNA Expression profiles of myoca	17586	Homo sapiens	12	0	0	low	0.0			0	excluded: lncrna
+GSE64904	Identification of a long non-coding RNA as a novel biomarker and potential thera	19640	Homo sapiens	6	0	0	low	17.0			0	
+GSE41177	Region-specific gene expression profiles in left atria of patients with valvular	570	Homo sapiens	38	0	0	low	14.0			0	
+GSE14975	Rac1-Induced Connective Tissue Growth Factor regulates Connexin 43 and N-Cadheri	570	Homo sapiens	10	0	0	low	0.0			0	excluded: rat
+GSE2240	Comparison of atrial tissue of patients with atrial fibrillation and sinus rhyth	96;97	Homo sapiens	70	0	0	low	11.0			0	
+2240	Permanent atrial fibrillation (HG-U133B)	97	Homo sapiens	35	0	0	low	11.0			0	
+GSE285199	Cholesterol Homeostasis Disruption and Monocyte Recruitment Drive Atrial Fibrill	24676	Homo sapiens	6	0	0	low	0.0			0	excluded: single-cell
+GSE312917	A Titin Missense Variant Causes Atrial Fibrillation	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE234141	Titin truncating variant associated with atrial fibrillation leads to cell type-	28337	Homo sapiens	24	0	0	low	20.0			0	
+GSE306533	High rate triggers increased atrial release of BMP10, a biomarker for atrial fib	30173	Homo sapiens	10	0	0	low	20.0			0	
+GSE269882	The role of structural vs cellular remodeling in arrhythmogenesis: personalized 	16791	Homo sapiens	27	0	0	low	20.0			0	
+GSE282504	Using integrative bioinformatics approaches and machine‑learning strategies to I	24676	Homo sapiens	30	0	0	low	20.0			0	
+GSE271748	Modulation of NOX2 causes Obesity- Mediated Atrial Fibrillation	24676	Homo sapiens	15	0	0	low	20.0			0	
+GSE236870	M1 Macrophages cause cardiac arrhythmia in an in vitro hiPSC coculture model of 	30173	Homo sapiens	24	0	0	low	0.0			0	excluded: in vitro
+GSE255992	Large-scale Single-nuclei Profiling Identifies Role for ATRNL1 in Atrial Fibrill	24676	Homo sapiens	49	0	0	low	20.0			0	
+GSE255991	Large-scale Single-nuclei Profiling Identifies Role for ATRNL1 in Atrial Fibrill	24676	Homo sapiens	15	0	0	low	20.0			0	
+GSE255612	Large-scale Single-nuclei Profiling Identifies Role for ATRNL1 in Atrial Fibrill	24676	Homo sapiens	34	0	0	low	20.0			0	
+GSE271839	Atrial fibrillation variant-to-gene prioritization through cross-ancestry eQTL a	20301	Homo sapiens	6	0	0	low	0.0			0	excluded: atacseq
+GSE238242	Atrial fibrillation variant-to-gene prioritization through cross-ancestry eQTL a	24676	Homo sapiens	14	0	0	low	0.0			0	excluded: atacseq
+GSE261170	Single Cell Landscape of Left Atria Reveals Amphiregulin and Insulin-like Growth	24676	Homo sapiens	15	0	0	low	20.0			0	
+GSE175944	PITX2 knockout induces key findings of electrical remodeling as seen in persiste	30173	Homo sapiens	6	0	0	low	0.0			0	excluded: cell line
+GSE245886	Analyses of lncRNA and mRNA profiles in the recurrent atrial fibrillation after 	24676	Homo sapiens	10	0	0	low	0.0			0	excluded: lncrna
+GSE225290	Sequencing in Over 50,000 Cases Identifies Coding and Structural Variation Under	24676	Homo sapiens	9	0	0	low	20.0			0	
+GSE239322	Engineered co-cultures of iPSC-derived atrial cardiomyocytes and atrial fibrobla	24676	Homo sapiens	14	0	0	low	20.0			0	
+GSE239321	Engineered co-cultures of iPSC-derived atrial cardiomyocytes and atrial fibrobla	24676	Homo sapiens	8	0	0	low	20.0			0	
+GSE239317	Engineered co-cultures of iPSC-derived atrial cardiomyocytes and atrial fibrobla	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE133420	Plasma circRNA sequencing in normal subjects and patients with atrial fibrillati	20795	Homo sapiens	10	0	0	low	0.0			0	excluded: circrna
+GSE226284	Comparison between sinus rhythm and atrial fibrillation samples from eight diffe	24676	Homo sapiens	25	0	0	low	20.0			0	
+GSE226283	Gene expression profile in the atrial fibrillation patient hearts across seven h	24676	Homo sapiens	21	0	0	low	0.0			0	excluded: lncrna
+GSE190353	Hematopoietic somatic mosaicism is associated with an increased risk of postoper	20301	Homo sapiens	33	0	0	low	20.0			0	
+GSE222739	Long noncoding RNA and messenger RNA profiling in epicardial adipose tissue of p	24676	Homo sapiens	10	5	5	high	65.0	patient	control	1	
+GSE224995	Single-cell genomics improves the discovery of risk variants and genes of Atrial	24676	Homo sapiens	12	0	0	low	0.0			0	excluded: single-cell
+GSE224997	Single-cell genomics improves the discovery of risk variants and genes of Atrial	24676	Homo sapiens	24	0	0	low	0.0			0	excluded: single-cell
+GSE210705	Differential Expression Profiles and Bioinformatics Analysis of tRNA-derived Sma	18573	Homo sapiens	12	0	0	low	20.0			0	
+GSE178473	Genetic engineering of the first functional human cardiomyocyte lines for buildi	18573	Homo sapiens	7	0	0	low	20.0			0	
+GSE154084	Modeling Atrial Fibrillation (AF) in a Dish using Atrial iPSC-Derived Cardiomyoc	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE161450	Regional transcriptomics of a human left atrium and implications for atrial fibr	20301	Homo sapiens	25	0	0	low	20.0			0	
+GSE148507	Single-cell profile of atrial human fibroblasts in cardiac arrhythmia atrial fib	18573;24676	Homo sapiens	386	0	0	low	0.0			0	excluded: single-cell
+GSE148506	Single-cell profile of atrial human fibroblasts in cardiac arrhythmia atrial fib	18573	Homo sapiens	384	0	0	low	0.0			0	excluded: single-cell
+GSE127856	Identification of Atrial Fibrillation associated genes and functional non-coding	20301	Homo sapiens	12	0	0	low	17.0			0	
+GSE135445	RNA-sequencing of epicardial adipose tissue of patients with atrial fibrillation	20301	Homo sapiens	12	0	0	low	17.0			0	
+GSE128188	Differentially Expressed Genes for Atrial Fibrillation Identified using RNA Sequ	18573	Homo sapiens	20	0	0	low	17.0			0	

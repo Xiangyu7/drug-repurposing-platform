@@ -1,0 +1,90 @@
+GEO Auto-Discovery Report
+========================
+Disease: cardiomyopathy (key: cardiomyopathy)
+Date: 2026-02-16 02:51:33
+Total candidates: 138
+Valid (case+control detected): 6
+Excluded: 47
+Selected: 5
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+1. GSE230585 (score: 64.1, confidence: high)
+   Title: RNA-sequencing of patients with hypertrophic cardiomyopathy or patients with aortic stenosis compared to heart healthy donors
+   Platform: 21697 (21697)
+   Samples: 16 total, 11 case, 5 control
+   Case regex: patient
+   Control regex: donor
+   Field matched: title
+   Date: 2023/10/16
+
+2. GSE133754 (score: 62.0, confidence: high)
+   Title: SS-31 Reverses Mitochondrial Fragmentation in Fibroblasts from Patients with DCMA, a Mitochondrial Cardiomyopathy
+   Platform: 9052 (9052)
+   Samples: 8 total, 4 case, 4 control
+   Case regex: patient
+   Control regex: control|healthy
+   Field matched: characteristics
+   Date: 2019/07/04
+
+3. GSE246298 (score: 55.0, confidence: high)
+   Title: Cardiac Fibrosis in Dilated Cardiomyopathy: Transcriptomics Insights, Histological Correlations, and Organoid Model Verifications [RNA-seq II]
+   Platform: 18573 (18573)
+   Samples: 9 total, 6 case, 3 control
+   Case regex: fibrosis
+   Control regex: control
+   Field matched: title
+   Date: 2025/12/09
+
+4. GSE125990 (score: 55.0, confidence: high)
+   Title: Gene expression profiling of fibroblasts in a family with LMNA-related cardiomyopathy reveals molecular pathways implicated in disease pathogenesis
+   Platform: 18573 (18573)
+   Samples: 9 total, 3 case, 6 control
+   Case regex: patient
+   Control regex: control|donor
+   Field matched: title
+   Date: 2020/06/30
+
+5. GSE152261 (score: 53.6, confidence: high)
+   Title: Differential Deep RNA Sequencing Revealed Various Bacterial Infections and Host Responses in Inflammatory Cardiomyopathy
+   Platform: 21697 (21697)
+   Samples: 10 total, 7 case, 3 control
+   Case regex: lesion
+   Control regex: control
+   Field matched: characteristics
+   Date: 2023/04/10
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+  GSE138678: excluded: lncrna | Distinct Circulating Expression Profiles of Long Non-coding 
+  GSE143786: excluded: lncrna | Circulating long noncoding RNAs associated with hypertrophic
+  GSE81339: excluded: methylation | Methylome analysis reveals alterations in DNA methylation in
+  GSE81338: excluded: methylation | Methylome analysis reveals alterations in DNA methylation in
+  GSE82290: excluded: in vitro | Deleterious assembly of the lamin A/C mutant p.S143P causes 
+  GSE68316: excluded: lncrna | Microarray Profiling of Long Non-coding RNA (lncRNA) Associa
+  GSE43435: excluded: methylation | Thymidine Kinase and mtDNA Depletion in Human Cardiomyopathy
+  GSE17800: excluded: rat | Myocardial gene expression profiles and cardiodepressant aut
+  GSE255504: excluded: mouse | CRISPR screening using Human PSC-derived cardiomyocytes reve
+  GSE312730: excluded: murine | Simtuzumab attenuates Loxl2-mediated extracellular matrix re
+  GSE312561: excluded: mouse | Peptidyl-tRNA hydrolase 2 is an essential negative regulator
+  GSE285315: excluded: single-cell | Exploratory Study on the Mechanism of Left Ventricular Funct
+  GSE292067: excluded: murine | Human single nuclear RNA sequencing identifies CD47 as a the
+  GSE191120: excluded: circrna | Next Generation Sequencing Facilitates Quantitative Analysis
+  GSE294021: excluded: in vitro | Uncovering Cell Type-Specific Phenotypes Using a Novel Human
+  GSE295194: excluded: in vitro | Self and parasite-derived peptides selected upon DERAA-beari
+  GSE242821: excluded: single-cell | Atf3 controls transitioning in female mitochondrial cardiomy
+  GSE289418: excluded: mouse | Effect of the Mutated p.H222P A-type Lamins on Gene Expressi
+  GSE289628: excluded: in vitro | EPAS1 induction drives myocardial degeneration in Desmoplaki
+  GSE271871: excluded: mouse | A leiomodin 2 neonatal dilated cardiomyopathy causing mutati
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------
+>>> GSE230585 score= 64.1 conf=high   case= 11 ctrl=  5 plt=21697    | RNA-sequencing of patients with hypertrophic cardi
+>>> GSE133754 score= 62.0 conf=high   case=  4 ctrl=  4 plt=9052     | SS-31 Reverses Mitochondrial Fragmentation in Fibr
+>>> GSE246298 score= 55.0 conf=high   case=  6 ctrl=  3 plt=18573    | Cardiac Fibrosis in Dilated Cardiomyopathy: Transc
+>>> GSE125990 score= 55.0 conf=high   case=  3 ctrl=  6 plt=18573    | Gene expression profiling of fibroblasts in a fami
+>>> GSE152261 score= 53.6 conf=high   case=  7 ctrl=  3 plt=21697    | Differential Deep RNA Sequencing Revealed Various 
+    GSE246299 score= 40.0 conf=low    case=  6 ctrl=  3 plt=18573    | Cardiac Fibrosis in Dilated Cardiomyopathy: Transc

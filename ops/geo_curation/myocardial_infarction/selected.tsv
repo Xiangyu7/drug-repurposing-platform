@@ -1,0 +1,6 @@
+disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
+myocardial_infarction	GSE229044	28038	10	10	patient	control	auto_selected	Peripheral blood mononuclear cell hyperresponsiveness in pat, score=80.0, conf=high
+myocardial_infarction	GSE172270	18573	47	20	patient	control	auto_selected	Systemic environment in acute myocardial infarction programs, score=73.5, conf=high
+myocardial_infarction	GSE48060	570	31	21	patient	control|normal	auto_selected	Transcriptome from circulating cells suggests dysregulated p, score=72.5, conf=high
+myocardial_infarction	48060	570	31	21	patient	control|normal	auto_selected	First-time acute myocardial infarction: peripheral blood, score=72.5, conf=high
+myocardial_infarction	GSE220865	20301	8	7	patient	healthy	auto_selected	Development of a potency test assay for CD34+ cell-based for, score=72.5, conf=high

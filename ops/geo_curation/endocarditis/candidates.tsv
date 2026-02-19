@@ -1,0 +1,5 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE29161	Gene Expression Analysis of Blood Reveals S100A11 and AQP9 as Potential Biomarke	6480	Homo sapiens	15	0	0	low	14.0			0	
+GSE240321	Identification of host endotypes using peripheral blood transcriptomics in a pro	23934	Homo sapiens	58	0	0	low	20.0			0	
+GSE240320	Identification of host endotypes using peripheral blood transcriptomics in a pro	23934	Homo sapiens	26	0	0	low	20.0			0	
+GSE240319	Identification of host endotypes using peripheral blood transcriptomics in a pro	23934	Homo sapiens	32	0	0	low	20.0			0	

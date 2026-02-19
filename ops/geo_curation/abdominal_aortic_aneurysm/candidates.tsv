@@ -1,0 +1,20 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE232911	Tunica-Specific Transcriptome of Abdominal Aortic Aneurysm	17586	Homo sapiens	246	0	0	low	20.0			0	
+GSE205071	Gene expression in human abdominal aortic aneurysm wall biopsie with high or low	10558	Homo sapiens	24	0	0	low	20.0			0	
+GSE119717	Genome-wide expression profiling of the perivascular adipose tissue in abdominal	10558	Homo sapiens	119	0	0	low	17.0			0	
+GSE98278	A molecular fingerprint for terminal abdominal aortic aneurysm progression	10558	Homo sapiens	48	0	0	low	17.0			0	
+GSE57691	Differential gene expression in human abdominal aortic aneurysm and atherosclero	10558	Homo sapiens	68	0	0	low	17.0			0	
+GSE47472	Differential gene expression in the proximal neck of human abdominal aortic aneu	10558	Homo sapiens	22	0	0	low	14.0			0	
+GSE7084	Expression data from the abdominal aorta and abdominal aortic aneurysm	2507;570	Homo sapiens	19	9	10	high	64.0	aneurysm	control	1	
+GSE296628	Brown remodeling of white adipose tissue protects against abdominal aortic aneur	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE291516	Ras-related protein 2 limits vascular smooth muscle cell phenotypic switching an	11154	Homo sapiens	9	0	0	low	20.0			0	
+GSE226492	Gene expression profile at single cell level of the whole aorta from human.	24676	Homo sapiens	10	0	0	low	20.0			0	
+GSE235161	Mitochondrial NAD+ deficiency in vascular smooth muscle impairs collagen III tur	23227	Homo sapiens	42	0	0	low	0.0			0	excluded: mouse
+GSE202267	Gene expression changes in human thoracic and abdominal aortic aneurysm tissue	24676	Homo sapiens	12	0	0	low	20.0			0	
+GSE224587	Atherosclerotic process regulates arterial damage, abdominal aortic aneurysm (AA	24676	Homo sapiens	8	0	0	low	20.0			0	
+GSE269845	Soluble Glycoprotein VI Predicts Abdominal Aortic Aneurysm Growth Rate and is a 	24676	Homo sapiens	12	0	0	low	0.0			0	excluded: mouse
+GSE183464	RNA-sequencing of abdominal aortic aneurysm (AAA) and control abdominal aorta ti	20301	Homo sapiens	14	7	7	high	75.0	aneurysm	normal	1	
+GSE237230	Single cell transcriptomics of human abdominal aortic aneurysm [scRNA-seq]	24676	Homo sapiens	8	0	0	low	0.0			0	excluded: scrna
+GSE166676	Single Cell Profiling Identifies the Histone Demethylase, JMJD3, Modulates Macro	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE153449	BAF60a Deficiency in Vascular Smooth Muscle Cells Prevents Abdominal Aortic Aneu	24676;20301	Homo sapiens	24	0	0	low	20.0			0	
+GSE137577	Harnessing TFEB to treat abdominal aortic aneurysm	24676	Homo sapiens	12	0	0	low	20.0			0	

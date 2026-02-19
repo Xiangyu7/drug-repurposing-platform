@@ -1,0 +1,46 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE317880	Expression data from Heatstroke patients	36562	Homo sapiens	55	0	0	low	20.0			0	
+GSE160899	Does heat stroke induces heat intolerance?: What genes tell us	29366	Homo sapiens	11	0	0	low	20.0			0	
+GSE214644	Regeneration of the cerebral cortex by direct chemical reprogramming of macropha	23159	Homo sapiens	12	0	0	low	20.0			0	
+GSE195442	Profile of plasma exosome-derived circrnas from acute ischemic stroke patients c	31275	Homo sapiens	20	0	0	low	0.0			0	excluded: mirna
+GSE162955	Expression data from stroke patients brain samples	17586	Homo sapiens	12	0	0	low	20.0			0	
+GSE124026	Expression data from stroke patients blood samples	5175	Homo sapiens	11	0	0	low	17.0			0	
+GSE66724	Hsp70 protects from stroke in atrial fibrillation patients by preventing thrombo	570	Homo sapiens	16	0	0	low	17.0			0	
+GSE72642	Genomic profiles for human peripheral blood T cells, B cells, natural killer cel	570	Homo sapiens	18	0	0	low	17.0			0	
+GSE37587	Gene Expression Profiling of Ischemic Stroke at 0-24 hours and 24-48 hours after	6883	Homo sapiens	68	0	0	low	17.0			0	
+GSE58294	Gene Expression Following Cardioembolic Stroke	570	Homo sapiens	92	0	0	low	14.0			0	
+GSE46269	miRNAs involved in regulating embolic stroke recovery following spontaneous repe	17042;6101	Homo sapiens; Human betaherpesvirus 5; Murid betaherpesvirus 1; Human immunodeficiency virus 1; Rattus norvegicus; JC polyomavirus; Murid gammaherpesvirus 4; Betapolyomavirus hominis; Mus musculus; Human gammaherpesvirus 8; Human alphaherpesvirus 1; human gammaherpesvirus 4; Betapolyomavirus macacae	22	0	0	low	14.0			0	
+GSE22255	Blood genomic expression profile for ischemic stroke (IS)	570	Homo sapiens	40	0	0	low	14.0			0	
+22255	Ischemic stroke: peripheral blood mononuclear cells	570	Homo sapiens	40	0	0	low	14.0			0	
+GSE16561	Gene expression analysis of peripheral whole blood RNA following ischemic stroke	6883	Homo sapiens	63	0	0	low	14.0			0	
+GSE9877	Genetic Endothelial Systems Biology of Sickle Stroke Risk	96	Homo sapiens	47	0	0	low	11.0			0	
+GSE9391	Gene expression in brain following stroke	127	Homo sapiens	6	0	0	low	11.0			0	
+GSE296028	Ischemic stroke of different etiologies undergoing mechanical thrombectomy	30173	Homo sapiens	30	0	0	low	20.0			0	
+GSE306533	High rate triggers increased atrial release of BMP10, a biomarker for atrial fib	30173	Homo sapiens	10	0	0	low	20.0			0	
+GSE301087	Bioinspired non-expansive biodegradable matrix promotes blood vessel organoid de	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE197829	RNA sequencing uncover crucial genes mediating progression of in large-artery at	11154	Homo sapiens	9	6	3	high	55.0	patient	healthy	1	
+GSE285659	Innate immune pathways drive early inflammation in the intravascular space in st	24676	Homo sapiens	12	0	0	low	20.0			0	
+GSE183546	Multiple Mechanistic Models Reveal the Neuroprotective Effect of Ginkgo Bilobali	11154	Homo sapiens	375	0	0	low	0.0			0	excluded: in vitro
+GSE186844	The Circulating Exosomal Long RNAs Expression Reveals T Cell Mediated Inflammato	24676	Homo sapiens	21	0	0	low	20.0			0	
+GSE247434	Enhanced HRG production following rt-PA treatment modulate neutrophil immune act	24676	Homo sapiens	15	0	0	low	20.0			0	
+GSE255087	Transcriptomic analysis of plasma extracellular vesicles from patients with isch	30173	Homo sapiens	21	0	0	low	20.0			0	
+GSE248760	Comparative transcriptomic analysis of circulating endothelial cells in sickle c	16791	Homo sapiens	8	0	0	low	20.0			0	
+GSE234700	Profiling of microglia nodules in multiple sclerosis reveals propensity for lesi	24676	Homo sapiens	28	0	0	low	20.0			0	
+GSE202709	Clinical significance of MSP-RON signaling based on mRNA-microRNA integration an	16791;24676	Homo sapiens	32	0	0	low	0.0			0	excluded: microrna
+GSE202518	Clinical significance of MSP-RON signaling based on mRNA-microRNA integration an	24676	Homo sapiens	16	0	0	low	0.0			0	excluded: microrna
+GSE179645	Screening for differentially expressed circRNAs in ischemic stroke by RNA sequen	23227	Homo sapiens	12	0	0	low	0.0			0	excluded: lncrna
+GSE231431	Specific stroke-induced miRNAs could mediate and interaction between peripheral 	16791	Homo sapiens	35	0	0	low	0.0			0	excluded: mirna
+GSE199819	seq-RNA analysis of PBMC in stroke patients with severe atherosclerosis and heal	24676	Homo sapiens	7	0	0	low	20.0			0	
+GSE150710	Next Generation Sequencing Facilitates Quantitative Analysis of TRAP from grafte	16791;18694	Homo sapiens; Rattus norvegicus	20	0	0	low	0.0			0	excluded: rat
+GSE199435	Differential expression and correlation analysis of global transcriptome for hem	11154	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE185402	Electrical Modulation of Transplanted Stem Cells Improves Functional Stroke Reco	20301	Homo sapiens	7	0	0	low	20.0			0	
+GSE161913	CircRNA expression profiles in peripheral blood mononuclear cells of patients wi	21290	Homo sapiens	9	0	0	low	0.0			0	excluded: circrna
+GSE173719	High-throughput Sequencing of exosomal lncRNAs and circRNAs in large artery athe	16791	Homo sapiens	10	0	0	low	0.0			0	excluded: lncrna
+GSE158314	Transfer RNA fragments replace microRNA regulators of the cholinergic post-strok	18573;19057	Homo sapiens; Mus musculus	73	0	0	low	0.0			0	excluded: microrna
+GSE158312	Transfer RNA fragments replace microRNA regulators of the cholinergic post-strok	18573	Homo sapiens	24	0	0	low	0.0			0	excluded: microrna
+GSE132857	Transplantation of cranial neural crest-derived pericytes from human pluripotent	11154	Homo sapiens	9	0	0	low	0.0			0	excluded: murine
+GSE140275	Expression profile and potential functions of circulating long noncoding RNAs in	16791	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE104053	AGO CLIP reveals an activated network for acute regulation of brain glutamate ho	15520;17021;16417	Homo sapiens; Mus musculus	96	0	0	low	17.0			0	
+GSE104048	AGO CLIP reveals an activated network for acute regulation of brain glutamate ho	15520	Homo sapiens	6	0	0	low	17.0			0	
+GSE122709	LncRNA expression profiling of ischemic stroke patients	20795	Homo sapiens	15	0	0	low	0.0			0	excluded: lncrna
+GSE56267	The age and genomic integrity of neurons after cortical stroke in humans	11154	Homo sapiens	13	0	0	low	14.0			0	

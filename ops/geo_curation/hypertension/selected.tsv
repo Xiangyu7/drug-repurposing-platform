@@ -1,0 +1,5 @@
+disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
+hypertension	GSE236442	24676	10	10	patient	healthy	auto_selected	Combined analysis of metabolomics, proteomics, and transcrip, score=72.0, conf=medium
+hypertension	GSE228750	31223	3	3	patient	control|healthy	auto_selected	Differential Expression Spectrum  of tRNA-Derived small RNAs, score=65.0, conf=high
+hypertension	GSE79786	10904	3	3	patient	control|donor	auto_selected	Genome-wide analysis of gene expression in pericytes extract, score=62.0, conf=high
+hypertension	GSE277919	16791	8	5	patient	control	auto_selected	Characteristic disease defects in circulating endothelial ce, score=59.5, conf=medium

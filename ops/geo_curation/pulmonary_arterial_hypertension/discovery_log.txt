@@ -1,0 +1,45 @@
+GEO Auto-Discovery Report
+========================
+Disease: pulmonary arterial hypertension (key: pulmonary_arterial_hypertension)
+Date: 2026-02-16 02:49:36
+Total candidates: 41
+Valid (case+control detected): 2
+Excluded: 6
+Selected: 2
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+1. GSE228750 (score: 65.0, confidence: high)
+   Title: Differential Expression Spectrum  of tRNA-Derived small RNAs in Idiopathic Pulmonary Arterial Hypertension
+   Platform: 31223 (31223)
+   Samples: 6 total, 3 case, 3 control
+   Case regex: patient
+   Control regex: control|healthy
+   Field matched: title
+   Date: 2023/06/30
+
+2. GSE277919 (score: 59.5, confidence: medium)
+   Title: Characteristic disease defects in circulating endothelial cells isolated from patients with pulmonary arterial hypertension
+   Platform: 16791 (16791)
+   Samples: 18 total, 8 case, 5 control
+   Case regex: patient
+   Control regex: control
+   Field matched: title
+   Date: 2024/11/06
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+  GSE108707: excluded: microrna | Epigenetic dysregulation of the Drp1 binding partners MiD49 
+  GSE274053: excluded: microrna | microRNA-637/661 ameliorate hypoxic induced pulmonary arteri
+  GSE254617: excluded: single-cell | Integrative Multiomics in the Lung Reveals a Protective Role
+  GSE185479: excluded: single-cell | Single-cell mRNAseq human pulmonary arterial endothelial cel
+  GSE169045: excluded: rat | iPSC-endothelial cell phenotypic drug screening and in silic
+  GSE126262: excluded: chip-seq | Remodeling of active endothelial enhancers is associated wit
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------
+>>> GSE228750 score= 65.0 conf=high   case=  3 ctrl=  3 plt=31223    | Differential Expression Spectrum  of tRNA-Derived 
+>>> GSE277919 score= 59.5 conf=medium case=  8 ctrl=  5 plt=16791    | Characteristic disease defects in circulating endo

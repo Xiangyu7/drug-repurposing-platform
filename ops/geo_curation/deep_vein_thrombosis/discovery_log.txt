@@ -1,0 +1,19 @@
+GEO Auto-Discovery Report
+========================
+Disease: deep vein thrombosis (key: deep_vein_thrombosis)
+Date: 2026-02-16 02:49:40
+Total candidates: 1
+Valid (case+control detected): 0
+Excluded: 0
+Selected: 0
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------

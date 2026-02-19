@@ -1,0 +1,79 @@
+GEO Auto-Discovery Report
+========================
+Disease: hypertension (key: hypertension)
+Date: 2026-02-16 02:48:03
+Total candidates: 118
+Valid (case+control detected): 4
+Excluded: 26
+Selected: 4
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+1. GSE236442 (score: 72.0, confidence: medium)
+   Title: Combined analysis of metabolomics, proteomics, and transcriptomics to identify biomarkers for resistant hypertension
+   Platform: 24676 (24676)
+   Samples: 30 total, 10 case, 10 control
+   Case regex: patient
+   Control regex: healthy
+   Field matched: characteristics
+   Date: 2025/02/05
+
+2. GSE228750 (score: 65.0, confidence: high)
+   Title: Differential Expression Spectrum  of tRNA-Derived small RNAs in Idiopathic Pulmonary Arterial Hypertension
+   Platform: 31223 (31223)
+   Samples: 6 total, 3 case, 3 control
+   Case regex: patient
+   Control regex: control|healthy
+   Field matched: title
+   Date: 2023/06/30
+
+3. GSE79786 (score: 62.0, confidence: high)
+   Title: Genome-wide analysis of gene expression in pericytes extracted from pulmonary aterial hypertension (PAH) patients
+   Platform: 10904 (10904)
+   Samples: 6 total, 3 case, 3 control
+   Case regex: patient
+   Control regex: control|donor
+   Field matched: title
+   Date: 2017/01/19
+
+4. GSE277919 (score: 59.5, confidence: medium)
+   Title: Characteristic disease defects in circulating endothelial cells isolated from patients with pulmonary arterial hypertension
+   Platform: 16791 (16791)
+   Samples: 18 total, 8 case, 5 control
+   Case regex: patient
+   Control regex: control
+   Field matched: title
+   Date: 2024/11/06
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+  GSE236016: excluded: cell line | GPR158 Activates Cellular Stress Responses in Trabecular Mes
+  GSE234085: excluded: lncrna | Differential expression of lncRNA in peripheral blood lympho
+  GSE150317: excluded: lncrna | Serum LncRNAs as Early Potential Biomarkers for the Predicti
+  GSE139286: excluded: microrna | MicroRNA 1253 regulation of WAVE2 and its relevance to healt
+  GSE108707: excluded: microrna | Epigenetic dysregulation of the Drp1 binding partners MiD49 
+  4737: excluded: cell line | Hypertension-related calcium-regulated gene overexpression e
+  GSE285199: excluded: single-cell | Cholesterol Homeostasis Disruption and Monocyte Recruitment 
+  GSE270483: excluded: single-cell | Macrophage Involvement in the Pathology of Chronic Thromboem
+  GSE275938: excluded: murine | Bronchopulmonary Dysplasia with Pulmonary Hypertension Assoc
+  GSE208592: excluded: methylation | Characterization of DNA methylation changes associated with 
+  GSE274053: excluded: microrna | microRNA-637/661 ameliorate hypoxic induced pulmonary arteri
+  GSE247468: excluded: single-cell | Single-cell RNA sequencing for heart failure with a history 
+  GSE274381: excluded: single-cell | The significance of CD16+ monocytes in the occurrence and de
+  GSE262828: excluded: mirna | Molecular mechanisms of Target organ damage in youth with pr
+  GSE262815: excluded: mirna | Molecular mechanisms of Target organ damage in youth with pr
+  GSE262814: excluded: mirna | Molecular mechanisms of Target organ damage in youth with pr
+  GSE254617: excluded: single-cell | Integrative Multiomics in the Lung Reveals a Protective Role
+  GSE210248: excluded: murine | Gene expression profile at single cell level of human pulmon
+  GSE212816: excluded: in vitro | Mediator 1 Regulation of the BMP/TGF-b Signaling in Endothel
+  GSE188938: excluded: mirna | Transcriptome sequencing and ceRNA (lncRNA-miRNA-mRNA) netwo
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------
+>>> GSE236442 score= 72.0 conf=medium case= 10 ctrl= 10 plt=24676    | Combined analysis of metabolomics, proteomics, and
+>>> GSE228750 score= 65.0 conf=high   case=  3 ctrl=  3 plt=31223    | Differential Expression Spectrum  of tRNA-Derived 
+>>> GSE79786 score= 62.0 conf=high   case=  3 ctrl=  3 plt=10904    | Genome-wide analysis of gene expression in pericyt
+>>> GSE277919 score= 59.5 conf=medium case=  8 ctrl=  5 plt=16791    | Characteristic disease defects in circulating endo

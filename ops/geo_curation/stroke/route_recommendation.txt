@@ -1,0 +1,7 @@
+Disease: stroke (stroke)
+GSE found: 1 (high=1, med=0, low=0)
+Route: DIRECTION_A_LOW_CONFIDENCE
+Action: Direction A can run but will produce LOW confidence results (single-study, no cross-validation). Consider supplementing with manual GEO search or using Direction B as primary.
+Direction A (signature): YES
+Direction B (origin-only): YES (always available)
+Warning: Only 1 GSE: meta-analysis degrades to single-study stats. sign_concordance and I² heterogeneity are not available. Signature reliability is limited.

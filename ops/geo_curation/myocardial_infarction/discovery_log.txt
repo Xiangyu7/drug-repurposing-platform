@@ -1,0 +1,88 @@
+GEO Auto-Discovery Report
+========================
+Disease: myocardial infarction (key: myocardial_infarction)
+Date: 2026-02-16 02:45:06
+Total candidates: 54
+Valid (case+control detected): 12
+Excluded: 12
+Selected: 5
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+1. GSE229044 (score: 80.0, confidence: high)
+   Title: Peripheral blood mononuclear cell hyperresponsiveness in patients with premature myocardial infarction without traditional risk factors
+   Platform: 28038 (28038)
+   Samples: 20 total, 10 case, 10 control
+   Case regex: patient
+   Control regex: control
+   Field matched: title
+   Date: 2023/07/19
+
+2. GSE172270 (score: 73.5, confidence: high)
+   Title: Systemic environment in acute myocardial infarction programs human macrophages for trauma repair
+   Platform: 18573 (18573)
+   Samples: 67 total, 47 case, 20 control
+   Case regex: patient
+   Control regex: control
+   Field matched: title
+   Date: 2022/12/18
+
+3. GSE48060 (score: 72.5, confidence: high)
+   Title: Transcriptome from circulating cells suggests dysregulated pathways associated with long-term recurrent events following first-time myocardial infarction.
+   Platform: 570 (570)
+   Samples: 52 total, 31 case, 21 control
+   Case regex: patient
+   Control regex: control|normal
+   Field matched: title
+   Date: 2014/02/28
+
+4. 48060 (score: 72.5, confidence: high)
+   Title: First-time acute myocardial infarction: peripheral blood
+   Platform: 570 (570)
+   Samples: 52 total, 31 case, 21 control
+   Case regex: patient
+   Control regex: control|normal
+   Field matched: title
+   Date: 2014/02/28
+
+5. GSE220865 (score: 72.5, confidence: high)
+   Title: Development of a potency test assay for CD34+ cell-based for acute myocardial infarction
+   Platform: 20301 (20301)
+   Samples: 15 total, 8 case, 7 control
+   Case regex: patient
+   Control regex: healthy
+   Field matched: title
+   Date: 2022/12/16
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+  GSE109339: excluded: rat | Prospective isolation of ISL1+ cardiac progenitors from huma
+  GSE24591: excluded: microrna | Gene and microRNA expression profiling of patients affected 
+  GSE278026: excluded: in vitro | Platelets induce endothelial cell mitochondrial dysfunction 
+  GSE270788: excluded: mouse | Targeting Immune-Fibroblast Crosstalk in Myocardial Infarcti
+  GSE269269: excluded: single-cell | Single-Cell RNA Sequencing of Peripheral Blood Mononuclear C
+  GSE205622: excluded: rat | Synthetic prostacyclin ONO-1301 Enhance Survival of Human Pl
+  GSE196469: excluded: in vitro | Knockdown of miR-192 and miR-432 in progenitor cell-derived 
+  GSE214611: excluded: single-cell | Single Cell Spatial Transcriptomics Redefines the Borderzone
+  GSE180765: excluded: microrna | MiR-124 attenuates angiogenesis via the p38/MAPK and PI3K/AK
+  GSE168281: excluded: lncrna | Uncovering potential lncRNAs and mRNAs in progression from a
+  GSE154294: excluded: rat | Transferrin improved the generation of cardiomyocyte from hu
+  GSE132143: excluded: murine | Single cell RNA-seq analysis reveals the crucial role of Col
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------
+>>> GSE229044 score= 80.0 conf=high   case= 10 ctrl= 10 plt=28038    | Peripheral blood mononuclear cell hyperresponsiven
+>>> GSE172270 score= 73.5 conf=high   case= 47 ctrl= 20 plt=18573    | Systemic environment in acute myocardial infarctio
+>>> GSE48060 score= 72.5 conf=high   case= 31 ctrl= 21 plt=570      | Transcriptome from circulating cells suggests dysr
+>>> 48060 score= 72.5 conf=high   case= 31 ctrl= 21 plt=570      | First-time acute myocardial infarction: peripheral
+>>> GSE220865 score= 72.5 conf=high   case=  8 ctrl=  7 plt=20301    | Development of a potency test assay for CD34+ cell
+    GSE109048 score= 72.0 conf=high   case= 38 ctrl= 19 plt=17586    | Platelet gene expression profiling of acute myocar
+    GSE166780 score= 67.0 conf=medium case=  8 ctrl=  8 plt=20795    | Gene expression analysis suggests immunological ch
+    GSE115031 score= 65.0 conf=high   case=  3 ctrl=  3 plt=16791    | Cardiac organoid model of human myocardial infarct
+    GSE113871 score= 65.0 conf=high   case=  3 ctrl=  3 plt=16791    | Cardiac organoid model of human myocardial infarct
+    GSE127853 score= 65.0 conf=high   case=  3 ctrl=  3 plt=20795    | Increase in innate lymphoid cells during acute ST-
+    GSE132146 score= 64.6 conf=low    case= 52 ctrl= 38 plt=18573;20983;19057 | Single cell RNA-seq analysis reveals the crucial r
+    GSE24519 score= 59.4 conf=high   case= 34 ctrl=  4 plt=2895     | Gene expression profiling of patients affected by 

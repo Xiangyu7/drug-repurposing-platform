@@ -1,0 +1,26 @@
+GEO Auto-Discovery Report
+========================
+Disease: myocarditis (key: myocarditis)
+Date: 2026-02-16 02:49:57
+Total candidates: 12
+Valid (case+control detected): 0
+Excluded: 7
+Selected: 0
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+  GSE254537: excluded: mouse | Inhibition of CXCL10 and IFN-γ ameliorates myocarditis in pr
+  GSE228597: excluded: single-cell | Immunologic drivers of immune checkpoint inhibitor therapy m
+  GSE230227: excluded: single-cell | Cytokinopathy with aberrant cytotoxic lymphocytes and profib
+  GSE213486: excluded: murine | T cells specific for alpha-myosin drive immunotherapy relate
+  GSE180045: excluded: scrna | Identification of Pathogenic Immune Cell Subsets in Checkpoi
+  GSE167029: excluded: single-cell | A monocyte/dendritic cell molecular signature of SARS-CoV2-r
+  GSE167028: excluded: single-cell | A monocyte/dendritic cell molecular signature of SARS-CoV2-r
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------

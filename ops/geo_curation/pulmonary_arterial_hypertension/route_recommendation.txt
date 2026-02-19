@@ -1,0 +1,7 @@
+Disease: pulmonary arterial hypertension (pulmonary_arterial_hypertension)
+GSE found: 2 (high=1, med=1, low=0)
+Route: DIRECTION_A_MODERATE
+Action: Direction A is viable but review case/control regex carefully. Some datasets have medium/low classification confidence.
+Direction A (signature): YES
+Direction B (origin-only): YES (always available)
+Warning: Only 1 of 2 GSE have high-confidence case/control detection.

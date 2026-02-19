@@ -1,0 +1,139 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE138678	Distinct Circulating Expression Profiles of Long Non-coding RNAs in Heart Failur	21827	Homo sapiens	20	0	0	low	0.0			0	excluded: lncrna
+GSE120895	Correlation of clinical parameters of heart failure with myocardial gene express	570	Homo sapiens	55	0	0	low	20.0			0	
+GSE143786	Circulating long noncoding RNAs associated with hypertrophic cardiomyopathy	28009	Homo sapiens	21	0	0	low	0.0			0	excluded: lncrna
+GSE148602	Circulating ceRNAs associated with hypertrophic cardiomyopathy	28387	Homo sapiens	22	0	0	low	20.0			0	
+GSE111544	Whole human genome expression analysis on left ventricular free wall heart tissu	14550	Homo sapiens	14	0	0	low	17.0			0	
+GSE19303	Changes of myocardial gene expression and protein composition in patients with d	570	Homo sapiens	81	0	0	low	17.0			0	
+GSE79962	Widespread downregulation of cardiac mitochondrial and sarcomeric genes in patie	6244	Homo sapiens	51	0	0	low	17.0			0	
+GSE81339	Methylome analysis reveals alterations in DNA methylation in the regulatory regi	10558;13534	Homo sapiens	57	0	0	low	0.0			0	excluded: methylation
+GSE81338	Methylome analysis reveals alterations in DNA methylation in the regulatory regi	10558	Homo sapiens	30	0	0	low	0.0			0	excluded: methylation
+GSE82290	Deleterious assembly of the lamin A/C mutant p.S143P causes ER stress in familia	10558	Homo sapiens	11	0	0	low	0.0			0	excluded: in vitro
+GSE68316	Microarray Profiling of Long Non-coding RNA (lncRNA) Associated with Hypertrophi	20113	Homo sapiens	12	0	0	low	0.0			0	excluded: lncrna
+GSE67492	Expression data from human heart right ventricular wall	6244	Homo sapiens	6	0	0	low	17.0			0	
+67492	Heritable pulmonary arterial hypertension: cardiac right ventricular wall	6244	Homo sapiens	6	0	0	low	17.0			0	
+GSE42955	Expression data from human heart	6244	Homo sapiens	29	0	0	low	14.0			0	
+42955	Dilated cardiomyopathy: left ventricle apex	6244	Homo sapiens	17	0	0	low	14.0			0	
+GSE43435	Thymidine Kinase and mtDNA Depletion in Human Cardiomyopathy: Epigentic and Tran	15338;16284	Homo sapiens	40	0	0	low	0.0			0	excluded: methylation
+GSE17800	Myocardial gene expression profiles and cardiodepressant autoantibodies predict 	570	Homo sapiens	48	0	0	low	0.0			0	excluded: rat
+GSE36961	Transcriptome Profiling of Surgical Myectomy Tissue from Patients with Hypertrop	15389	Homo sapiens	145	0	0	low	14.0			0	
+GSE35108	Expression data from patient iPSC and iPSC-derived cardiomyocytes	6244	Homo sapiens	17	0	0	low	14.0			0	
+35108	Serca2a effect on Dilated Cardiomyopathy iPSC-derived cardiomyocytes	6244	Homo sapiens	8	0	0	low	14.0			0	
+GSE29819	Myocardial transcriptome analysis of human arrhythmogenic right ventricular card	570	Homo sapiens	38	0	0	low	14.0			0	
+GSE17294	Molecular Remodeling of Ion Channels in Human Atrial and Ventricular Myocytes As	8910	Homo sapiens	11	0	0	low	14.0			0	
+GSE9800	Expression signature of cardiac muscle as a potential diagnostic or prognostic t	887	Homo sapiens	30	0	0	low	11.0			0	
+GSE5406	Human ischemic cardiomyopathy, idiopathic cardiomyopathy, and nonfailing control	96	Homo sapiens	210	0	0	low	11.0			0	
+GSE3586	Dilated Cardiomyopathy and Non Failing Septal Biopsies	3050	Homo sapiens	28	0	0	low	11.0			0	
+GSE3585	Dilated Cardiomyopathy and Non Failing Biopsies	96	Homo sapiens	12	0	0	low	11.0			0	
+3586	Dilated cardiomyopathy: septum	3050	Homo sapiens	28	0	0	low	11.0			0	
+3585	Dilated cardiomyopathy: left ventricle	96	Homo sapiens	12	0	0	low	11.0			0	
+GSE4172	Gene expression profiling of human inflammatory Cardiomyopathy	570	Homo sapiens	12	0	0	low	11.0			0	
+4172	Inflammatory dilated cardiomyopathy	570	Homo sapiens	12	0	0	low	11.0			0	
+GSE1869	Ischemic and Nonischemic CM and NF Hearts	96	Homo sapiens	37	0	0	low	11.0			0	
+1869	Ischemic and nonischemic cardiomyopathy comparison	96	Homo sapiens	37	0	0	low	11.0			0	
+GSE255504	CRISPR screening using Human PSC-derived cardiomyocytes reveals TAOK1 as a poten	24676	Homo sapiens	6	0	0	low	0.0			0	excluded: mouse
+GSE312730	Simtuzumab attenuates Loxl2-mediated extracellular matrix remodeling and preserv	30173	Homo sapiens	6	0	0	low	0.0			0	excluded: murine
+GSE280050	Senolytics rejuvenate aging cardiomyopathy in human cardiac organoids	24676	Homo sapiens	15	0	0	low	20.0			0	
+GSE315294	Chrysin alleviates cardiomyocyte ferroptosis of diabetic cardiomyopathy by modul	34284	Homo sapiens	9	0	0	low	20.0			0	
+GSE312561	Peptidyl-tRNA hydrolase 2 is an essential negative regulator of peripartum cardi	19057;29480	Homo sapiens; Mus musculus	12	0	0	low	0.0			0	excluded: mouse
+GSE285315	Exploratory Study on the Mechanism of Left Ventricular Function Recovery After L	24676	Homo sapiens	12	0	0	low	0.0			0	excluded: single-cell
+GSE246299	Cardiac Fibrosis in Dilated Cardiomyopathy: Transcriptomics Insights, Histologic	18573	Homo sapiens	67	6	3	low	40.0	fibrosis	control	0	
+GSE246298	Cardiac Fibrosis in Dilated Cardiomyopathy: Transcriptomics Insights, Histologic	18573	Homo sapiens	9	6	3	high	55.0	fibrosis	control	1	
+GSE245825	Cardiac Fibrosis in Dilated Cardiomyopathy: Transcriptomics Insights, Histologic	18573	Homo sapiens	58	0	0	low	20.0			0	
+GSE302553	Pathogenetic mechanisms of muscle-specific ribosomes in dilated cardiomyopathy (	24676	Homo sapiens	42	0	0	low	20.0			0	
+GSE213541	EPAS1 directs a network of genes implicated in mitochondrial dysfunction in arrh	18573	Homo sapiens	9	0	0	low	20.0			0	
+GSE213539	EPAS1 directs a network of genes implicated in mitochondrial dysfunction in arrh	18573	Homo sapiens	8	0	0	low	20.0			0	
+GSE301005	Modeling arrhythmogenic cardiomyopathy fattyfibro pathology through the use of P	24676	Homo sapiens	17	0	0	low	20.0			0	
+GSE292067	Human single nuclear RNA sequencing identifies CD47 as a therapeutic target for 	24676	Homo sapiens	25	0	0	low	0.0			0	excluded: murine
+GSE276210	Beta-Adrenergic Stimulation and MYH7 G256E Mutant Gene Dosage Drive Hypertrophic	34284;24676	Homo sapiens	14	0	0	low	20.0			0	
+GSE191120	Next Generation Sequencing Facilitates Quantitative Analysis of Hypertrophic Car	24676	Homo sapiens	10	0	0	low	0.0			0	excluded: circrna
+GSE288708	Human iPSC-cardiomyocyte models of insulin resistance demonstrate metabolic and 	24676	Homo sapiens	20	0	0	low	20.0			0	
+GSE294021	Uncovering Cell Type-Specific Phenotypes Using a Novel Human In vitro Model of T	30173	Homo sapiens	36	0	0	low	0.0			0	excluded: in vitro
+GSE295194	Self and parasite-derived peptides selected upon DERAA-bearing HLA-DRB1 alleles 	24676	Homo sapiens	16	0	0	low	0.0			0	excluded: in vitro
+GSE263980	Human iPSC-derived cardiomyocyte from a patient with dilated phase of hypertroph	18573	Homo sapiens	6	0	0	low	20.0			0	
+GSE263297	Diabetic ischaemic cardiomyopathy: Characterising the left ventricular myocardia	24676	Homo sapiens	21	0	0	low	20.0			0	
+GSE242821	Atf3 controls transitioning in female mitochondrial cardiomyopathy as identified	28038;24247;24676	Homo sapiens; Mus musculus	26	0	0	low	0.0			0	excluded: single-cell
+GSE182219	Impaired vitamin D signaling causes LMNA mutation-related cardiomyopathy	24676	Homo sapiens	15	0	0	low	20.0			0	
+GSE289418	Effect of the Mutated p.H222P A-type Lamins on Gene Expression in Both Patient-D	24247;24676	Homo sapiens; Mus musculus	10	0	0	low	0.0			0	excluded: mouse
+GSE289628	EPAS1 induction drives myocardial degeneration in Desmoplakin-cardiomyopathy [RN	30173	Homo sapiens	16	0	0	low	0.0			0	excluded: in vitro
+GSE263607	Cardiac Organoids for Cardiomyopathy	33484;30173	Homo sapiens	17	0	0	low	20.0			0	
+GSE262876	Cardiac Organoids for Modeling Hypertrophic Cardiomyopathy	30173	Homo sapiens	16	0	0	low	20.0			0	
+GSE278521	Cytotoxic T-cells drive out come in Inflammatory Dilated Cardiomyopathy	21697	Homo sapiens	37	0	0	low	20.0			0	
+GSE251993	Gene Expression Analysis of Hypertrophic and Dilated Cardiomyopathy Associated T	16791	Homo sapiens	9	0	0	low	20.0			0	
+GSE249925	Human Hypertrophic Cardiomyopathy mRNA Profiling.	24676	Homo sapiens	120	0	0	low	20.0			0	
+GSE249301	Cardiomyocytes and stromal cells cross-talk influences the pathogenesis of arrhy	20301	Homo sapiens	12	0	0	low	20.0			0	
+GSE271871	A leiomodin 2 neonatal dilated cardiomyopathy causing mutation results inaltered	24247;24676	Homo sapiens; Mus musculus	42	0	0	low	0.0			0	excluded: mouse
+GSE244827	Immunologic changes are detectable in the peripheral blood transcriptome of clin	24676	Homo sapiens	33	0	0	low	20.0			0	
+GSE273295	Unravelling Role of miRNA-mRNA Interactome in Pathophysiology of Arrhythmogenic 	18573	Homo sapiens	8	0	0	low	0.0			0	excluded: mirna
+GSE241911	Ago2 protects against diabetic cardiomyopathy via activating mitochondrial gene 	24676	Homo sapiens	6	0	0	low	0.0			0	excluded: mouse
+GSE269705	LMNA-Related Dilated Cardiomyopathy: Single-Cell Transcriptomics during Patient-	24676	Homo sapiens	12	0	0	low	0.0			0	excluded: single-cell
+GSE241120	Dilated Cardiomyopathy	24247;28997;24676	Homo sapiens; Mus musculus; Mesocricetus auratus	17	0	0	low	20.0			0	
+GSE274124	Transcriptome analysis of patient derived induced pluripotent stem cell derived 	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE270258	Abnormal circadian rhythms exacerbate dilated cardiomyopathy by reducing the ven	24676	Homo sapiens	16	0	0	low	20.0			0	
+GSE248187	Innate immune activation modulates contractile and electrical dysfunction in eng	24676;22396	Homo sapiens; Rattus norvegicus	30	0	0	low	20.0			0	
+GSE243406	Unravelling the etiology of dilated cardiomyopathy through differential miRNA-mR	18573	Homo sapiens	15	0	0	low	0.0			0	excluded: mirna
+GSE255296	Single Cell Transcriptomic Profiling of MYBPC3-associated Hypertrophic Cardiomyo	24247;24676;28702	Mus musculus; Homo sapiens; Felis catus	29	0	0	low	0.0			0	excluded: murine
+GSE253226	PKP2 Gene Therapy Improves Heart Function and Reduces Mortality in a Pkp2-defici	24676;24247	Homo sapiens; Mus musculus	112	0	0	low	0.0			0	excluded: mouse
+GSE193878	Pathogenic variants in PRDM16 impair cardiomyocytes maturation and cause cardiom	16791;17021	Homo sapiens; Mus musculus	11	0	0	low	20.0			0	
+GSE193877	Pathogenic variants in PRDM16 impair cardiomyocytes maturation and cause cardiom	16791	Homo sapiens	6	0	0	low	0.0			0	excluded: in vitro
+GSE230585	RNA-sequencing of patients with hypertrophic cardiomyopathy or patients with aor	21697	Homo sapiens	16	11	5	high	64.1	patient	donor	1	
+GSE203102	Combination with ERR gamma agonist and mechanical stretching enhances maturation	18573	Homo sapiens	21	0	0	low	20.0			0	
+GSE243740	LncRNA DCRT protects against dilated cardiomyopathy via binding to PTBP1	24676;11154	Homo sapiens	8	0	0	low	0.0			0	excluded: lncrna
+GSE243739	LncRNA DCRT protects against dilated cardiomyopathy via binding to PTBP1 (RIP-se	11154	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE223517	Cardiac fibroblasts of dilated cardiomyopathy patients	16791	Homo sapiens	7	0	0	low	20.0			0	
+GSE156869	The Hippo and Canonical WNT Pathways Are Suppressed Prior to and in the Absence 	20301	Homo sapiens	8	0	0	low	20.0			0	
+GSE240775	Genomic editing of pathogenic TNNI3 mutation in restrictive cardiomyopathy rescu	16791	Homo sapiens	6	0	0	low	20.0			0	
+GSE222793	Modeling incomplete penetrance in arrhythmogenic cardiomyopathy by human induced	16791	Homo sapiens	20	0	0	low	0.0			0	excluded: in vitro
+GSE220833	Mislocalization of pathogenic RBM20 variants in dilated cardiomyopathy is caused	18573	Homo sapiens	60	0	0	low	20.0			0	
+GSE152261	Differential Deep RNA Sequencing Revealed Various Bacterial Infections and Host 	21697	Homo sapiens	10	7	3	high	53.6	lesion	control	1	
+GSE160289	Desmosomal protein degradation as underlying causes of arrhythmogenic cardiomyop	18573	Homo sapiens	8	0	0	low	0.0			0	excluded: mouse
+GSE190977	TEAD1 trapping by the Q353R-Lamin A/C causes dilated cardiomyopathy.	16791;24247;24676	Homo sapiens; Mus musculus	30	0	0	low	0.0			0	excluded: single-cell
+GSE208214	Identification of PITX2 as a novel factor in arrhythmogenic cardiomyopathy patho	18573	Homo sapiens	16	0	0	low	20.0			0	
+GSE208213	Identification of PITX2 as a novel factor in arrhythmogenic cardiomyopathy patho	18573	Homo sapiens	8	0	0	low	20.0			0	
+GSE208212	Identification of PITX2 as a novel factor in arrhythmogenic cardiomyopathy patho	18573	Homo sapiens	8	0	0	low	20.0			0	
+GSE218276	Haptoglobin Gene Expression and Anthracycline-related Cardiomyopathy in Childhoo	24676;16791	Homo sapiens	104	0	0	low	20.0			0	
+GSE215794	KDM8 epigenetically controls cardiac metabolism to prevent initiation of dilated	17021;24676;24247	Homo sapiens; Mus musculus	37	0	0	low	20.0			0	
+GSE215351	KDM8 epigenetically controls cardiac metabolism to prevent initiation of dilated	24676;24247;17021	Homo sapiens; Mus musculus	31	0	0	low	0.0			0	excluded: mouse
+GSE185100	Defining the fetal gene program at single cell resolution in dilated cardiomyopa	24676	Homo sapiens	10	0	0	low	20.0			0	
+GSE210783	Precise genomic editing of a pathogenic RBM20 mutation rescues dilated cardiomyo	21626;21697	Homo sapiens; Mus musculus	28	0	0	low	20.0			0	
+GSE191083	Specific methylation marks in promoter regions are associated to the pathogenic 	24676;21145	Homo sapiens	180	0	0	low	0.0			0	excluded: methylation
+GSE191081	Specific methylation marks in promoter regions are associated to the pathogenic 	24676	Homo sapiens	22	0	0	low	0.0			0	excluded: methylation
+GSE180313	Altered Cardiac Energetics and Mitochondrial Dysfunction  in Hypertrophic Cardio	24676	Homo sapiens	20	0	0	low	20.0			0	
+GSE206978	Hypertrophic cardiomyopathy: data of transcriptome profiling and epigenome-wide 	28337	Homo sapiens	13	0	0	low	0.0			0	excluded: methylation
+GSE203525	Different transcriptomic response to T. cruzi infection in hiPSC-derived cardiom	18573	Homo sapiens	20	0	0	low	20.0			0	
+GSE165303	Reprogramming of three-dimensional chromatin architecture   drives human dilated	18573;20795	Homo sapiens	177	0	0	low	0.0			0	excluded: mouse
+GSE138262	Single-cell transcriptomic profiling provides insights into disease-related proc	18573	Homo sapiens	16	0	0	low	0.0			0	excluded: single-cell
+GSE193861	Transcriptional co-activators YAP1-TAZ of Hippo signalling in doxorubicin-induce	16791	Homo sapiens	10	0	0	low	0.0			0	excluded: in vitro
+GSE188238	Cell cycle defects underlie childhood-onset cardiomyopathy associated with Noona	20301	Homo sapiens	11	0	0	low	20.0			0	
+GSE181764	Human Obstructive and Non-obstructive Hypertrophic Cardiomyopathy Disease Mechan	24676;21697	Homo sapiens	9	0	0	low	20.0			0	
+GSE154097	Isogenic human pluripotent stem cell disease models reveal actin binding Rho act	16791	Homo sapiens	30	0	0	low	20.0			0	
+GSE181051	Serum Circulating Proteins from Pediatric Dilated Cardiomyopathy Patients Cause 	22396;30448;30452	Homo sapiens; Rattus norvegicus	62	0	0	low	20.0			0	
+GSE152747	Epicardial Differentiation Drives Fibro-fatty Remodeling in Arrhythmogenic Cardi	18573	Homo sapiens	12	0	0	low	20.0			0	
+GSE152669	Epicardial Differentiation Drives Fibro-fatty Remodeling in Arrhythmogenic Cardi	18573	Homo sapiens	8	0	0	low	20.0			0	
+GSE174691	Altered Intercellular Communication and Extracellular Matrix Signaling as a Dise	24676;21697	Homo sapiens	9	0	0	low	20.0			0	
+GSE146621	Distinct cardiac transcriptomic clustering in titin and lamin a/c-associated dil	21697	Homo sapiens	29	0	0	low	20.0			0	
+GSE160997	RNA-seq transcriptome profiling and whole exome sequencing data on Hypertrophic 	11154	Homo sapiens	41	0	0	low	20.0			0	
+GSE145349	CRISPR repair in a preclinical model of Noonan syndrome associated cardiomyopath	20301	Homo sapiens	11	0	0	low	20.0			0	
+GSE107157	Genome-wide profiling of the cardiac transcriptome identifies novel heart specif	16791	Homo sapiens	11	0	0	low	20.0			0	
+GSE145350	CRISPR repair in a preclinical model of Noonan syndrome associated cardiomyopath	20301	Homo sapiens	24	0	0	low	20.0			0	
+GSE145348	CRISPR repair in a preclinical model of Noonan syndrome associated cardiomyopath	20301	Homo sapiens	13	0	0	low	20.0			0	
+GSE101514	Dysregulation of PDGFRB contributes to the pathogenesis of  LMNA-related dilated	17303;16791;18573	Homo sapiens	12	0	0	low	0.0			0	excluded: in vitro
+GSE125990	Gene expression profiling of fibroblasts in a family with LMNA-related cardiomyo	18573	Homo sapiens	9	3	6	high	55.0	patient	control|donor	1	
+GSE107480	Novel heart specific long non-coding RNAs contribute to pathogenesis of Arrhythm	16791	Homo sapiens	15	0	0	low	20.0			0	
+GSE107475	Novel heart specific long non-coding RNAs contribute to pathogenesis of Arrhythm	16791	Homo sapiens	9	0	0	low	20.0			0	
+GSE107311	Novel heart specific long non-coding RNAs contribute to pathogenesis of Arrhythm	16791	Homo sapiens	6	0	0	low	20.0			0	
+GSE118882	Dysregulation of PDGFRB contributes to the pathogenesis of LMNA-related dilated 	21697	Homo sapiens	8	0	0	low	0.0			0	excluded: in vitro
+GSE133754	SS-31 Reverses Mitochondrial Fragmentation in Fibroblasts from Patients with DCM	9052	Homo sapiens	8	4	4	high	62.0	patient	control|healthy	1	
+GSE118885	Dysregulation of PDGFRB contributes to the pathogenesis of LMNA-related dilated 	21697	Homo sapiens	22	0	0	low	17.0			0	
+GSE130036	Long non-coding and protein-coding RNA profiling using strand-specific RNA-seq i	20795	Homo sapiens	37	0	0	low	0.0			0	excluded: lncrna
+GSE101585	Aberrant expression profile of lncRNA and mRNA in dilated cardiomyopathy by RNA-	20301	Homo sapiens	16	0	0	low	0.0			0	excluded: lncrna
+GSE120838	Genomic Reorganization of Lamin-Associated Domains in Cardiac Myocytes is Associ	21290;20301	Homo sapiens	30	0	0	low	0.0			0	excluded: methylation
+GSE120836	Genomic Reorganization of Lamin-Associated Domains in Cardiac Myocytes is Associ	20301	Homo sapiens	10	0	0	low	0.0			0	excluded: methylation
+GSE115621	Transcriptomic characterization of a human in vitro model of arrhythmogenic card	16791	Homo sapiens	8	0	0	low	0.0			0	excluded: in vitro
+GSE121559	RNA-Seq of human induced pluripotent stem cell-derived cardiomyocytes from a car	20301	Homo sapiens	6	0	0	low	17.0			0	
+GSE120567	Dilated cardiomyopathy vs Myocarditis	11154	Homo sapiens	16	0	0	low	17.0			0	
+GSE95120	The arrhythmogenic cardiomyopathy-specific coding and non-coding transcriptome i	11154	Homo sapiens	6	0	0	low	0.0			0	excluded: mirna
+GSE99321	RNA-sequencing of pediatric idiopathic dilated cardiomyopathy patients and healt	16791	Homo sapiens	14	0	0	low	17.0			0	
+GSE89714	Differential gene expressions in the heart of hypertrophic cardiomyopathy patien	11154	Homo sapiens	9	0	0	low	17.0			0	
+GSE71613	RNA-Sequencing shows novel transcriptomic signatures in failing and non-failing 	11154	Homo sapiens	8	0	0	low	17.0			0	
+GSE65763	Correction of human phospholamban R14del mutation associated with cardiomyopathy	16791	Homo sapiens	6	0	0	low	17.0			0	

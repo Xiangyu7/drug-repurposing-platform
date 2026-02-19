@@ -1,0 +1,6 @@
+Disease: abdominal aortic aneurysm (abdominal_aortic_aneurysm)
+GSE found: 2 (high=2, med=0, low=0)
+Route: DIRECTION_A_GOOD
+Action: Direction A is viable with good confidence. Meta-analysis and RRA will provide cross-study validation.
+Direction A (signature): YES
+Direction B (origin-only): YES (always available)

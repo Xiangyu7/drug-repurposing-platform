@@ -1,0 +1,3 @@
+disease_key	gse_id	platform	organism	sample_total	case_n	control_n	tissue_type	relevance_score	qc_score	final_score	include_flag	exclude_reason
+atherosclerosis	GSE43292	GPL6244	Homo sapiens	63	31	32	carotid plaque tissue	94	92	93	1	
+atherosclerosis	GSE28829	GPL570	Homo sapiens	29	16	13	atherosclerotic plaque tissue	90	88	89	1	

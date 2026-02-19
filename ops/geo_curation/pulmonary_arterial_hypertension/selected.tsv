@@ -1,0 +1,3 @@
+disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
+pulmonary_arterial_hypertension	GSE228750	31223	3	3	patient	control|healthy	auto_selected	Differential Expression Spectrum  of tRNA-Derived small RNAs, score=65.0, conf=high
+pulmonary_arterial_hypertension	GSE277919	16791	8	5	patient	control	auto_selected	Characteristic disease defects in circulating endothelial ce, score=59.5, conf=medium

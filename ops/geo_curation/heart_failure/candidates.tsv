@@ -1,0 +1,84 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE181114	Whole blood transcriptomic profiling in men and women with heart failure	30456	Homo sapiens	944	0	0	low	20.0			0	
+GSE138678	Distinct Circulating Expression Profiles of Long Non-coding RNAs in Heart Failur	21827	Homo sapiens	20	0	0	low	0.0			0	excluded: lncrna
+GSE175739	Blood gene differential expression of heart failure patients with systemic iron 	16686	Homo sapiens	14	0	0	low	20.0			0	
+GSE120895	Correlation of clinical parameters of heart failure with myocardial gene express	570	Homo sapiens	55	0	0	low	20.0			0	
+GSE136547	Micro-RNA 150-5p predicts overt heart failure in patients with univentricular he	25134	Homo sapiens	80	0	0	low	0.0			0	excluded: mirna
+GSE86569	Different expression of inflammation-related proteins in human heart failure	17586	Homo sapiens	22	0	0	low	17.0			0	
+GSE72807	Effects of enhanced external counterpulsation on skeletal muscle gene expression	6244	Homo sapiens	12	0	0	low	17.0			0	
+GSE77343	Gene expression in chronic heart failure patients	11532	Homo sapiens	197	0	0	low	17.0			0	
+GSE59867	Gene expression profiling reveals potential prognostic biomarkers associated wit	6244	Homo sapiens	436	0	0	low	17.0			0	
+GSE57345	RNA-Seq Identifies Novel Myocardial Gene Expression Signatures of Heart Failure	11532;9052	Homo sapiens	319	0	0	low	17.0			0	
+GSE57338	RNA-Seq Identifies Novel Myocardial Gene Expression Signatures of Heart Failure 	11532	Homo sapiens	313	0	0	low	17.0			0	
+GSE53081	Comparative RNA-sequencing analysis of myocardial and circulating small RNAs in 	10558;10999;11154	Homo sapiens	209	0	0	low	14.0			0	
+GSE52601	Comparative RNA-sequencing analysis of myocardial and circulating small RNAs in 	10558	Homo sapiens	24	0	0	low	0.0			0	excluded: mirna
+GSE51888	Effects on expression profile of acute congestive heart failure (ACHF) patients 	6254	Homo sapiens	11	0	0	low	14.0			0	
+GSE21125	Transcriptional profiling of human white blood cells at the different stages of 	1456	Homo sapiens	45	0	0	low	14.0			0	
+GSE26887	Transcriptome analysis of diabetic and non diabetic patients affected by post-is	6244	Homo sapiens	24	0	0	low	14.0			0	
+26887	Diabetic ischemic heart failure patients: non-infarcted left ventricle	6244	Homo sapiens	24	0	0	low	14.0			0	
+GSE16499	Heart Failure Associated Changes in Alternative Splicing of Sarcomere Genes	5175	Homo sapiens	30	0	0	low	14.0			0	
+GSE9128	Expression data from heart failure vs control peripheral blood mononuclear cells	96	Homo sapiens	11	0	0	low	11.0			0	
+9128	Heart failure: peripheral blood mononuclear cells	96	Homo sapiens	11	0	0	low	11.0			0	
+GSE2656	Gene expression profile of human heart failure from different etiologies	2041	Homo sapiens	49	0	0	low	11.0			0	
+GSE1145	changes in cardiac transcription profiles brought about by heart failure	8300;570	Homo sapiens	107	0	0	low	11.0			0	
+1145	Heart  failure arising from different etiologies	570	Homo sapiens	37	0	0	low	11.0			0	
+GSE430	Effect of left ventricular assist device support on congestive heart failure pat	96	Homo sapiens	14	0	0	low	11.0			0	
+GSE312561	Peptidyl-tRNA hydrolase 2 is an essential negative regulator of peripartum cardi	19057;29480	Homo sapiens; Mus musculus	12	0	0	low	0.0			0	excluded: mouse
+GSE293318	Inhibition of Scarb1 on endothelial cells attenuates pressure overload-induced h	16791	Homo sapiens	6	0	0	low	20.0			0	
+GSE262824	Skeletal muscle transcriptional dysregulation of genes involved in senescence is	21697	Homo sapiens	78	0	0	low	20.0			0	
+GSE298023	Location and etiology modulate fibroblast activation in the failing human heart	24676	Homo sapiens	18	0	0	low	20.0			0	
+GSE217296	RNA Binding Patterns of Ischemic Heart Failure Prognosis Indicator Eukaryotic Tr	25947;24676	Rattus norvegicus; Homo sapiens	20	0	0	low	20.0			0	
+GSE288222	Single-Cell Splicing Isoform Atlas of the Adult Human Heart and Heart Failure	26167	Homo sapiens	12	0	0	low	0.0			0	excluded: single-cell
+GSE214731	Single-cell dissection of ex vivo human heart tissue reveals pro-inflammatory mi	16791	Homo sapiens	15	0	0	low	0.0			0	excluded: single-cell
+GSE303117	Exploring the biological basis for the identification of different syndromes in 	24676	Homo sapiens	129	0	0	low	20.0			0	
+GSE302337	Failing heart-specific cardiac fibroblasts induce heart failure via c-Myc Expans	24676	Homo sapiens	6	0	0	low	0.0			0	excluded: mouse
+GSE295478	Circular RNA Expression Profiling in Cardiac Tissue from Heart Failure Patients 	11154	Homo sapiens	10	0	0	low	0.0			0	excluded: microrna
+GSE271676	Spatial Transcriptional Landscape of Human Heart Failure	24676	Homo sapiens	178	0	0	low	20.0			0	
+GSE262690	Proteo-transcriptional architecture of human pressure overload: implications for	24676	Homo sapiens	58	22	36	high	77.2	stenosis	control	1	
+GSE263297	Diabetic ischaemic cardiomyopathy: Characterising the left ventricular myocardia	24676	Homo sapiens	21	0	0	low	20.0			0	
+GSE198945	ceRNA network deregulated in ischemic heart failure patients	24676	Homo sapiens	40	0	0	low	0.0			0	excluded: mirna
+GSE253498	The biological mechanisms related to hub genes in the development of heart failu	24676	Homo sapiens	30	15	15	high	80.0	case	normal	1	
+GSE261219	Small-Molecule-Induced ERBB4 Activation to Treat Heart Failure	24676	Homo sapiens	9	0	0	low	20.0			0	
+GSE243655	Effect of ferrostatin-1 on living myocardial slices derived from heart failure p	21697	Homo sapiens	8	0	0	low	0.0			0	excluded: rat
+GSE247468	Single-cell RNA sequencing for heart failure with a history of coronary heart di	24676	Homo sapiens	6	0	0	low	0.0			0	excluded: single-cell
+GSE251709	Metabolic conditioning enhances human bmMSC cell therapy of doxorubicin-induced 	24676	Homo sapiens	16	0	0	low	0.0			0	excluded: in vitro
+GSE221699	Chromatin Remodeling Drives Immune-Fibroblast Cell Communication in Heart Failur	18573;19057;24247	Homo sapiens; Mus musculus	57	0	0	low	20.0			0	
+GSE221693	Chromatin Remodeling Drives Immune-Fibroblast Cell Communication in Heart Failur	18573	Homo sapiens	16	0	0	low	20.0			0	
+GSE223793	Transcriptomic evidence of lung repair in paediatric ARDS survival	24676	Homo sapiens	7	0	0	low	20.0			0	
+GSE251971	Molecular effects of cardiac contractility modulation in patients with heart fai	30173	Homo sapiens	12	0	0	low	20.0			0	
+GSE230638	Impaired Branched-Chain Amino Acid Catabolism is Associated with Chemotherapy-In	24676	Homo sapiens	12	0	0	low	20.0			0	
+GSE212695	Sex modulates genome regulatory system in heart failure in humans 	16791	Homo sapiens	20	0	0	low	20.0			0	
+GSE226314	Defining cardiac functional recovery in end-stage heart failure at single cell r	24676	Homo sapiens	32	0	0	low	0.0			0	excluded: mouse
+GSE216439	Increased length-dependent activation of human engineered heart tissue after chr	24676	Homo sapiens	13	0	0	low	20.0			0	
+GSE212181	Comprehensive analysis of the RNA transcriptome expression profiles and construc	18573	Homo sapiens	10	0	0	low	20.0			0	
+GSE155474	Mechano-regulated RNA binding protein hnRNPC contributes to RNA homeostasis in h	21697	Homo sapiens	18	0	0	low	20.0			0	
+GSE155473	Mechano-regulated RNA binding protein hnRNPC contributes to RNA homeostasis in h	21697	Homo sapiens	9	0	0	low	20.0			0	
+GSE155472	Mechano-regulated RNA binding protein hnRNPC contributes to RNA homeostasis in h	21697	Homo sapiens	9	0	0	low	20.0			0	
+GSE150736	An atlas of transcribed human cardiac promoters and enhancers reveals an importa	16791	Homo sapiens	109	0	0	low	20.0			0	
+GSE207882	tRNA-derived Small RNAs and their Potential Roles in the Therapeutic Heterogenei	18573	Homo sapiens	10	0	0	low	20.0			0	
+GSE213128	Cellular landscapes of non-diseased human cardiac valves from end-stage heart fa	24676	Homo sapiens	18	0	0	low	0.0			0	excluded: single-cell
+GSE210707	Expression profiles of tRNA-derived small RNAs in epicardial adipose tissue of p	18573	Homo sapiens	10	0	0	low	20.0			0	
+GSE203160	Alterations of cardiac protein kinases in cyclic nucleotide-dependent signaling 	18573	Homo sapiens	15	0	0	low	20.0			0	
+GSE196656	Transcriptome sequencing lncRNA network construction in cardiac fibrosis and hea	20301	Homo sapiens	9	0	0	low	0.0			0	excluded: mirna
+GSE175765	RNA-sequencing transcriptional profile of kidney capsule derived organ fibroblas	19057;18573	Mus musculus; Homo sapiens	37	0	0	low	20.0			0	
+GSE175764	RNA-sequencing transcriptional profile of human hearts [HumanHeartFailure]	18573	Homo sapiens	10	0	0	low	0.0			0	excluded: mouse
+GSE168742	Cardiac fibroblasts regulate the development of heart failure via Htra3-TGF-β-IG	24247;16791;17021	Mus musculus; Homo sapiens	1413	0	0	low	0.0			0	excluded: single-cell
+GSE183852	Cellular Atlas of Human Heart Failure	24676	Homo sapiens	45	0	0	low	20.0			0	
+GSE192886	RNA-sequencing of epicardial adipose tissue of heart failure patients with prese	24676	Homo sapiens	10	0	0	low	20.0			0	
+GSE180502	Transcriptomic responses of the kidney to development of and recovery from acute	16791	Homo sapiens	35	0	0	low	20.0			0	
+GSE168281	Uncovering potential lncRNAs and mRNAs in progression from acute myocardial infa	11154	Homo sapiens	9	0	0	low	0.0			0	excluded: lncrna
+GSE164197	Racial and Socioeconomic Disparity Associates with Differences in Cardiac DNA Me	21145;16791	Homo sapiens	64	0	0	low	0.0			0	excluded: methylation
+GSE164196	Cardiac DNA Methylation Underlies Racial and Socioeconomic Disparities among Pat	16791	Homo sapiens	32	0	0	low	0.0			0	excluded: methylation
+GSE157205	Heart failure impairs the mechanotransduction properties of human cardiac pericy	18573	Homo sapiens	10	6	4	high	58.3	disease	healthy	1	
+GSE138252	Differential transcriptional responses in human cardiomyocytes	16791	Homo sapiens	48	0	0	low	20.0			0	
+GSE135055	Multi-level transcriptome sequencing identifies COL1A1 as a candidate marker in 	16791	Homo sapiens	60	0	0	low	20.0			0	
+GSE141910	RNA sequencing of the left ventricle from non-failing donors and heart failure s	16791	Homo sapiens	366	0	0	low	17.0			0	
+GSE134698	Signaling response to personalized exercise therapy in skeletal muscle from hear	15520	Homo sapiens	6	0	0	low	17.0			0	
+GSE123976	DNA Methylation Reprograms Metabolic Gene Expression in End-Stage Human Heart Fa	11154;16791	Homo sapiens	18	0	0	low	0.0			0	excluded: methylation
+GSE116250	RNA-seq of heart failure in human left ventricles	16791	Homo sapiens	64	0	0	low	17.0			0	
+GSE109097	Genome-Wide DNA Methylation Encodes Cardiac Transcriptional Reprogramming in Hum	13534;16791	Homo sapiens	22	0	0	low	0.0			0	excluded: methylation
+GSE108157	Genome-Wide DNA Methylation Encodes Cardiac Transcriptional Reprogramming in Hum	16791	Homo sapiens	11	0	0	low	0.0			0	excluded: methylation
+GSE104423	Heart failure patients' peripheral blood mononuclear cell gene expression profil	16791	Homo sapiens	29	0	0	low	17.0			0	
+GSE57344	RNA-Seq Identifies Novel Myocardial Gene Expression Signatures of Heart Failure 	9052	Homo sapiens	6	0	0	low	17.0			0	
+GSE53080	Comparative RNA-sequencing analysis of myocardial and circulating small RNAs in 	10999;11154	Homo sapiens	185	0	0	low	0.0			0	excluded: mirna
+GSE55296	RNA-seq analysis of human heart failure	16288	Homo sapiens	36	0	0	low	14.0			0	

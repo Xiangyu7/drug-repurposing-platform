@@ -1,0 +1,16 @@
+disease_key	disease_query	selected_count	status	route_recommendation
+coronary_artery_disease	coronary artery disease	5	ok	DIRECTION_A_IDEAL
+heart_failure	heart failure	3	ok	DIRECTION_A_GOOD
+myocardial_infarction	myocardial infarction	5	ok	DIRECTION_A_IDEAL
+atrial_fibrillation	atrial fibrillation	1	ok	DIRECTION_A_LOW_CONFIDENCE
+hypertension	hypertension	4	ok	DIRECTION_A_IDEAL
+stroke	stroke	1	ok	DIRECTION_A_LOW_CONFIDENCE
+pulmonary_arterial_hypertension	pulmonary arterial hypertension	2	ok	DIRECTION_A_MODERATE
+deep_vein_thrombosis	deep vein thrombosis	0	ok	DIRECTION_B_ONLY
+venous_thromboembolism	venous thromboembolism	0	ok	DIRECTION_B_ONLY
+angina_pectoris	angina pectoris	0	ok	DIRECTION_B_ONLY
+myocarditis	myocarditis	0	ok	DIRECTION_B_ONLY
+cardiomyopathy	cardiomyopathy	5	ok	DIRECTION_A_IDEAL
+abdominal_aortic_aneurysm	abdominal aortic aneurysm	2	ok	DIRECTION_A_GOOD
+pulmonary_embolism	pulmonary embolism	0	ok	DIRECTION_B_ONLY
+endocarditis	endocarditis	0	ok	DIRECTION_B_ONLY

@@ -1,0 +1,47 @@
+GEO Auto-Discovery Report
+========================
+Disease: atrial fibrillation (key: atrial_fibrillation)
+Date: 2026-02-16 02:45:45
+Total candidates: 54
+Valid (case+control detected): 1
+Excluded: 18
+Selected: 1
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+1. GSE222739 (score: 65.0, confidence: high)
+   Title: Long noncoding RNA and messenger RNA profiling in epicardial adipose tissue of patients with new-onset postoperative atrial fibrillation after coronary artery bypass grafting
+   Platform: 24676 (24676)
+   Samples: 10 total, 5 case, 5 control
+   Case regex: patient
+   Control regex: control
+   Field matched: characteristics
+   Date: 2023/02/15
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+  GSE129409: excluded: microrna | The integrative regulatory network of circRNA, microRNA and 
+  GSE31821: excluded: mirna | Gene expression and miRNA profiles in atrial fibrillation. R
+  GSE108660: excluded: lncrna | Profiling of long non-coding RNAs associated with atrial fib
+  GSE75092: excluded: lncrna | The long noncoding RNA expression profiles of paroxysmal atr
+  GSE76899: excluded: lncrna | Integrated Analysis of Dysregulated lncRNA and mRNA Expressi
+  GSE14975: excluded: rat | Rac1-Induced Connective Tissue Growth Factor regulates Conne
+  GSE285199: excluded: single-cell | Cholesterol Homeostasis Disruption and Monocyte Recruitment 
+  GSE236870: excluded: in vitro | M1 Macrophages cause cardiac arrhythmia in an in vitro hiPSC
+  GSE271839: excluded: atacseq | Atrial fibrillation variant-to-gene prioritization through c
+  GSE238242: excluded: atacseq | Atrial fibrillation variant-to-gene prioritization through c
+  GSE175944: excluded: cell line | PITX2 knockout induces key findings of electrical remodeling
+  GSE245886: excluded: lncrna | Analyses of lncRNA and mRNA profiles in the recurrent atrial
+  GSE133420: excluded: circrna | Plasma circRNA sequencing in normal subjects and patients wi
+  GSE226283: excluded: lncrna | Gene expression profile in the atrial fibrillation patient h
+  GSE224995: excluded: single-cell | Single-cell genomics improves the discovery of risk variants
+  GSE224997: excluded: single-cell | Single-cell genomics improves the discovery of risk variants
+  GSE148507: excluded: single-cell | Single-cell profile of atrial human fibroblasts in cardiac a
+  GSE148506: excluded: single-cell | Single-cell profile of atrial human fibroblasts in cardiac a
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------
+>>> GSE222739 score= 65.0 conf=high   case=  5 ctrl=  5 plt=24676    | Long noncoding RNA and messenger RNA profiling in 

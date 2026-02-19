@@ -1,0 +1,19 @@
+GEO Auto-Discovery Report
+========================
+Disease: venous thromboembolism (key: venous_thromboembolism)
+Date: 2026-02-16 02:49:47
+Total candidates: 3
+Valid (case+control detected): 0
+Excluded: 0
+Selected: 0
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------
