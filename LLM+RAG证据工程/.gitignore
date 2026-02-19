@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
-.env
+# .env  # 已取消排除，方便 VM 同步
 venv/
 .venv/
 .DS_Store
