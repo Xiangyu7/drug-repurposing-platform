@@ -20,6 +20,7 @@ http:
   timeout: 60
   max_retries: 5
   page_size: 200
+  max_workers: 12
 
 # 临床试验筛选
 trial_filter:

@@ -69,7 +69,8 @@ def test_reactome_rate_mode_fail(tmp_path, monkeypatch):
         reactome.fetch_target_pathways(data_dir, cache)
 
 
-def test_reactome_consecutive_failure_circuit_breaker(tmp_path, monkeypatch):
+def test_reactome_all_failures_abort(tmp_path, monkeypatch):
+    """全部请求失败时, 失败率 100% 触发中止."""
     data_dir, cache = _prepare_data(tmp_path, 60)
 
     def _fake_fetch(_cache, _uniprot):
@@ -77,5 +78,5 @@ def test_reactome_consecutive_failure_circuit_breaker(tmp_path, monkeypatch):
 
     monkeypatch.setattr(reactome, "_reactome_pathways_for_uniprot", _fake_fetch)
 
-    with pytest.raises(RuntimeError, match="连续硬失败触发熔断"):
+    with pytest.raises(RuntimeError, match="硬失败率过高"):
         reactome.fetch_target_pathways(data_dir, cache)

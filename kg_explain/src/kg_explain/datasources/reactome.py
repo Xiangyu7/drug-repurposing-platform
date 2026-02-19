@@ -6,14 +6,14 @@ API: https://reactome.org/ContentService
 """
 from __future__ import annotations
 import logging
+import threading
 from pathlib import Path
 
 import pandas as pd
 import requests
-from tqdm import tqdm
 
 from ..cache import HTTPCache, cached_get_json
-from ..utils import read_csv
+from ..utils import concurrent_map, read_csv
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,12 @@ REACTOME_API = "https://reactome.org/ContentService"
 # Hard failure guardrails (requested by user)
 _FAIL_RATE_WARN = 0.05
 _FAIL_RATE_ABORT = 0.15
-_FAIL_STREAK_ABORT = 20
 _SMALL_SAMPLE_N = 50
 _SMALL_WARN_ABS = 3
 _SMALL_ABORT_ABS = 8
+
+# 线程安全的失败计数器
+_fail_lock = threading.Lock()
 
 
 def _reactome_pathways_for_uniprot(cache: HTTPCache, uniprot: str) -> list[dict]:
@@ -63,7 +65,8 @@ def fetch_target_pathways(
     """
     获取靶点-通路关系 (edge_target_pathway)
 
-    通过UniProt ID从Reactome获取通路信息
+    通过UniProt ID从Reactome获取通路信息.
+    使用 concurrent_map() 并行获取, 与其他 datasource 模式一致.
 
     Returns:
         输出文件路径
@@ -72,42 +75,46 @@ def fetch_target_pathways(
     up = xref[["target_chembl_id", "uniprot_accession"]].dropna().drop_duplicates()
     pair_list = [(r["target_chembl_id"], r["uniprot_accession"]) for _, r in up.iterrows()]
 
-    rows: list[dict] = []
     total = len(pair_list)
-    hard_failures = 0
-    consecutive_hard_failures = 0
-    hard_fail_examples: list[str] = []
 
-    for tid, u in tqdm(pair_list, desc="Reactome Target→Pathway"):
+    # 线程安全的失败统计 (在并发环境下安全累加)
+    fail_state = {"count": 0, "examples": []}
+
+    def _fetch_one(pair):
+        tid, u = pair
         try:
             ps = _reactome_pathways_for_uniprot(cache, u)
         except Exception as e:
             if _is_hard_failure(e):
-                hard_failures += 1
-                consecutive_hard_failures += 1
-                if len(hard_fail_examples) < 5:
-                    hard_fail_examples.append(f"{u}: {e}")
+                with _fail_lock:
+                    fail_state["count"] += 1
+                    if len(fail_state["examples"]) < 5:
+                        fail_state["examples"].append(f"{u}: {e}")
                 logger.warning("Reactome 硬失败, uniprot=%s: %s", u, e)
-
-                if consecutive_hard_failures >= _FAIL_STREAK_ABORT:
-                    raise RuntimeError(
-                        "Reactome 连续硬失败触发熔断: "
-                        f"{consecutive_hard_failures} 次 (阈值={_FAIL_STREAK_ABORT})"
-                    ) from e
-                continue
-
+                return None
             # 非硬失败直接上抛, 避免掩盖程序错误
             raise
 
-        consecutive_hard_failures = 0
-        rows.extend([{
+        return [{
             "target_chembl_id": tid,
             "uniprot_accession": u,
             "reactome_stid": p.get("stId") or p.get("stIdVersion") or p.get("id"),
             "reactome_name": p.get("displayName") or p.get("name"),
-        } for p in ps])
+        } for p in ps]
 
+    results = concurrent_map(
+        _fetch_one, pair_list,
+        max_workers=cache.max_workers, desc="Reactome Target→Pathway",
+    )
+
+    # 展平结果 (跳过 None = 失败的任务)
+    rows = [row for result in results if result is not None for row in result]
+
+    # ── 失败率门控 (与并行前逻辑一致) ──
+    hard_failures = fail_state["count"]
+    hard_fail_examples = fail_state["examples"]
     fail_rate = (hard_failures / total) if total > 0 else 0.0
+
     if total < _SMALL_SAMPLE_N:
         warn_tripped = hard_failures >= _SMALL_WARN_ABS
         fail_tripped = hard_failures >= _SMALL_ABORT_ABS

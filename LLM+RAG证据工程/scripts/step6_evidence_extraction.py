@@ -25,7 +25,8 @@ Notes:
 - Network access needed for PubMed E-utilities.
 """
 
-import os, re, json, math, time, hashlib, argparse, sys, logging
+import os, re, json, math, time, hashlib, argparse, sys, logging, threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -97,6 +98,20 @@ SUPPORT_COUNT_MODE = os.getenv("SUPPORT_COUNT_MODE", "unique_pmids")  # unique_p
 
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", "8"))
 RETRY_SLEEP = float(os.getenv("RETRY_SLEEP", "3"))
+
+# Thread-safe PubMed rate limiter (NCBI allows 3 req/s without API key, 10 req/s with)
+_pubmed_rate_lock = threading.Lock()
+_pubmed_last_request_time = 0.0
+
+def _pubmed_rate_wait():
+    """Ensure minimum NCBI_DELAY between any two PubMed requests (thread-safe)."""
+    global _pubmed_last_request_time
+    with _pubmed_rate_lock:
+        now = time.monotonic()
+        elapsed = now - _pubmed_last_request_time
+        if elapsed < NCBI_DELAY:
+            time.sleep(NCBI_DELAY - elapsed)
+        _pubmed_last_request_time = time.monotonic()
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
@@ -279,13 +294,13 @@ def topic_match_ratio(text: str, endpoint_type: str) -> float:
     return hit / float(len(kws))
 
 def pubmed_esearch(term: str, retmax: int = 200) -> List[str]:
+    _pubmed_rate_wait()
     params = {"db":"pubmed","term":term,"retmode":"json","retmax":str(retmax),"sort":"relevance"}
     if NCBI_API_KEY:
         params["api_key"] = NCBI_API_KEY
     url = f"{NCBI_EUTILS}/esearch.fcgi"
     r = request_with_retries("GET", url, params=params, timeout=PUBMED_TIMEOUT)
     data = r.json()
-    time.sleep(NCBI_DELAY)
     return (data.get("esearchresult", {}) or {}).get("idlist", []) or []
 
 def pubmed_efetch_xml(pmids: List[str]) -> str:
@@ -295,13 +310,13 @@ def pubmed_efetch_xml(pmids: List[str]) -> str:
     out = []
     step = max(1, int(PUBMED_EFETCH_CHUNK))
     for i in range(0, len(pmids), step):
+        _pubmed_rate_wait()
         batch = pmids[i:i+step]
         params = {"db": "pubmed", "id": ",".join(batch), "retmode": "xml"}
         if NCBI_API_KEY:
             params["api_key"] = NCBI_API_KEY
         url = f"{NCBI_EUTILS}/efetch.fcgi"
         r = request_with_retries("GET", url, params=params, timeout=PUBMED_TIMEOUT)
-        time.sleep(NCBI_DELAY)
         out.append(r.text)
     return "\n".join(out)
 
@@ -949,25 +964,28 @@ def process_one(
     max_evidence_docs = max(1, int(max_evidence_docs))
 
     if FORCE_REBUILD or is_empty(pmids_path) or is_empty(docs_path) or (REFRESH_EMPTY_CACHE and (is_empty(pmids_path) or is_empty(docs_path))):
-        for idx, route in enumerate(query_routes):
+        # Parallel PubMed retrieval: each route runs in its own thread.
+        # Rate limiting is enforced by _pubmed_rate_wait() inside pubmed_esearch/efetch.
+        _first_xml_holder: Dict[str, str] = {}  # capture first route's XML for backward compat
+
+        def _fetch_route(idx_route):
+            idx, route = idx_route
             rname = safe_filename(route.get("route", f"route{idx+1}"))
             rquery = route.get("query", "")
             r_pmids_path = base / f"pmids_{rname}.json"
             r_docs_path = base / f"docs_{rname}.json"
 
             pmids = pubmed_esearch(rquery, retmax=pubmed_retmax)
-            route_pmids_map[rname] = pmids
             write_json(r_pmids_path, {"route": rname, "query": rquery, "pmids": pmids})
 
             all_route_docs: List[Dict[str, Any]] = []
             for i in range(0, min(len(pmids), pubmed_retmax), 50):
-                batch = pmids[i:i + 50]
-                xml = pubmed_efetch_xml(batch)
+                batch_pmids = pmids[i:i + 50]
+                xml = pubmed_efetch_xml(batch_pmids)
                 parsed = parse_pubmed_xml(xml, max_articles=pubmed_parse_max)
                 all_route_docs.extend(parsed)
                 if idx == 0 and i == 0:
-                    write_text(xml_path, xml)
-            route_docs_map[rname] = all_route_docs
+                    _first_xml_holder["xml"] = xml
             write_json(
                 r_docs_path,
                 {
@@ -977,6 +995,18 @@ def process_one(
                     "docs": all_route_docs,
                 },
             )
+            return idx, rname, pmids, all_route_docs
+
+        with ThreadPoolExecutor(max_workers=min(len(query_routes), 4)) as pool:
+            futures = {pool.submit(_fetch_route, (i, r)): i for i, r in enumerate(query_routes)}
+            for fut in as_completed(futures):
+                idx, rname, pmids, docs = fut.result()
+                route_pmids_map[rname] = pmids
+                route_docs_map[rname] = docs
+
+        # Write first route's XML sample for backward compatibility
+        if _first_xml_holder.get("xml"):
+            write_text(xml_path, _first_xml_holder["xml"])
     else:
         # Backward/forward-compatible cache loading.
         cached_pmids = read_json(pmids_path) or {}
