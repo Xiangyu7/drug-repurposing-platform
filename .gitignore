@@ -13,7 +13,7 @@ venv/
 env/
 
 # === Secrets ===
-.env
+# .env  # 已取消排除，方便 VM 同步
 
 # === OS ===
 .DS_Store

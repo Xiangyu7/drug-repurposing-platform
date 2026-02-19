@@ -57,6 +57,14 @@ RUN_MODE="${RUN_MODE:-origin_only}"
 DISEASE_LIST=""
 SINGLE_DISEASE=""
 MAX_CYCLES="${MAX_CYCLES:-0}"
+CHECK_SCOPE="${CHECK_SCOPE:-all}"
+AUTO_REPAIR=1
+REPORT_JSON=""
+STATE_DIR="${ROOT_DIR}/runtime/state"
+ENV_GUARD_PY="${QUICKSTART_ENV_GUARD:-${OPS_DIR}/env_guard.py}"
+RUNNER_SCRIPT="${QUICKSTART_RUNNER:-${OPS_DIR}/run_24x7_all_directions.sh}"
+LAST_ENV_REPORT=""
+LAST_RESOLVED_ENV=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -68,6 +76,9 @@ while [[ $# -gt 0 ]]; do
         --list)         DISEASE_LIST="$2"; shift 2 ;;
         --single)       SINGLE_DISEASE="$2"; ACTION="single"; shift 2 ;;
         --cycles)       MAX_CYCLES="$2"; shift 2 ;;
+        --check-scope)  CHECK_SCOPE="$2"; shift 2 ;;
+        --no-auto-repair) AUTO_REPAIR=0; shift ;;
+        --report-json)  REPORT_JSON="$2"; shift 2 ;;
         -h|--help)
             echo "Usage: bash ops/quickstart.sh [options]"
             echo ""
@@ -82,6 +93,9 @@ while [[ $# -gt 0 ]]; do
             echo "  --mode <mode>    Run mode: dual | origin_only | cross_only (default: origin_only)"
             echo "  --list <file>    Disease list file (default: auto-select)"
             echo "  --cycles <n>     Max cycles (default: 0=infinite)"
+            echo "  --check-scope    Environment check scope: all | mode (default: all)"
+            echo "  --no-auto-repair Disable auto-repair flow for --single/--run-only/full"
+            echo "  --report-json    Override env report output path"
             echo ""
             exit 0
             ;;
@@ -89,288 +103,131 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# ── Phase 1: Environment Check ──────────────────────────────────────
+case "${CHECK_SCOPE}" in
+    all|mode) ;;
+    *)
+        fail "Invalid --check-scope: ${CHECK_SCOPE} (expected: all|mode)"
+        exit 1
+        ;;
+esac
+
+# ── Phase 1/2: Environment Check & Repair ────────────────────────────
+
+_env_report_file() {
+    local prefix="$1"
+    if [[ -n "${REPORT_JSON}" && "${prefix}" == "env_check" ]]; then
+        printf '%s\n' "${REPORT_JSON}"
+        return 0
+    fi
+    mkdir -p "${STATE_DIR}"
+    printf '%s/%s_%s.json\n' "${STATE_DIR}" "${prefix}" "$(date '+%Y%m%d_%H%M%S')"
+}
+
+_env_resolved_file() {
+    mkdir -p "${STATE_DIR}"
+    printf '%s/env_resolved_%s.env\n' "${STATE_DIR}" "$(date '+%Y%m%d_%H%M%S')"
+}
+
+apply_resolved_runtime_env() {
+    local resolved_file="${1:-${LAST_RESOLVED_ENV}}"
+    if [[ -z "${resolved_file}" || ! -f "${resolved_file}" ]]; then
+        return 0
+    fi
+    while IFS='=' read -r k v; do
+        case "${k}" in
+            DSMETA_PY|SIG_PY|KG_PY|LLM_PY) export "${k}=${v}" ;;
+        esac
+    done < <(grep -E '^(DSMETA_PY|SIG_PY|KG_PY|LLM_PY)=' "${resolved_file}" || true)
+}
 
 check_environment() {
     header "Phase 1: Environment Check"
-    local errors=0
-
-    # Python 3
-    if command -v python3 &>/dev/null; then
-        py_ver="$(python3 --version 2>&1)"
-        ok "Python3: ${py_ver}"
-    else
-        fail "Python3 not found"
-        errors=$((errors + 1))
-    fi
-
-    # R
-    if command -v Rscript &>/dev/null; then
-        r_ver="$(Rscript --version 2>&1 | head -1)"
-        ok "R: ${r_ver}"
-    else
-        warn "R not found (needed for Direction A / dsmeta)"
-    fi
-
-    # pip packages
-    for pkg in requests yaml; do
-        if python3 -c "import ${pkg}" 2>/dev/null; then
-            ok "Python package: ${pkg}"
-        else
-            warn "Missing python package: ${pkg}"
-        fi
-    done
-
-    # Disk space
-    local avail_gb
-    avail_gb=$(df -g "${ROOT_DIR}" 2>/dev/null | tail -1 | awk '{print $4}' || echo "0")
-    if [[ -z "${avail_gb}" || "${avail_gb}" == "0" ]]; then
-        avail_gb=$(df -BG "${ROOT_DIR}" 2>/dev/null | tail -1 | awk '{print $4}' | tr -d 'G' || echo "0")
-    fi
-    if [[ "${avail_gb}" -ge 5 ]]; then
-        ok "Disk space: ${avail_gb} GB available"
-    else
-        warn "Low disk space: ${avail_gb} GB (recommend ≥5 GB)"
-    fi
-
-    # Network: NCBI
-    if curl -sf --max-time 5 "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi" >/dev/null 2>&1; then
-        ok "NCBI E-utilities: reachable"
-    else
-        warn "NCBI E-utilities: not reachable (GEO discovery won't work)"
-    fi
-
-    # Network: ClinicalTrials.gov
-    if curl -sf --max-time 5 "https://clinicaltrials.gov/api/v2/studies?pageSize=1" >/dev/null 2>&1; then
-        ok "ClinicalTrials.gov API: reachable"
-    else
-        warn "ClinicalTrials.gov API: not reachable (Direction B affected)"
-    fi
-
-    # Network: ChEMBL
-    if curl -sf --max-time 5 "https://www.ebi.ac.uk/chembl/api/data/status.json" >/dev/null 2>&1; then
-        ok "ChEMBL API: reachable"
-    else
-        warn "ChEMBL API: not reachable (kg_explain affected)"
-    fi
-
-    # Project directories
-    for dir_name in "dsmeta_signature_pipeline" "sigreverse" "kg_explain" "LLM+RAG证据工程"; do
-        local dir_path="${ROOT_DIR}/${dir_name}"
-        if [[ -d "${dir_path}" ]]; then
-            ok "Project: ${dir_name}"
-        else
-            fail "Missing project: ${dir_path}"
-            errors=$((errors + 1))
-        fi
-    done
-
-    # Virtual environments
-    info ""
-    info "Virtual Environment Status:"
-    for dir_name in "kg_explain" "dsmeta_signature_pipeline" "sigreverse" "LLM+RAG证据工程"; do
-        local venv="${ROOT_DIR}/${dir_name}/.venv"
-        if [[ -d "${venv}" && -x "${venv}/bin/python3" ]]; then
-            ok "  ${dir_name}/.venv — ready"
-        else
-            warn "  ${dir_name}/.venv — not found (will use system python3)"
-        fi
-    done
-
-    # Disease configs
-    info ""
-    info "Disease Config Status:"
-    local kg_count=0
-    local dsmeta_count=0
-    if [[ -d "${ROOT_DIR}/kg_explain/configs/diseases" ]]; then
-        kg_count=$(find "${ROOT_DIR}/kg_explain/configs/diseases" -maxdepth 1 -type f -name "*.yaml" | wc -l | tr -d ' ')
-    fi
-    if [[ -d "${ROOT_DIR}/dsmeta_signature_pipeline/configs" ]]; then
-        dsmeta_count=$(
-            find "${ROOT_DIR}/dsmeta_signature_pipeline/configs" -maxdepth 1 -type f -name "*.yaml" \
-            | awk 'BEGIN{c=0} $0 !~ /template/ && $0 !~ /athero_example/ {c++} END{print c+0}'
-        )
-    fi
-    ok "  kg_explain disease configs: ${kg_count}"
-    ok "  dsmeta disease configs: ${dsmeta_count}"
-
-    # Disease lists
-    info ""
-    info "Disease List Status:"
-    for list_file in "disease_list.txt" "disease_list_day1_origin.txt" "disease_list_day1_dual.txt"; do
-        local path="${OPS_DIR}/${list_file}"
-        if [[ -f "${path}" ]]; then
-            local n_diseases
-            n_diseases=$(awk 'BEGIN{c=0} $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/ {c++} END{print c+0}' "${path}")
-            if [[ "${n_diseases}" -gt 0 ]]; then
-                ok "  ${list_file}: ${n_diseases} diseases"
-            else
-                warn "  ${list_file}: empty (no active diseases)"
-            fi
-        else
-            warn "  ${list_file}: not found"
-        fi
-    done
-
-    if [[ "${errors}" -gt 0 ]]; then
-        fail "\n${errors} critical errors found. Fix them before proceeding."
+    if [[ ! -f "${ENV_GUARD_PY}" ]]; then
+        fail "env guard not found: ${ENV_GUARD_PY}"
         return 1
     fi
+    local report_file resolved_file
+    report_file="$(_env_report_file env_check)"
+    resolved_file="$(_env_resolved_file)"
+    LAST_ENV_REPORT="${report_file}"
+    LAST_RESOLVED_ENV="${resolved_file}"
 
-    # Disease list validation
-    info ""
-    info "Disease List Validation:"
-    local list_errors=0
-    for list_file in "${OPS_DIR}/disease_list_day1_origin.txt" "${OPS_DIR}/disease_list_day1_dual.txt" "${OPS_DIR}/disease_list_b_only.txt"; do
-        if [[ ! -f "${list_file}" ]]; then continue; fi
-        local fname
-        fname="$(basename "${list_file}")"
-        local line_num=0
-        local list_ok=1
-        while IFS= read -r line || [[ -n "${line:-}" ]]; do
-            line_num=$((line_num + 1))
-            # Skip comments and empty lines
-            local trimmed
-            trimmed="$(echo "${line}" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
-            if [[ -z "${trimmed}" || "${trimmed:0:1}" == "#" ]]; then continue; fi
-            # Check format: must have at least disease_key|disease_query
-            local field_count
-            field_count="$(echo "${trimmed}" | awk -F'|' '{print NF}')"
-            if [[ "${field_count}" -lt 2 ]]; then
-                warn "  ${fname}:${line_num}: missing '|' separator (got ${field_count} fields)"
-                list_ok=0
-                list_errors=$((list_errors + 1))
-            fi
-            # Check disease_key is not empty
-            local dkey
-            dkey="$(echo "${trimmed}" | cut -d'|' -f1 | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
-            if [[ -z "${dkey}" ]]; then
-                warn "  ${fname}:${line_num}: empty disease_key"
-                list_ok=0
-                list_errors=$((list_errors + 1))
-            fi
-            # Check disease_query is not empty
-            local dquery
-            dquery="$(echo "${trimmed}" | cut -d'|' -f2 | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
-            if [[ -z "${dquery}" ]]; then
-                warn "  ${fname}:${line_num}: empty disease_query for key '${dkey}'"
-                list_ok=0
-                list_errors=$((list_errors + 1))
-            fi
-        done < "${list_file}"
-        if [[ "${list_ok}" -eq 1 ]]; then
-            ok "  ${fname}: valid"
-        fi
-    done
-    if [[ "${list_errors}" -gt 0 ]]; then
-        warn "${list_errors} disease list format warning(s) found"
+    local -a guard_args
+    guard_args=(
+        check
+        --mode "${RUN_MODE}"
+        --scope "${CHECK_SCOPE}"
+        --report-json "${report_file}"
+        --resolved-env "${resolved_file}"
+        --root-dir "${ROOT_DIR}"
+    )
+    if [[ -n "${SINGLE_DISEASE}" ]]; then
+        guard_args+=(--single-disease "${SINGLE_DISEASE}")
     fi
-
-    ok "\nEnvironment check passed!"
-    return 0
+    if python3 "${ENV_GUARD_PY}" "${guard_args[@]}"; then
+        ok "Environment check passed"
+        info "Report: ${report_file}"
+        info "Resolved runtime: ${resolved_file}"
+        apply_resolved_runtime_env "${resolved_file}"
+        return 0
+    fi
+    fail "Environment check failed"
+    info "Report: ${report_file}"
+    info "Resolved runtime: ${resolved_file}"
+    return 1
 }
 
-# ── Phase 2: Setup Dependencies ─────────────────────────────────────
-
 setup_venvs() {
-    header "Phase 2: Setup Virtual Environments"
-
-    # ── Pre-check: ensure python3-venv is available ──
-    if ! python3 -m venv --help &>/dev/null; then
-        warn "python3-venv module not available"
-        # Detect OS and auto-install
-        if command -v apt &>/dev/null; then
-            local py_ver
-            py_ver="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-            info "Installing python${py_ver}-venv via apt..."
-            sudo apt update -qq && sudo apt install -y "python${py_ver}-venv" 2>&1
-            if python3 -m venv --help &>/dev/null; then
-                ok "python${py_ver}-venv installed successfully"
-            else
-                fail "Failed to install python${py_ver}-venv. Please run manually:"
-                fail "  sudo apt install python${py_ver}-venv"
-                return 1
-            fi
-        elif command -v yum &>/dev/null; then
-            info "Installing python3-venv via yum..."
-            sudo yum install -y python3-venv 2>&1 || {
-                fail "Failed to install python3-venv. Please install manually."
-                return 1
-            }
-        else
-            fail "Cannot auto-install python3-venv. Please install it manually:"
-            fail "  Debian/Ubuntu: sudo apt install python3.x-venv"
-            fail "  CentOS/RHEL:  sudo yum install python3-venv"
-            return 1
-        fi
+    header "Phase 2: Environment Auto-Repair"
+    if [[ ! -f "${ENV_GUARD_PY}" ]]; then
+        fail "env guard not found: ${ENV_GUARD_PY}"
+        return 1
     fi
+    local report_file resolved_file
+    report_file="$(_env_report_file env_repair)"
+    resolved_file="$(_env_resolved_file)"
+    LAST_ENV_REPORT="${report_file}"
+    LAST_RESOLVED_ENV="${resolved_file}"
 
-    # ── Helper: create venv + install requirements ──
-    _create_venv() {
-        local name="$1" venv_path="$2" req_path="$3"
-        if [[ -d "${venv_path}" && -x "${venv_path}/bin/python3" ]]; then
-            ok "${name}/.venv already exists"
-            return 0
-        fi
-        # Clean up broken venv if exists
-        [[ -d "${venv_path}" ]] && rm -rf "${venv_path}"
-        info "Creating ${name}/.venv..."
-        python3 -m venv "${venv_path}"
-        "${venv_path}/bin/pip" install --upgrade pip -q
-        if [[ -f "${req_path}" ]]; then
-            "${venv_path}/bin/pip" install -r "${req_path}" -q
-            ok "${name}/.venv created and dependencies installed"
-        else
-            ok "${name}/.venv created (no requirements.txt found)"
-        fi
-    }
-
-    # kg_explain
-    _create_venv "kg_explain" \
-        "${ROOT_DIR}/kg_explain/.venv" \
-        "${ROOT_DIR}/kg_explain/requirements.txt"
-
-    # sigreverse
-    _create_venv "sigreverse" \
-        "${ROOT_DIR}/sigreverse/.venv" \
-        "${ROOT_DIR}/sigreverse/requirements.txt"
-
-    # LLM+RAG
-    _create_venv "LLM+RAG证据工程" \
-        "${ROOT_DIR}/LLM+RAG证据工程/.venv" \
-        "${ROOT_DIR}/LLM+RAG证据工程/requirements.txt"
-
-    # dsmeta: venv + pip (R/Bioconductor installed globally via apt)
-    local dsmeta_venv="${ROOT_DIR}/dsmeta_signature_pipeline/.venv"
-    if [[ -d "${dsmeta_venv}" && -x "${dsmeta_venv}/bin/python3" ]]; then
-        ok "dsmeta/.venv already exists"
-    else
-        [[ -d "${dsmeta_venv}" ]] && rm -rf "${dsmeta_venv}"
-        info "Creating dsmeta/.venv..."
-        python3 -m venv "${dsmeta_venv}"
-        "${dsmeta_venv}/bin/pip" install --upgrade pip -q
-        # Install Python deps from environment.yml (pip-installable subset)
-        "${dsmeta_venv}/bin/pip" install \
-            pandas numpy scipy pyyaml tqdm rich requests \
-            pytest pytest-cov gseapy -q
-        ok "dsmeta/.venv created and Python dependencies installed"
-        # Check R availability
-        if command -v Rscript &>/dev/null; then
-            ok "  R found globally — dsmeta R scripts will use system R"
-        else
-            warn "  R not found — Direction A (dsmeta) won't work without R"
-            warn "  Install: sudo apt install -y r-base r-base-dev"
-            warn "  Then:    sudo Rscript -e 'install.packages(\"BiocManager\"); BiocManager::install(c(\"limma\",\"GEOquery\",\"Biobase\",\"affy\",\"fgsea\"))'"
-        fi
+    local -a guard_args
+    guard_args=(
+        repair
+        --mode "${RUN_MODE}"
+        --scope "${CHECK_SCOPE}"
+        --report-json "${report_file}"
+        --resolved-env "${resolved_file}"
+        --root-dir "${ROOT_DIR}"
+    )
+    if [[ -n "${SINGLE_DISEASE}" ]]; then
+        guard_args+=(--single-disease "${SINGLE_DISEASE}")
     fi
+    if python3 "${ENV_GUARD_PY}" "${guard_args[@]}"; then
+        ok "Environment repair finished"
+        info "Report: ${report_file}"
+        info "Resolved runtime: ${resolved_file}"
+        apply_resolved_runtime_env "${resolved_file}"
+        return 0
+    fi
+    fail "Environment repair failed"
+    info "Report: ${report_file}"
+    info "Resolved runtime: ${resolved_file}"
+    return 1
+}
 
-    # ops dependencies (for auto_discover_geo.py)
-    info "Checking ops tool dependencies..."
-    python3 -c "import requests, yaml" 2>/dev/null || {
-        info "Installing ops dependencies..."
-        pip3 install requests pyyaml -q 2>/dev/null || true
-    }
-    ok "Setup complete"
+ensure_environment_ready() {
+    if check_environment; then
+        return 0
+    fi
+    if [[ "${AUTO_REPAIR}" -ne 1 ]]; then
+        fail "Auto-repair disabled (--no-auto-repair)."
+        return 1
+    fi
+    warn "Check failed, trying auto-repair..."
+    if ! setup_venvs; then
+        fail "Auto-repair step failed"
+        return 1
+    fi
+    check_environment
 }
 
 # ── Phase 3: GEO Discovery ──────────────────────────────────────────
@@ -429,7 +286,7 @@ run_geo_discovery() {
 launch_pipeline() {
     header "Phase 4: Launch Pipeline"
 
-    local runner="${OPS_DIR}/run_24x7_all_directions.sh"
+    local runner="${RUNNER_SCRIPT}"
     if [[ ! -f "${runner}" ]]; then
         fail "Runner not found: ${runner}"
         return 1
@@ -473,6 +330,12 @@ launch_pipeline() {
     info "Log file: ${log_file}"
     info ""
 
+    apply_resolved_runtime_env
+    local runtime_dsmeta="${DSMETA_PY:-python3}"
+    local runtime_sig="${SIG_PY:-python3}"
+    local runtime_kg="${KG_PY:-python3}"
+    local runtime_llm="${LLM_PY:-python3}"
+
     nohup env \
         RUN_MODE="${RUN_MODE}" \
         LOCK_NAME="qs_${RUN_MODE}" \
@@ -485,6 +348,10 @@ launch_pipeline() {
         TOPN_MAX_EXPAND_ROUNDS="${TOPN_MAX_EXPAND_ROUNDS:-1}" \
         STRICT_CONTRACT="${STRICT_CONTRACT:-1}" \
         RETENTION_DAYS="${RETENTION_DAYS:-7}" \
+        DSMETA_PY="${runtime_dsmeta}" \
+        SIG_PY="${runtime_sig}" \
+        KG_PY="${runtime_kg}" \
+        LLM_PY="${runtime_llm}" \
         bash "${runner}" "${list_file}" > "${log_file}" 2>&1 &
     local pid=$!
 
@@ -506,12 +373,12 @@ launch_pipeline() {
 run_single_disease() {
     header "Single Disease Run: ${SINGLE_DISEASE}"
 
-    local runner="${OPS_DIR}/run_24x7_all_directions.sh"
+    local runner="${RUNNER_SCRIPT}"
 
     # Create temporary disease list
     local tmp_list
     tmp_list=$(mktemp)
-    trap 'rm -f "${tmp_list}"' EXIT INT TERM
+    trap '[[ -n "${tmp_list:-}" ]] && rm -f "${tmp_list}"' EXIT INT TERM
     local disease_query="${SINGLE_DISEASE//_/ }"
 
     # Check if we have origin IDs
@@ -546,6 +413,12 @@ run_single_disease() {
     info "Log: ${log_file}"
     info ""
 
+    apply_resolved_runtime_env
+    local runtime_dsmeta="${DSMETA_PY:-python3}"
+    local runtime_sig="${SIG_PY:-python3}"
+    local runtime_kg="${KG_PY:-python3}"
+    local runtime_llm="${LLM_PY:-python3}"
+
     env \
         RUN_MODE="${RUN_MODE}" \
         LOCK_NAME="single_${SINGLE_DISEASE}" \
@@ -558,6 +431,10 @@ run_single_disease() {
         TOPN_MAX_EXPAND_ROUNDS="${TOPN_MAX_EXPAND_ROUNDS:-1}" \
         STRICT_CONTRACT="${STRICT_CONTRACT:-1}" \
         DSMETA_CLEANUP="${DSMETA_CLEANUP:-1}" \
+        DSMETA_PY="${runtime_dsmeta}" \
+        SIG_PY="${runtime_sig}" \
+        KG_PY="${runtime_kg}" \
+        LLM_PY="${runtime_llm}" \
         bash "${runner}" "${tmp_list}" 2>&1 | tee "${log_file}"
 
     local rc=${PIPESTATUS[0]}
@@ -578,27 +455,24 @@ case "${ACTION}" in
         check_environment
         ;;
     setup)
-        check_environment || true
         setup_venvs
         ;;
     discover)
         run_geo_discovery
         ;;
     run)
+        ensure_environment_ready
         launch_pipeline
         ;;
     single)
+        ensure_environment_ready
         run_single_disease
         ;;
     full)
-        check_environment || true
-        info ""
-        read -p "Continue with setup? [Y/n] " -r answer
-        if [[ "${answer}" =~ ^[Nn] ]]; then
-            info "Aborted."
-            exit 0
+        if ! ensure_environment_ready; then
+            fail "Environment is not ready."
+            exit 1
         fi
-        setup_venvs
         info ""
         read -p "Run GEO auto-discovery? [y/N] " -r answer
         if [[ "${answer}" =~ ^[Yy] ]]; then
@@ -607,7 +481,7 @@ case "${ACTION}" in
         info ""
         read -p "Start pipeline? [Y/n] " -r answer
         if [[ "${answer}" =~ ^[Nn] ]]; then
-            info "Setup complete. Start manually with: bash ops/quickstart.sh --run-only"
+            info "Environment ready. Start manually with: bash ops/quickstart.sh --run-only"
             exit 0
         fi
         launch_pipeline

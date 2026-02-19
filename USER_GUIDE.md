@@ -214,6 +214,9 @@ bash ops/quickstart.sh
 # 仅检查环境（不做任何修改）
 bash ops/quickstart.sh --check-only
 
+# 按当前模式检查（origin_only 下 A 路检查降级为 warning）
+bash ops/quickstart.sh --check-only --mode origin_only --check-scope mode
+
 # 跑单个疾病（前台运行，跑完退出，适合试水）
 bash ops/quickstart.sh --single atherosclerosis
 
@@ -225,6 +228,25 @@ bash ops/quickstart.sh --mode origin_only --run-only
 
 # 指定疾病列表
 bash ops/quickstart.sh --mode dual --list ops/disease_list_day1_dual.txt --run-only
+```
+
+工业级行为说明（新）：
+
+1. `--single` 默认是自愈流程：`check -> repair(必要时) -> re-check -> run`。
+2. `--check-only` 默认执行全量深检（A+B），只要存在 critical 就返回非零。
+3. dsmeta 解释器选择策略：`conda dsmeta 优先，.venv 回退`。
+4. 每次检查会落盘：
+   - `runtime/state/env_check_<timestamp>.json`
+   - `runtime/state/env_resolved_<timestamp>.env`
+
+常用可选参数：
+
+```bash
+# 禁止自动修复（检查失败即退出）
+bash ops/quickstart.sh --single atherosclerosis --no-auto-repair
+
+# 指定检查报告路径
+bash ops/quickstart.sh --check-only --report-json runtime/state/my_env_check.json
 ```
 
 ### 添加新疾病到 Direction A

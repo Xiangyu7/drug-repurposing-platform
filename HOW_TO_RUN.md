@@ -75,6 +75,8 @@ cd /path/to/Drug\ Repurposing
 
 # Check environment prerequisites
 bash ops/quickstart.sh --check-only
+# 或按当前运行模式检查（origin_only 下 A 路问题降级为 warning）
+bash ops/quickstart.sh --check-only --mode origin_only --check-scope mode
 
 # Install all dependencies (creates venvs, installs pip packages)
 bash ops/quickstart.sh --setup-only
@@ -87,6 +89,25 @@ bash ops/quickstart.sh --single atherosclerosis
 
 # Run only Direction B (origin)
 bash ops/quickstart.sh --mode origin_only
+```
+
+### Quickstart 行为升级（工业级）
+
+1. `--single` 默认会执行：`check -> auto-repair(必要时) -> re-check -> run`。  
+2. `--check-only` 默认是全量深检（A+B），并落盘可审计报告 JSON。  
+3. dsmeta 解释器解析策略为 `conda dsmeta 优先，.venv 回退`。  
+4. 生成产物位置：
+   - `runtime/state/env_check_<timestamp>.json`
+   - `runtime/state/env_resolved_<timestamp>.env`
+
+可选参数：
+
+```bash
+# 关闭自动修复（检查失败即退出）
+bash ops/quickstart.sh --single atherosclerosis --no-auto-repair
+
+# 自定义报告输出文件（check-only）
+bash ops/quickstart.sh --check-only --report-json runtime/state/my_env_check.json
 ```
 
 ---

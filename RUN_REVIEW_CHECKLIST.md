@@ -6,6 +6,7 @@
 ## 1) 每次 Run 必做
 
 - [ ] 冻结本次 `run_id` 和 manifest（配置、模型版本、输出目录）。
+- [ ] 运行环境体检：`bash ops/quickstart.sh --check-only` 并归档 `env_check_*.json`、`env_resolved_*.env`。
 - [ ] 审核 trial screening 产物 `manual_review_queue.csv`。
 - [ ] 审核 `manual_alias_review_queue.csv`；必要时更新 `manual_alias_overrides.csv`。
 - [ ] 审核 Step7 的边缘候选（`MAYBE` / `explore`）及其关键文献。

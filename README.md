@@ -262,6 +262,9 @@ bash ops/quickstart.sh
 # Check environment only
 bash ops/quickstart.sh --check-only
 
+# Check by current route mode only (origin_only will downgrade A-route issues to warnings)
+bash ops/quickstart.sh --check-only --mode origin_only --check-scope mode
+
 # Run single disease (one cycle, foreground, default origin_only)
 bash ops/quickstart.sh --single atherosclerosis
 
@@ -271,6 +274,13 @@ RUN_MODE=dual bash ops/quickstart.sh --single atherosclerosis
 # Start origin-only mode in background
 bash ops/quickstart.sh --mode origin_only --run-only
 ```
+
+Quickstart industrial defaults:
+
+- `--single` now does `check -> repair(if needed) -> re-check -> run`
+- `--check-only` writes audit artifacts to `runtime/state/env_check_*.json`
+- runtime resolver file is written to `runtime/state/env_resolved_*.env`
+- dsmeta runtime policy is `conda dsmeta first, .venv fallback`
 
 ---
 
@@ -667,6 +677,9 @@ bash ops/quickstart.sh --single atherosclerosis
 
 # Full A+B routes for one disease (single cycle, foreground)
 RUN_MODE=dual bash ops/quickstart.sh --single atherosclerosis
+
+# Disable auto-repair if you only want strict check-and-stop
+bash ops/quickstart.sh --single atherosclerosis --no-auto-repair
 ```
 
 ### Full Pipeline (Path A)

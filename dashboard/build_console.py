@@ -982,12 +982,14 @@ def _render_file_list(files):
             icon = "\U0001F4D1"
 
         path_escaped = f["path"].replace("'", "\\'")
+        path_open = f["path"].replace('"', '\\"')
         html += f"""<div class="file-item">
           <span class="file-icon">{icon}</span>
           <span class="file-name">{f['name']}</span>
           <span class="file-size">{size}</span>
           <span class="file-btns">
             <button class="btn" onclick="copyToClipboard('{path_escaped}')" style="font-size:10px;padding:2px 6px">Copy Path</button>
+            <button class="btn btn-blue" onclick="showCmd('open &quot;{path_open}&quot;')" style="font-size:10px;padding:2px 6px">Open</button>
           </span>
         </div>"""
     return html

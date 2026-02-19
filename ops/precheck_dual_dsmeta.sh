@@ -8,8 +8,12 @@ LIST_FILE="${1:-${ROOT_DIR}/ops/disease_list_day1_dual.txt}"
 MIN_CASE="${MIN_CASE:-8}"
 MIN_CONTROL="${MIN_CONTROL:-8}"
 
-DSMETA_PY="${DSMETA_DIR}/.venv/bin/python3"
-if [[ ! -x "${DSMETA_PY}" ]]; then DSMETA_PY="python3"; fi
+DSMETA_PY="${DSMETA_PY:-${DSMETA_DIR}/.venv/bin/python3}"
+if [[ "${DSMETA_PY}" == */* ]]; then
+  if [[ ! -x "${DSMETA_PY}" ]]; then DSMETA_PY="python3"; fi
+elif ! command -v "${DSMETA_PY}" >/dev/null 2>&1; then
+  DSMETA_PY="python3"
+fi
 
 REPORT_DIR="${ROOT_DIR}/runtime/state"
 mkdir -p "${REPORT_DIR}"
@@ -21,6 +25,7 @@ if [[ ! -f "${LIST_FILE}" ]]; then
 fi
 
 printf 'disease_key\tstatus\tdetail\tconfig_path\n' > "${REPORT_PATH}"
+echo "[PRECHECK] DSMETA_PY=${DSMETA_PY}"
 
 fail_count=0
 checked_count=0
