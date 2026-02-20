@@ -1,0 +1,6 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Minimal test: 2 diseases
+# abdominal_aortic_aneurysm: has dsmeta config → cross + origin
+abdominal_aortic_aneurysm|abdominal aortic aneurysm|EFO_0004214|
+# myocarditis: no dsmeta config → origin only
+myocarditis|myocarditis|EFO_0009609|
