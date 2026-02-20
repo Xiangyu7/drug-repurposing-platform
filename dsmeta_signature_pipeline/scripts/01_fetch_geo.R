@@ -71,15 +71,20 @@ for (gse in gse_list){
   expr <- exprs(eset)
   pheno <- pData(eset)
 
+  pheno_rn <- rownames(pheno)
   pheno_dt <- as.data.table(pheno)
-  pheno_dt[, gsm := rownames(pheno)]
+  if (!is.null(pheno_rn) && length(pheno_rn) == nrow(pheno_dt)) {
+    pheno_dt[, gsm := pheno_rn]
+  }
   if (!("title" %in% names(pheno_dt))) pheno_dt[, title := ""]
   if (!("source_name_ch1" %in% names(pheno_dt))) pheno_dt[, source_name_ch1 := ""]
   pheno_dt[, characteristics_ch1 := collapse_chars(pheno)]
 
+  expr_rn <- rownames(expr)
   expr_dt <- as.data.table(expr)
-  expr_dt[, feature_id := rownames(expr)]
-  setcolorder(expr_dt, c("feature_id", setdiff(names(expr_dt), "feature_id")))
+  if (!is.null(expr_rn) && length(expr_rn) == nrow(expr_dt)) {
+    expr_dt <- cbind(data.table(feature_id = expr_rn), expr_dt)
+  }
   fwrite(expr_dt, file=file.path(gdir, "expr.tsv"), sep="\t")
   fwrite(pheno_dt, file=file.path(gdir, "pheno.tsv"), sep="\t")
   message("Saved: ", gdir)
