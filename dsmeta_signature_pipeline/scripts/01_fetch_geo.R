@@ -71,6 +71,13 @@ for (gse in gse_list){
   expr <- exprs(eset)
   pheno <- pData(eset)
 
+  # Validate: some GEO datasets (e.g. RNA-seq) have no expression in series matrix
+  if (nrow(expr) == 0) {
+    message("  [ERROR] ", gse, ": expression matrix is empty (0 rows). ",
+            "This dataset likely stores expression in supplementary files, not series matrix. Skipping.")
+    next
+  }
+
   pheno_rn <- rownames(pheno)
   pheno_dt <- as.data.table(pheno)
   if (!is.null(pheno_rn) && length(pheno_rn) == nrow(pheno_dt)) {
