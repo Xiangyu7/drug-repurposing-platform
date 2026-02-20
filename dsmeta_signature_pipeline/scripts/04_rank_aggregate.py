@@ -36,13 +36,24 @@ def main():
     ranks = {}
     for gse in gse_list:
         de_path = workdir / "de" / gse / "de.tsv"
+        if not de_path.exists():
+            print(f"[WARNING] DE file not found for {gse}: {de_path} — skipping")
+            continue
         de = pd.read_csv(de_path, sep="\t")
+        if "feature_id" not in de.columns or "t" not in de.columns:
+            print(f"[WARNING] DE file for {gse} missing required columns — skipping")
+            continue
         de = de[["feature_id","t"]].dropna()
         de["rank_up"] = (-de["t"]).rank(method="average")  # 1 is most up in disease
         ranks[gse] = de.set_index("feature_id")["rank_up"]
 
+    if len(ranks) == 0:
+        print("[ERROR] No valid DE results found. Cannot perform rank aggregation.")
+        return
+
+    available_gse = list(ranks.keys())
     all_genes = sorted(set().union(*[s.index for s in ranks.values()]), key=str)
-    M = pd.DataFrame({gse: ranks[gse].reindex(all_genes) for gse in gse_list})
+    M = pd.DataFrame({gse: ranks[gse].reindex(all_genes) for gse in available_gse})
     M = M.apply(lambda col: col.fillna(col.max(skipna=True)), axis=0)
 
     out_ra = outdir / "signature" / "rank_aggregation"
