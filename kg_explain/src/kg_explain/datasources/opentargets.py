@@ -106,7 +106,12 @@ def fetch_gene_diseases(
     )
     rows = [row for result in results if result is not None for row in result]
 
-    out_df = pd.DataFrame(rows).dropna(subset=["targetId", "diseaseId", "score"]).drop_duplicates()
+    expected_cols = ["targetId", "diseaseId", "diseaseName", "score"]
+    if rows:
+        out_df = pd.DataFrame(rows)
+    else:
+        out_df = pd.DataFrame(columns=expected_cols)
+    out_df = out_df.dropna(subset=["targetId", "diseaseId", "score"]).drop_duplicates()
     logger.info("Gene→Disease 关系: %d 条边, %d 个基因, %d 个疾病",
                 len(out_df), out_df["targetId"].nunique(), out_df["diseaseId"].nunique())
 

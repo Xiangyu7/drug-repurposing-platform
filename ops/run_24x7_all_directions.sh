@@ -117,15 +117,28 @@ LOG_DIR="${ROOT_DIR}/logs/continuous_runner"
 
 DISEASE_LIST_FILE="${1:-${ROOT_DIR}/ops/disease_list.txt}"
 
-DSMETA_PY="${DSMETA_DIR}/.venv/bin/python3"
-SIG_PY="${SIG_DIR}/.venv/bin/python3"
-KG_PY="${KG_DIR}/.venv/bin/python3"
-LLM_PY="${LLM_DIR}/.venv/bin/python3"
+resolve_runtime_python() {
+  local override="${1:-}"
+  local venv_py="${2:-}"
+  if [[ -n "${override}" && -x "${override}" ]]; then
+    printf '%s' "${override}"
+    return 0
+  fi
+  if [[ -n "${override}" ]] && command -v "${override}" >/dev/null 2>&1; then
+    printf '%s' "${override}"
+    return 0
+  fi
+  if [[ -n "${venv_py}" && -x "${venv_py}" ]]; then
+    printf '%s' "${venv_py}"
+    return 0
+  fi
+  printf 'python3'
+}
 
-if [[ ! -x "${DSMETA_PY}" ]]; then DSMETA_PY="python3"; fi
-if [[ ! -x "${SIG_PY}" ]]; then SIG_PY="python3"; fi
-if [[ ! -x "${KG_PY}" ]]; then KG_PY="python3"; fi
-if [[ ! -x "${LLM_PY}" ]]; then LLM_PY="python3"; fi
+DSMETA_PY="$(resolve_runtime_python "${DSMETA_PY:-}" "${DSMETA_DIR}/.venv/bin/python3")"
+SIG_PY="$(resolve_runtime_python "${SIG_PY:-}" "${SIG_DIR}/.venv/bin/python3")"
+KG_PY="$(resolve_runtime_python "${KG_PY:-}" "${KG_DIR}/.venv/bin/python3")"
+LLM_PY="$(resolve_runtime_python "${LLM_PY:-}" "${LLM_DIR}/.venv/bin/python3")"
 
 SLEEP_SECONDS="${SLEEP_SECONDS:-300}"
 SCREEN_MAX_STUDIES="${SCREEN_MAX_STUDIES:-500}"
@@ -451,7 +464,7 @@ resolve_topn() {
     return 1
   fi
   local policy_cmd=(
-    python3 "${TOPN_POLICY_PY}" decide
+    "${KG_PY}" "${TOPN_POLICY_PY}" decide
     --bridge_csv "${csv_path}"
     --route "${route_label}"
     --profile "${TOPN_PROFILE}"
@@ -497,7 +510,7 @@ evaluate_topn_quality() {
     return 1
   fi
 
-  if ! python3 "${TOPN_POLICY_PY}" quality \
+  if ! "${KG_PY}" "${TOPN_POLICY_PY}" quality \
     --step7_cards "${step7_cards}" \
     --step8_shortlist "${step8_shortlist}" \
     --topk "${topk}" \
@@ -833,7 +846,15 @@ PY
 
 derive_matched_ids_from_v3() {
   local disease_query="$1"
-  local v3_path="${KG_DIR}/output/drug_disease_rank_v3.csv"
+  local disease_key="${2:-}"
+  local v3_path=""
+  local v3_path_new="${KG_DIR}/output/${disease_key}/drug_disease_rank_v3.csv"
+  local v3_path_legacy="${KG_DIR}/output/drug_disease_rank_v3.csv"
+  if [[ -n "${disease_key}" && -f "${v3_path_new}" ]]; then
+    v3_path="${v3_path_new}"
+  elif [[ -f "${v3_path_legacy}" ]]; then
+    v3_path="${v3_path_legacy}"
+  fi
   if [[ ! -f "${v3_path}" ]]; then
     printf ''
     return 0
@@ -1161,13 +1182,17 @@ process_disease() {
   local origin_manifest_path="${disease_work}/pipeline_manifest_origin_ctgov.json"
   cp "${kg_manifest}" "${origin_manifest_path}"
 
-  local bridge_origin="${kg_output_dir}/bridge_origin_reassess.csv"
-  # fallback to default location
-  if [[ ! -f "${bridge_origin}" ]]; then
-    bridge_origin="${KG_DIR}/output/bridge_origin_reassess.csv"
-  fi
+  local kg_output_disease_dir="${KG_DIR}/output/${disease_key}"
+  local kg_data_disease_dir="${KG_DIR}/data/${disease_key}"
+  local bridge_origin="${kg_output_disease_dir}/bridge_origin_reassess.csv"
+  local bridge_origin_legacy="${KG_DIR}/output/bridge_origin_reassess.csv"
 
   local origin_cmd=("${KG_PY}" scripts/generate_disease_bridge.py)
+  origin_cmd+=(--v3 "${kg_output_disease_dir}/drug_disease_rank_v3.csv")
+  origin_cmd+=(--v5 "${kg_output_disease_dir}/drug_disease_rank_v5.csv")
+  origin_cmd+=(--paths "${kg_output_disease_dir}/evidence_paths_v3.jsonl")
+  origin_cmd+=(--chembl "${kg_data_disease_dir}/drug_chembl_map.csv")
+  origin_cmd+=(--data-dir "${kg_data_disease_dir}")
   if [[ -n "${origin_ids_input}" ]]; then
     origin_cmd+=(--disease-ids "${origin_ids_input}")
     origin_ids_effective="${origin_ids_input}"
@@ -1183,9 +1208,12 @@ process_disease() {
     fail_disease "${disease_key}" "${run_id}" "origin_bridge" "generate_disease_bridge failed" "${cross_status}" "${origin_status}"
     return 1
   fi
+  if [[ ! -f "${bridge_origin}" && -f "${bridge_origin_legacy}" ]]; then
+    bridge_origin="${bridge_origin_legacy}"
+  fi
 
   if [[ -z "${origin_ids_input}" ]]; then
-    origin_ids_effective="$(derive_matched_ids_from_v3 "${disease_query}")"
+    origin_ids_effective="$(derive_matched_ids_from_v3 "${disease_query}" "${disease_key}")"
   fi
 
   if ! require_file "${bridge_origin}" "origin bridge"; then
@@ -1296,9 +1324,15 @@ process_disease() {
   fi
 
   # Delete large temporary path file only after origin bridge is archived.
-  if [[ -f "${KG_DIR}/output/evidence_paths_v3.jsonl" ]]; then
-    rm -f "${KG_DIR}/output/evidence_paths_v3.jsonl"
-    log "[CLEAN] Deleted temporary file: ${KG_DIR}/output/evidence_paths_v3.jsonl"
+  local evidence_paths_tmp_new="${KG_DIR}/output/${disease_key}/evidence_paths_v3.jsonl"
+  local evidence_paths_tmp_legacy="${KG_DIR}/output/evidence_paths_v3.jsonl"
+  if [[ -f "${evidence_paths_tmp_new}" ]]; then
+    rm -f "${evidence_paths_tmp_new}"
+    log "[CLEAN] Deleted temporary file: ${evidence_paths_tmp_new}"
+  fi
+  if [[ -f "${evidence_paths_tmp_legacy}" ]]; then
+    rm -f "${evidence_paths_tmp_legacy}"
+    log "[CLEAN] Deleted temporary file: ${evidence_paths_tmp_legacy}"
   fi
 
   log "=== Disease done: ${disease_key} run_id=${run_id} cross=${cross_status} origin=${origin_status} results=${result_dir} ==="
@@ -1391,8 +1425,8 @@ run_cross_route() {
   cross_manifest_path="${disease_work}/pipeline_manifest_cross_signature.json"
   cp "${kg_manifest}" "${cross_manifest_path}"
 
-  bridge_cross="${kg_output_dir}/bridge_repurpose_cross.csv"
-  # fallback to default location
+  bridge_cross="${KG_DIR}/output/${disease_key}/bridge_repurpose_cross.csv"
+  # fallback to legacy location
   if [[ ! -f "${bridge_cross}" ]]; then
     bridge_cross="${KG_DIR}/output/bridge_repurpose_cross.csv"
   fi
