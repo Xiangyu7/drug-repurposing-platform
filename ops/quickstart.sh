@@ -53,7 +53,7 @@ header() {
 # ── Parse Arguments ──────────────────────────────────────────────────
 
 ACTION="full"
-RUN_MODE="${RUN_MODE:-origin_only}"
+RUN_MODE="${RUN_MODE:-dual}"
 DISEASE_LIST=""
 SINGLE_DISEASE=""
 MAX_CYCLES="${MAX_CYCLES:-0}"
