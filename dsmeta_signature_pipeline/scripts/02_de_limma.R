@@ -113,11 +113,16 @@ for (gse in gse_list){
     expr_dt <- fread(expr_path)
     pheno_dt <- fread(pheno_path)
 
-    feature_id <- expr_dt$feature_id
-    expr_dt[, feature_id := NULL]
+    if ("feature_id" %in% names(expr_dt)) {
+      feature_id <- expr_dt$feature_id
+      expr_dt[, feature_id := NULL]
+    } else {
+      # Fallback: use sequential row indices
+      message("  [WARN] No feature_id column in expr.tsv, using row indices")
+      feature_id <- as.character(seq_len(nrow(expr_dt)))
+    }
     expr <- as.matrix(expr_dt)
     rownames(expr) <- feature_id
-    colnames(expr) <- colnames(expr_dt)
 
     # --- Validate expression matrix ---
     na_frac <- sum(is.na(expr)) / length(expr)

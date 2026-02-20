@@ -84,6 +84,10 @@ for (gse in gse_list){
   expr_dt <- as.data.table(expr)
   if (!is.null(expr_rn) && length(expr_rn) == nrow(expr_dt)) {
     expr_dt <- cbind(data.table(feature_id = expr_rn), expr_dt)
+  } else {
+    # Fallback: use sequential row indices as feature_id
+    message("  [WARN] No rownames on expression matrix, using row indices as feature_id")
+    expr_dt <- cbind(data.table(feature_id = as.character(seq_len(nrow(expr_dt)))), expr_dt)
   }
   fwrite(expr_dt, file=file.path(gdir, "expr.tsv"), sep="\t")
   fwrite(pheno_dt, file=file.path(gdir, "pheno.tsv"), sep="\t")
