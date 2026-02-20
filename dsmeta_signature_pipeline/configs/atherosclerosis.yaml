@@ -51,7 +51,7 @@ rank_aggregation:
 
 genesets:
   enable_reactome: true
-  enable_wikipathways: true
+  enable_wikipathways: false
   enable_kegg: false
 
 gsea:

@@ -10,12 +10,6 @@ from rich import print
 REACTOME_GMT_URLS = [
     "https://reactome.org/download/current/ReactomePathways.gmt",
 ]
-WIKIPATHWAYS_GMT_URLS = [
-    "https://data.wikipathways.org/current/gmt/wikipathways-Homo_sapiens.gmt",
-    "https://wikipathways-data.wmcloud.org/current/gmt/wikipathways-Homo_sapiens.gmt",
-    "https://data.wikipathways.org/current/gmt/wikipathways.gmt",
-    "https://wikipathways-data.wmcloud.org/current/gmt/wikipathways.gmt",
-]
 
 def download_first(urls, out_path: Path):
     last = None
@@ -59,16 +53,6 @@ def main():
             download_first(REACTOME_GMT_URLS, out)
         else:
             print("[green]reactome.gmt already exists[/green]")
-
-    if gs.get("enable_wikipathways", True):
-        out = gdir / "wikipathways.gmt"
-        if not out.exists():
-            try:
-                download_first(WIKIPATHWAYS_GMT_URLS, out)
-            except RuntimeError as e:
-                print(f"[yellow]WARNING: {e}. WikiPathways will be skipped.[/yellow]")
-        else:
-            print("[green]wikipathways.gmt already exists[/green]")
 
     if gs.get("enable_kegg", False):
         print("[yellow]KEGG enabled. Provide work/genesets/kegg.gmt manually (source/license dependent).[/yellow]")

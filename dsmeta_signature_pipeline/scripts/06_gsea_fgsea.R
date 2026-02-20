@@ -47,10 +47,6 @@ if (isTRUE(cfg$genesets$enable_reactome) && file.exists(file.path(gs_dir, "react
   genesets[["reactome"]] <- fgsea::gmtPathways(file.path(gs_dir, "reactome.gmt"))
   message("Loaded Reactome: ", length(genesets[["reactome"]]), " pathways")
 }
-if (isTRUE(cfg$genesets$enable_wikipathways) && file.exists(file.path(gs_dir, "wikipathways.gmt"))){
-  genesets[["wikipathways"]] <- fgsea::gmtPathways(file.path(gs_dir, "wikipathways.gmt"))
-  message("Loaded WikiPathways: ", length(genesets[["wikipathways"]]), " pathways")
-}
 if (isTRUE(cfg$genesets$enable_kegg) && file.exists(file.path(gs_dir, "kegg.gmt"))){
   genesets[["kegg"]] <- fgsea::gmtPathways(file.path(gs_dir, "kegg.gmt"))
   message("Loaded KEGG: ", length(genesets[["kegg"]]), " pathways")

@@ -94,9 +94,9 @@ rank_aggregation:
     w_rra: 0.3
 
 genesets:
-  # Reactome + WikiPathways are open and recommended.
+  # Reactome is recommended (WikiPathways removed due to unreliable URLs).
   enable_reactome: true
-  enable_wikipathways: true
+  enable_wikipathways: false
 
   # KEGG is optional due to licensing/source constraints
   enable_kegg: false
