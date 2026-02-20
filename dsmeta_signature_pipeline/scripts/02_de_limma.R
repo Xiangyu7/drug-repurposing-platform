@@ -103,6 +103,17 @@ for (gse in gse_list){
 
   tryCatch({
     gdir <- file.path(workdir, "geo", gse)
+
+    # --- Check data type: skip RNA-seq (handled by DESeq2) ---
+    dtype_file <- file.path(gdir, "data_type.txt")
+    if (file.exists(dtype_file)) {
+      dtype <- trimws(readLines(dtype_file, n = 1))
+      if (startsWith(dtype, "rnaseq")) {
+        message("  Skipping ", gse, " (RNA-seq, handled by DESeq2)")
+        next
+      }
+    }
+
     expr_path <- file.path(gdir, "expr.tsv")
     pheno_path <- file.path(gdir, "pheno.tsv")
 

@@ -486,6 +486,15 @@ def main():
             logger.warning(f"  {gse}: expr.tsv not found, skipping")
             continue
 
+        # Check if RNA-seq: skip probe mapping (already gene-level IDs)
+        dtype_file = geo_dir / "data_type.txt"
+        if dtype_file.exists():
+            dtype = dtype_file.read_text().strip()
+            if dtype.startswith("rnaseq"):
+                logger.info(f"  {gse}: RNA-seq data, skipping probe-to-gene mapping.")
+                all_stats[gse] = {"status": "skipped_rnaseq"}
+                continue
+
         # Check if already gene symbols
         expr_df = pd.read_csv(expr_path, sep="\t", nrows=50)
         if skip_if_symbols and is_already_gene_symbols(expr_df["feature_id"]):

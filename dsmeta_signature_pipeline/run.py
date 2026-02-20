@@ -38,7 +38,7 @@ PYTHON  = sys.executable
 # ---------------------------------------------------------------------------
 STEPS = [
     {"num": 1,  "name": "fetch_geo",           "cmd": [RSCRIPT, "scripts/01_fetch_geo.R"]},
-    {"num": 2,  "name": "de_limma",             "cmd": [RSCRIPT, "scripts/02_de_limma.R"]},
+    {"num": 2,  "name": "de_analysis",          "cmd": None, "handler": "run_de_step"},
     {"num": 3,  "name": "probe_to_gene",        "cmd": [PYTHON,  "scripts/02b_probe_to_gene.py"]},
     {"num": 4,  "name": "meta_effects",         "cmd": [RSCRIPT, "scripts/03_meta_effects.R"]},
     {"num": 5,  "name": "rank_aggregate",       "cmd": [PYTHON,  "scripts/04_rank_aggregate.py"]},
@@ -86,6 +86,42 @@ def sh(cmd, step_name: str = "", timeout: int = 0):
 
 def ensure_dir(p):
     Path(p).mkdir(parents=True, exist_ok=True)
+
+
+def run_de_step(cfg: dict, workdir: Path, cfg_snap: Path):
+    """Route each GSE to the appropriate DE method based on data_type.txt.
+
+    Runs limma for microarray datasets and DESeq2 for RNA-seq datasets.
+    Both produce identical de.tsv output format.
+    """
+    gse_list = cfg["geo"]["gse_list"]
+
+    has_microarray = False
+    has_rnaseq = False
+
+    for gse in gse_list:
+        dtype_file = workdir / "geo" / gse / "data_type.txt"
+        if dtype_file.exists():
+            dtype = dtype_file.read_text().strip()
+            if dtype == "microarray":
+                has_microarray = True
+            elif dtype.startswith("rnaseq") and dtype != "rnaseq_failed":
+                has_rnaseq = True
+        else:
+            # Legacy: no data_type.txt means microarray (backward compat)
+            has_microarray = True
+
+    if has_microarray:
+        logger.info("Running limma for microarray datasets...")
+        sh([RSCRIPT, "scripts/02_de_limma.R",
+            "--config", str(cfg_snap), "--workdir", str(workdir)],
+           step_name="de_limma")
+
+    if has_rnaseq:
+        logger.info("Running DESeq2 for RNA-seq datasets...")
+        sh([RSCRIPT, "scripts/02_de_deseq2.R",
+            "--config", str(cfg_snap), "--workdir", str(workdir)],
+           step_name="de_deseq2")
 
 
 def config_hash(cfg: dict) -> str:
@@ -284,8 +320,12 @@ def main():
         for s in steps_to_run:
             step_start = time.monotonic()
             console.print(f"\n[bold magenta]═══ Step {s['num']}: {s['name']} ═══[/bold magenta]")
-            cmd = s["cmd"] + ["--config", str(cfg_snap), "--workdir", str(workdir)]
-            sh(cmd, step_name=s["name"])
+
+            if s.get("handler") == "run_de_step":
+                run_de_step(cfg, workdir, cfg_snap)
+            else:
+                cmd = s["cmd"] + ["--config", str(cfg_snap), "--workdir", str(workdir)]
+                sh(cmd, step_name=s["name"])
             steps_completed.append({
                 "num": s["num"],
                 "name": s["name"],
