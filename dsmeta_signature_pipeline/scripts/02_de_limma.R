@@ -223,7 +223,8 @@ for (gse in gse_list){
     fit2 <- eBayes(contrasts.fit(fit, cont))
 
     tab <- topTable(fit2, number=Inf, sort.by="none")
-    tab_dt <- as.data.table(tab, keep.rownames="feature_id")
+    tab_dt <- as.data.table(tab)
+    tab_dt[, feature_id := rownames(tab)]
     tab_dt[, gse := gse]
     tab_dt[, se := ifelse(t == 0, NA_real_, abs(logFC / t))]
     tab_dt[, sign := sign(logFC)]
