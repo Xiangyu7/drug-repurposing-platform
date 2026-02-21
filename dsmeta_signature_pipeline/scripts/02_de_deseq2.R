@@ -129,21 +129,64 @@ for (gse in gse_list){
     }
 
     # --- Match pheno to expression ---
+    expr_cols <- colnames(count_mat)
+
+    # Strategy 1: direct GSM match
+    matched <- FALSE
     if ("gsm" %in% names(pheno_dt)) {
-      setkey(pheno_dt, gsm)
-      pheno_dt <- pheno_dt[colnames(count_mat), nomatch = 0]
+      common <- intersect(pheno_dt$gsm, expr_cols)
+      if (length(common) >= 2) {
+        setkey(pheno_dt, gsm)
+        pheno_dt <- pheno_dt[common]
+        count_mat <- count_mat[, common, drop = FALSE]
+        matched <- TRUE
+      }
     }
-    if (nrow(pheno_dt) == 0) {
-      # Try matching by column position
-      if (nrow(fread(pheno_path)) == ncol(count_mat)) {
-        pheno_dt <- fread(pheno_path)
-        if ("geo_accession" %in% names(pheno_dt)) {
+
+    # Strategy 2: map via title field (e.g. title="case [1240831p]" -> expr col="X1240831p")
+    if (!matched && "title" %in% names(pheno_dt)) {
+      # Extract sample IDs from title brackets or use whole title
+      extracted <- gsub(".*\\[(.+)\\].*", "\\1", pheno_dt$title)
+      # R prepends X to numeric-starting colnames
+      extracted_x <- paste0("X", extracted)
+      # Try both with and without X prefix
+      if (sum(extracted_x %in% expr_cols) >= 2) {
+        pheno_dt[, expr_col := extracted_x]
+        keep_match <- pheno_dt$expr_col %in% expr_cols
+        pheno_dt <- pheno_dt[keep_match]
+        count_mat <- count_mat[, pheno_dt$expr_col, drop = FALSE]
+        # Rename columns to gsm for downstream consistency
+        colnames(count_mat) <- pheno_dt$gsm
+        matched <- TRUE
+        message("  [INFO] Matched samples via title field (", nrow(pheno_dt), " samples)")
+      } else if (sum(extracted %in% expr_cols) >= 2) {
+        pheno_dt[, expr_col := extracted]
+        keep_match <- pheno_dt$expr_col %in% expr_cols
+        pheno_dt <- pheno_dt[keep_match]
+        count_mat <- count_mat[, pheno_dt$expr_col, drop = FALSE]
+        colnames(count_mat) <- pheno_dt$gsm
+        matched <- TRUE
+        message("  [INFO] Matched samples via title field (", nrow(pheno_dt), " samples)")
+      }
+    }
+
+    # Strategy 3: positional match (same number of samples)
+    if (!matched) {
+      pheno_all <- fread(pheno_path)
+      if (nrow(pheno_all) == ncol(count_mat)) {
+        if ("geo_accession" %in% names(pheno_all)) {
+          pheno_dt <- pheno_all
           pheno_dt[, gsm := geo_accession]
         } else {
-          pheno_dt[, gsm := colnames(count_mat)]
+          pheno_dt <- pheno_all
+          pheno_dt[, gsm := expr_cols]
         }
+        colnames(count_mat) <- pheno_dt$gsm
+        matched <- TRUE
+        message("  [INFO] Matched samples by position (", nrow(pheno_dt), " samples)")
       } else {
-        stop("Cannot match pheno to expression samples for ", gse)
+        stop("Cannot match pheno (", nrow(pheno_all), " rows) to expression (",
+             ncol(count_mat), " cols) for ", gse)
       }
     }
 
