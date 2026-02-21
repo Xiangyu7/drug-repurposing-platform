@@ -1,0 +1,17 @@
+# B路线 (Origin only) — 需要跑的剩余疾病
+# 已完成(跳过): abdominal_aortic_aneurysm, cardiomyopathy, coronary_artery_disease,
+#                myocardial_infarction, pulmonary_arterial_hypertension
+#
+# === 之前失败需要重跑的 ===
+atherosclerosis|atherosclerosis|EFO_0003914,MONDO_0021661|kg_explain/configs/inject_atherosclerosis.yaml
+heart_failure|heart failure|EFO_0003144|
+# === 从未跑过的 B-only 疾病 ===
+atrial_fibrillation|atrial fibrillation|EFO_0000275|
+hypertension|hypertension|EFO_0000537|
+stroke|stroke|EFO_0004285|
+deep_vein_thrombosis|deep vein thrombosis|EFO_0003907|
+venous_thromboembolism|venous thromboembolism|EFO_0004286|
+angina_pectoris|angina pectoris|EFO_0003913|
+myocarditis|myocarditis|EFO_0009609|
+pulmonary_embolism|pulmonary embolism|EFO_0003827|
+endocarditis|endocarditis|EFO_0000465|
