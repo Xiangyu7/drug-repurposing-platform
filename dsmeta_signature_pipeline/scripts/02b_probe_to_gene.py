@@ -445,6 +445,18 @@ def is_already_gene_symbols(feature_ids: pd.Series) -> bool:
     return fraction > 0.7
 
 
+def is_ensembl_ids(feature_ids: pd.Series) -> bool:
+    """Check if feature IDs are Ensembl gene IDs (ENSG...)."""
+    sample = feature_ids.dropna().head(100).astype(str)
+    if len(sample) == 0:
+        return False
+    ensembl_like = sample.str.match(r"^ENSG\d{11}(\.\d+)?$")
+    fraction = ensembl_like.sum() / len(sample)
+    return fraction > 0.5
+
+
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Map probe IDs to gene symbols for cross-platform meta-analysis"
@@ -486,36 +498,48 @@ def main():
             logger.warning(f"  {gse}: expr.tsv not found, skipping")
             continue
 
-        # Check if RNA-seq: skip probe mapping (already gene-level IDs)
+        # Check data type
         dtype_file = geo_dir / "data_type.txt"
+        is_rnaseq = False
         if dtype_file.exists():
             dtype = dtype_file.read_text().strip()
-            if dtype.startswith("rnaseq"):
-                logger.info(f"  {gse}: RNA-seq data, skipping probe-to-gene mapping.")
-                all_stats[gse] = {"status": "skipped_rnaseq"}
-                continue
+            is_rnaseq = dtype.startswith("rnaseq")
 
-        # Check if already gene symbols
+        # Read a sample of feature IDs for detection
         expr_df = pd.read_csv(expr_path, sep="\t", nrows=50)
-        if skip_if_symbols and is_already_gene_symbols(expr_df["feature_id"]):
+
+        # Check Ensembl IDs FIRST (they also match the gene symbol regex)
+        if is_ensembl_ids(expr_df["feature_id"]):
+            logger.info(f"  {gse}: Ensembl IDs detected, skipping (not convertible in cross-platform meta).")
+            all_stats[gse] = {"status": "skipped_ensembl_ids"}
+            continue
+
+        elif skip_if_symbols and is_already_gene_symbols(expr_df["feature_id"]):
+            # Already gene symbols (common for RNA-seq and some microarrays)
             logger.info(f"  {gse}: Feature IDs already look like gene symbols. Skipping mapping.")
             all_stats[gse] = {"status": "skipped_already_symbols"}
             continue
 
-        # Detect platform
-        platform = detect_platform(str(pheno_path)) if pheno_path.exists() else None
-        logger.info(f"  Platform: {platform or 'unknown'}")
-
-        # Get probe → gene mapping
-        mapping = None
-        if platform:
-            mapping = download_gpl_annotation(platform)
-
-        if mapping is None or len(mapping) == 0:
-            logger.warning(f"  {gse}: No probe→gene mapping available for {platform}. "
-                          f"Features will remain as probe IDs.")
-            all_stats[gse] = {"status": "no_mapping", "platform": platform}
+        elif is_rnaseq:
+            # RNA-seq with unknown IDs (not Ensembl, not gene symbols)
+            logger.warning(f"  {gse}: RNA-seq with unrecognized feature IDs, skipping.")
+            all_stats[gse] = {"status": "skipped_rnaseq_unknown_ids"}
             continue
+
+        else:
+            # Microarray: detect platform and get GPL annotation
+            platform = detect_platform(str(pheno_path)) if pheno_path.exists() else None
+            logger.info(f"  Platform: {platform or 'unknown'}")
+
+            mapping = None
+            if platform:
+                mapping = download_gpl_annotation(platform)
+
+            if mapping is None or len(mapping) == 0:
+                logger.warning(f"  {gse}: No probe→gene mapping available for {platform}. "
+                              f"Features will remain as probe IDs.")
+                all_stats[gse] = {"status": "no_mapping", "platform": platform}
+                continue
 
         # --- Map expression matrix ---
         logger.info(f"  Mapping expression matrix...")

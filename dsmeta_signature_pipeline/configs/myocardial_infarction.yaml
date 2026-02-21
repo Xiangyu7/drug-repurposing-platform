@@ -28,10 +28,10 @@ labeling:
     GSE172270:
       case:
         any:
-        - patient
+        - AMI patient
       control:
         any:
-        - control
+        - "^control \\d"
     GSE48060:
       case:
         any:
