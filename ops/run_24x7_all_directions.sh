@@ -1160,15 +1160,13 @@ process_disease() {
     return 1
   fi
 
-  # Pre-copy manifest from kg_explain output to per-run kg_output dir
-  if [[ ! -f "${kg_manifest}" ]]; then
-    local kg_manifest_src="${KG_DIR}/output/${disease_key}/pipeline_manifest.json"
-    local kg_manifest_src_legacy="${KG_DIR}/output/pipeline_manifest.json"
-    if [[ -f "${kg_manifest_src}" ]]; then
-      cp "${kg_manifest_src}" "${kg_manifest}"
-    elif [[ -f "${kg_manifest_src_legacy}" ]]; then
-      cp "${kg_manifest_src_legacy}" "${kg_manifest}"
-    fi
+  # Always copy latest manifest from kg_explain output (Origin overwrites Cross manifest)
+  local kg_manifest_src="${KG_DIR}/output/${disease_key}/pipeline_manifest.json"
+  local kg_manifest_src_legacy="${KG_DIR}/output/pipeline_manifest.json"
+  if [[ -f "${kg_manifest_src}" ]]; then
+    cp "${kg_manifest_src}" "${kg_manifest}"
+  elif [[ -f "${kg_manifest_src_legacy}" ]]; then
+    cp "${kg_manifest_src_legacy}" "${kg_manifest}"
   fi
 
   if ! run_cmd "Origin: manifest gate" kg_manifest_gate "${kg_manifest}" "ctgov"; then
@@ -1400,15 +1398,13 @@ run_cross_route() {
     return 1
   fi
 
-  # Pre-copy manifest from kg_explain output to per-run kg_output dir
-  if [[ ! -f "${kg_manifest}" ]]; then
-    local kg_manifest_src="${KG_DIR}/output/${disease_key}/pipeline_manifest.json"
-    local kg_manifest_src_legacy="${KG_DIR}/output/pipeline_manifest.json"
-    if [[ -f "${kg_manifest_src}" ]]; then
-      cp "${kg_manifest_src}" "${kg_manifest}"
-    elif [[ -f "${kg_manifest_src_legacy}" ]]; then
-      cp "${kg_manifest_src_legacy}" "${kg_manifest}"
-    fi
+  # Always copy latest manifest from kg_explain output
+  local kg_manifest_src="${KG_DIR}/output/${disease_key}/pipeline_manifest.json"
+  local kg_manifest_src_legacy="${KG_DIR}/output/pipeline_manifest.json"
+  if [[ -f "${kg_manifest_src}" ]]; then
+    cp "${kg_manifest_src}" "${kg_manifest}"
+  elif [[ -f "${kg_manifest_src_legacy}" ]]; then
+    cp "${kg_manifest_src_legacy}" "${kg_manifest}"
   fi
 
   if ! run_cmd "Cross: manifest gate" kg_manifest_gate "${kg_manifest}" "signature"; then
