@@ -656,8 +656,11 @@ class EnvGuard:
 
         if self.mode in {"dual", "cross_only"}:
             ds_cfg = self.dsmeta_dir / "configs" / f"{key}.yaml"
-            if not ds_cfg.exists():
-                issues.append(f"missing dsmeta config for mode {self.mode}: {ds_cfg}")
+            a4_cfg = self.root_dir / "archs4_signature_pipeline" / "configs" / f"{key}.yaml"
+            has_dsmeta = ds_cfg.exists()
+            has_archs4 = a4_cfg.exists()
+            if not has_dsmeta and not has_archs4:
+                issues.append(f"missing signature config for mode {self.mode}: need at least one of {ds_cfg} or {a4_cfg}")
 
         self._add_check(
             "cfg.single_disease",
