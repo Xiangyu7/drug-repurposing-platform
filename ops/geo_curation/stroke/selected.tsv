@@ -1,2 +1,0 @@
-disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
-stroke	GSE197829	11154	6	3	patient	healthy	auto_selected	RNA sequencing uncover crucial genes mediating progression o, score=55.0, conf=high

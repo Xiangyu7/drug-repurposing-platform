@@ -40,6 +40,11 @@ kg_explain/data/*.json
 kg_explain/data/external/
 kg_explain/output/
 
+# === archs4 data & outputs (H5 file is 43GB) ===
+archs4_signature_pipeline/data/
+archs4_signature_pipeline/outputs/
+archs4_signature_pipeline/work/
+
 # === dsmeta work data & outputs (regenerable from GEO) ===
 dsmeta_signature_pipeline/work/
 dsmeta_signature_pipeline/outputs/
@@ -58,6 +63,13 @@ sigreverse/data/cache/
 sigreverse/data/gold_standard/
 sigreverse/*.log
 sigreverse/*.parquet
+
+# === Generated files ===
+dashboard/console.html
+
+# === Runtime data ===
+runtime/
+data/
 
 # === Misc ===
 *.bak

@@ -1154,10 +1154,12 @@ def process_one(
             if CROSS_DRUG_FILTER and other_markers:
                 claim_txt = str(ev.get('claim','') or '')
                 if contains_other_drug(claim_txt, other_markers):
-                    pre_qc_reasons.append('cross_drug_leakage')
-                    pre_removed += 1
+                    # Flag instead of delete: comparative studies (e.g. "simvastatin
+                    # was more effective than pravastatin") are valuable evidence for
+                    # drug repurposing.  Downstream scorers can use the flag to
+                    # down-weight if needed, but the evidence is preserved.
+                    ev['cross_drug_flag'] = True
                     pre_removed_cross_drug += 1
-                    continue
 
             ev_text = f"{ev.get('claim','')} {ev.get('endpoint','')}"
             tmr = topic_match_ratio(ev_text, endpoint_type)
@@ -1192,26 +1194,25 @@ def process_one(
     supporting = dedupe(supporting)
     harm_or_neutral = dedupe(harm_or_neutral)
 
-    # final PMID normalization (digits-only) + drop any evidence that still mentions other drugs
+    # final PMID normalization (digits-only) + flag (not drop) cross-drug mentions
     def _clean_list(items: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], int, int]:
         out: List[Dict[str, Any]] = []
-        removed_local = 0
-        removed_cross_local = 0
+        flagged_local = 0
+        flagged_cross_local = 0
         for ev in items:
             raw = ev.get('pmid','')
             ev['pmid'] = normalize_pmid(raw) if PMID_STRICT else str(raw or '').strip()
             if CROSS_DRUG_FILTER and other_markers:
                 if contains_other_drug(str(ev.get('claim','') or ''), other_markers):
-                    removed_local += 1
-                    removed_cross_local += 1
-                    continue
+                    ev['cross_drug_flag'] = True
+                    flagged_local += 1
+                    flagged_cross_local += 1
             out.append(ev)
-        return out, removed_local, removed_cross_local
+        return out, flagged_local, flagged_cross_local
     supporting, _r1, _c1 = _clean_list(supporting)
     harm_or_neutral, _r2, _c2 = _clean_list(harm_or_neutral)
     if (_r1 + _r2) > 0:
-        pre_qc_reasons.append('cross_drug_leakage')
-        pre_removed += int(_r1 + _r2)
+        pre_qc_reasons.append('cross_drug_flagged')
         pre_removed_cross_drug += int(_c1 + _c2)
 
     # 6) QC / topic mismatch decision (endpoint-driven)
@@ -1278,7 +1279,7 @@ def process_one(
             "topic_match_ratio": round(float(tmr_all), 4),
             "topic_mismatch": bool(mismatch),
             "removed_evidence_count": int(removed),
-            "removed_cross_drug_count": int(removed_cross_drug),
+            "flagged_cross_drug_count": int(removed_cross_drug),
             "supporting_evidence_after_qc": int(len(unique_support_pmids)),
             "supporting_sentence_count_after_qc": int(len(supporting)),
             "qc_reasons": sorted(set(qc_reasons)) if qc_reasons else []

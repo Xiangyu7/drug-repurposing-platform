@@ -2,7 +2,7 @@
 
 Reads:
     - SigReverse drug_reversal_rank.csv (per disease)
-    - KG_Explain V5 drug_disease_rank_v5.csv (all diseases)
+    - KG_Explain V5 drug_disease_rank.csv (all diseases)
 
 Produces:
     - fusion_rank.csv: Combined ranking with both evidence streams
@@ -17,7 +17,7 @@ Drug name matching strategy:
 Usage:
     python scripts/run_fusion_with_kg.py \
         --sig-output data/output_v41_atherosclerosis \
-        --kg-output /path/to/kg_explain/output/drug_disease_rank_v5.csv \
+        --kg-output /path/to/kg_explain/output/drug_disease_rank.csv \
         --disease atherosclerosis \
         --out data/output_v41_atherosclerosis/fusion
 """
@@ -396,7 +396,7 @@ def main():
     parser.add_argument("--sig-output", required=True,
                         help="SigReverse output directory (contains drug_reversal_rank.csv)")
     parser.add_argument("--kg-output", required=True,
-                        help="KG_Explain V5 CSV (drug_disease_rank_v5.csv)")
+                        help="KG_Explain V5 CSV (drug_disease_rank.csv)")
     parser.add_argument("--disease", required=True,
                         help="Disease name for KG filtering (atherosclerosis, breast_cancer_er, etc)")
     parser.add_argument("--out", required=True,

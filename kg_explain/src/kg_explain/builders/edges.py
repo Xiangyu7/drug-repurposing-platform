@@ -105,6 +105,7 @@ def build_trial_ae(data_dir: Path) -> Path:
 
     从whyStopped字段解析安全相关和疗效相关的停止原因
     使用 canonical map 统一药物名称
+    保留 conditions 列以便下游按目标疾病过滤 efficacy stops
     """
     ft = read_csv(data_dir / "failed_trials_drug_rows.csv", dtype=str)
     canonical = load_canonical_map(data_dir)
@@ -116,6 +117,7 @@ def build_trial_ae(data_dir: Path) -> Path:
         drug = canonical.get(drug_raw, drug_raw)
         why = safe_str(r.get("whyStopped"))
         status = safe_str(r.get("overallStatus"))
+        conditions = safe_str(r.get("conditions"))
 
         if not nct or not drug:
             continue
@@ -134,12 +136,13 @@ def build_trial_ae(data_dir: Path) -> Path:
             "drug_normalized": drug,
             "overallStatus": status,
             "whyStopped": why,
+            "conditions": conditions,
             "is_safety_stop": int(is_safety),
             "is_efficacy_stop": int(is_efficacy),
         })
 
     _trial_ae_cols = ["nctId", "drug_normalized", "overallStatus",
-                      "whyStopped", "is_safety_stop", "is_efficacy_stop"]
+                      "whyStopped", "conditions", "is_safety_stop", "is_efficacy_stop"]
     out_df = (pd.DataFrame(rows, columns=_trial_ae_cols).drop_duplicates()
               if rows else pd.DataFrame(columns=_trial_ae_cols))
     n_safety = out_df["is_safety_stop"].astype(int).sum() if not out_df.empty else 0

@@ -9,19 +9,21 @@ Explainable AI platform for systematic drug repurposing via knowledge graph cons
 ## Architecture Overview
 
 ```
-                        dsmeta_signature_pipeline
-                        (GEO meta-analysis)
-                               |
-                               v
-                           sigreverse
-                       (LINCS/CMap matching)
-                               |
-                               v
+  dsmeta_signature_pipeline         archs4_signature_pipeline
+  (GEO microarray meta-analysis)    (ARCHS4 RNA-seq, 备选A路签名源)
+          |                                   |
+          v                                   v
+      sigreverse                     disease_signature_meta.json
+  (LINCS/CMap matching)              (如dsmeta失败时自动回退)
+          |                                   |
+          +-----------------------------------+
+          v
 +------------------------------------------------------------------+
 |                         kg_explain                                |
 |  CT.gov -> RxNorm -> ChEMBL -> Targets -> Pathways -> Diseases   |
 |  + FAERS safety + Phenotype enrichment + Bootstrap CI            |
-|  Output: drug_disease_rank_v5.csv                                |
+|  + 靶点结构标注 (PDB/AlphaFold/UniProt)                          |
+|  Output: drug_disease_rank.csv                                |
 |          + bridge_repurpose_cross.csv  (Direction A: cross-disease)|
 +------------------------------------------------------------------+
                                |
@@ -36,13 +38,18 @@ Explainable AI platform for systematic drug repurposing via knowledge graph cons
 |                      LLM+RAG Evidence Engine                     |
 |  Step6: PubMed retrieval + LLM extraction                        |
 |  Step7: 5-dim scoring + GO/MAYBE/NO-GO gating                   |
-|  Step8: Release Gate + candidate pack                            |
+|  Step8: Release Gate + candidate pack + docking就绪列            |
+|         + alphafold_structure_id 列 (即使有PDB也展示AF ID)        |
 |  Step9: Validation plan                                          |
 |                                                                  |
 |  Two parallel tracks:                                            |
 |    step6-9_repurpose_cross/    (Direction A)                     |
 |    step6-9_origin_reassess/    (Direction B)                     |
 +------------------------------------------------------------------+
+                               |
+                               v
+                   A+B Cross-Validation (compare_ab_routes.py)
+                   → ab_comparison.csv (两路线重叠药物 = 高可信)
                                |
                                v
                     Human Review + Release Decision
@@ -71,7 +78,7 @@ Step 7  OpenTargets GQL    Gene -> Disease associations + Disease -> Phenotype l
    |
 Step 8  FAERS API          Drug adverse event signals (PRR-filtered, serious AE weighted)
    |
-Step 9  Edge construction  Build all KG edges + evidence_paths_v3.jsonl
+Step 9  Edge construction  Build all KG edges + dtpd_paths.jsonl
    |
 Step 10 V5 Ranking         final_score = mechanism * exp(-w1*safety - w2*trial) * (1 + w3*log1p(phenotype))
    |                       + Bootstrap CI per pair + bridge_repurpose_cross.csv
@@ -95,55 +102,57 @@ Step 9' Validation Plan    Priority tiers (P1/P2/P2E/P3) + stop/go criteria + ti
 
 | Sub-project | Purpose | Key output |
 |-------------|---------|------------|
-| `dsmeta_signature_pipeline` | GEO multi-dataset meta-analysis -> disease gene signature | `disease_signature_meta.json` |
+| `dsmeta_signature_pipeline` | GEO microarray meta-analysis -> disease gene signature | `disease_signature_meta.json` |
+| `archs4_signature_pipeline` | ARCHS4 RNA-seq 替代签名源 (dsmeta 失败时自动回退) | `disease_signature_meta.json` |
 | `sigreverse` | LINCS/CMap reverse expression matching -> drug reversal scores | `drug_reversal_rank.csv` |
-| `kg_explain` | Knowledge graph construction + mechanistic ranking | `drug_disease_rank_v5.csv` |
-| `LLM+RAG Evidence Engine` | Literature evidence extraction + scoring + gating | `step8_shortlist_topK.csv` |
+| `kg_explain` | Knowledge graph construction + mechanistic ranking + 靶点结构标注 | `drug_disease_rank.csv` + bridge CSVs |
+| `LLM+RAG Evidence Engine` | Literature evidence extraction + scoring + gating + docking就绪评估 | `step8_shortlist_topK.csv` |
+| `ops/compare_ab_routes.py` | Direction A+B 交叉验证 (两路线重叠药物提取) | `ab_comparison.csv` |
 
 ---
 
 ## Execution Paths
 
-### Path A: Full Pipeline (recommended)
+### Direction A: Cross-Disease Repurposing（跨疾病迁移，探索型）
 ```
-dsmeta -> sigreverse -> kg_explain(signature) -> LLM+RAG Step6-9
-```
-
-### Path B: Skip Gene Signatures
-```
-kg_explain(ctgov) -> LLM+RAG Step6-9
+dsmeta/archs4 -> sigreverse -> kg_explain(signature) -> LLM+RAG Step6-9
+  签名源优先级: dsmeta (GEO microarray) > archs4 (ARCHS4 RNA-seq) > OT-only (仅OpenTargets基因)
+  科学问题: 其他疾病的药物能否重新定位到目标疾病？
 ```
 
-### Path C: Evidence Only
+### Direction B: Origin Disease Reassessment（原疾病重评估，稳健型）
+```
+screen_drugs(CT.gov) -> kg_explain(ctgov) -> generate_disease_bridge.py -> LLM+RAG Step6-9
+  科学问题: 失败的临床试验药物是否真的无效？换终点/人群能否翻盘？
+```
+
+### Dual Mode: A+B Parallel（推荐生产模式）
+```
+同时跑 Direction A + Direction B
+  → 最后用 compare_ab_routes.py 做 A+B 交叉验证
+  → 两路线都推荐的药物 = 最高可信度
+```
+
+### Path C: Evidence Only（仅文献证据）
 ```
 LLM+RAG Step6-9 (with existing drug pool CSV)
-```
-
-### Path D: Origin Disease Reassessment
-```
-kg_explain V3/V5 → generate_disease_bridge.py → bridge_origin_reassess.csv → LLM+RAG Step6-9
-(Reassess whether failed drugs are truly ineffective for their original target disease)
-Output: step6/7/8/9_origin_reassess/
 ```
 
 ---
 
 ## 24/7 Continuous Runner (Dual Route)
 
-Use the unified runner script:
+Use start.sh as the single entry point:
 
 ```bash
-bash ops/run_24x7_all_directions.sh
-```
+# Run a single disease (recommended first test)
+bash ops/start.sh run atherosclerosis
 
-The runner supports two modes:
+# Start production pipeline (background)
+bash ops/start.sh start
 
-```bash
-# Dual route (Cross + Origin), default
-RUN_MODE=dual bash ops/run_24x7_all_directions.sh ops/disease_list_day1_dual.txt
-
-# Origin-only route
-RUN_MODE=origin_only bash ops/run_24x7_all_directions.sh ops/disease_list_day1_origin.txt
+# Check status
+bash ops/check_status.sh
 ```
 
 `LOCK_NAME` is mode-scoped by default (`dual` / `origin_only`) so two processes can run in parallel without lock conflicts.
@@ -164,10 +173,12 @@ type2_diabetes|type 2 diabetes|EFO_0001360|
 heart_failure|heart failure||
 ```
 
-Day-1 Aliyun split lists:
+Disease lists (internal, managed by start.sh):
 
-- `ops/disease_list_day1_dual.txt` (fill only GEO-ready diseases for the day)
-- `ops/disease_list_day1_origin.txt` (remaining cardiovascular diseases for CT.gov route)
+- `ops/internal/disease_list_day1_dual.txt` (GEO-ready diseases for dual mode)
+- `ops/internal/disease_list_day1_origin.txt` (all CV diseases for origin mode)
+- `ops/disease_list.txt` (master template)
+- `ops/disease_list_test.txt` (minimal test set)
 
 ### Cross input path auto-discovery
 
@@ -198,34 +209,18 @@ If any check fails, current disease is marked failed and skipped, then runner co
 
 - `runtime/work` and `runtime/quarantine` are cleaned by `RETENTION_DAYS` (default `7`).
 - `runtime/results` is not auto-deleted.
-- `kg_explain/output/evidence_paths_v3.jsonl` is deleted only after origin bridge is generated and archived.
+- `kg_explain/output/dtpd_paths.jsonl` is deleted only after origin bridge is generated and archived.
 
 ### Environment defaults
 
 ```bash
-SLEEP_SECONDS=300
 STRICT_CONTRACT=1
-TOPN_PROFILE=stable
+TOPN_PROFILE=stable       # stable | balanced | recall
 TOPN_CROSS=auto
 TOPN_ORIGIN=auto
 TOPN_STAGE2_ENABLE=1
-TOPN_MAX_EXPAND_ROUNDS=1
-TOPN_EXPAND_RATIO=0.30
-TOPN_CAP_ORIGIN=18
-TOPN_CAP_CROSS=14
-TOPN_STAGE1_MIN_ORIGIN=12
-TOPN_STAGE1_MAX_ORIGIN=14
-TOPN_STAGE1_MIN_CROSS=10
-TOPN_STAGE1_MAX_CROSS=12
-SHORTLIST_MIN_GO_ORIGIN=3
-SHORTLIST_MIN_GO_CROSS=2
-STEP6_PUBMED_RETMAX=120
-STEP6_PUBMED_PARSE_MAX=60
-STEP6_MAX_RERANK_DOCS=40
-STEP6_MAX_EVIDENCE_DOCS=12
 RETENTION_DAYS=7
-MAX_CYCLES=0   # 0 = infinite loop, 1 = single-cycle test
-RUN_MODE=dual  # dual | origin_only
+RUN_MODE=dual             # dual | origin_only | cross_only
 ```
 
 `topn` policy semantics:
@@ -234,53 +229,26 @@ RUN_MODE=dual  # dual | origin_only
 - Stage2: trigger only when shortlist quality fails; expand by `score >= 0.30 * top_score`; max one round
 - Manual compatibility: `TOPN_ORIGIN/TOPN_CROSS=<int>` still works (`<=0` means full bridge rows)
 
-### Day-1 Aliyun operational commands
-
-Run dsmeta precheck (Step1-2 only) for dual diseases, with thresholds `case>=8` and `control>=8`:
+### Start.sh (recommended entry point)
 
 ```bash
-bash ops/precheck_dual_dsmeta.sh ops/disease_list_day1_dual.txt
-```
+# First-time setup
+bash ops/start.sh setup
 
-Start two long-running processes (dual + origin-only) with industrial auto-topn policy:
+# Run single disease (foreground, recommended for testing)
+bash ops/start.sh run atherosclerosis
 
-```bash
-bash ops/start_day1_aliyun.sh
-```
+# Run both directions for a disease
+bash ops/start.sh run atherosclerosis --mode dual
 
-Logs:
-
-- `logs/day1_aliyun/dual_*.log`
-- `logs/day1_aliyun/origin_*.log`
-
-### Quickstart (recommended for first-time users)
-
-```bash
-# Full guided flow: check env → install venvs → GEO discovery → start pipeline
-bash ops/quickstart.sh
+# Start production pipeline (background)
+bash ops/start.sh start
 
 # Check environment only
-bash ops/quickstart.sh --check-only
-
-# Check by current route mode only (origin_only will downgrade A-route issues to warnings)
-bash ops/quickstart.sh --check-only --mode origin_only --check-scope mode
-
-# Run single disease (one cycle, foreground, default origin_only)
-bash ops/quickstart.sh --single atherosclerosis
-
-# Run single disease with both directions (Cross + Origin)
-RUN_MODE=dual bash ops/quickstart.sh --single atherosclerosis
-
-# Start origin-only mode in background
-bash ops/quickstart.sh --mode origin_only --run-only
+bash ops/start.sh check
 ```
 
-Quickstart industrial defaults:
-
-- `--single` now does `check -> repair(if needed) -> re-check -> run`
-- `--check-only` writes audit artifacts to `runtime/state/env_check_*.json`
-- runtime resolver file is written to `runtime/state/env_resolved_*.env`
-- dsmeta runtime policy is `conda dsmeta first, .venv fallback`
+> **Note:** Legacy scripts (`runner.sh`, etc.) have been moved to `ops/internal/` and are called internally by `start.sh`. You should not need to invoke them directly.
 
 ---
 
@@ -294,18 +262,18 @@ Searches NCBI GEO for suitable expression datasets, auto-detects case/control gr
 
 ```bash
 # Single disease
-python ops/auto_discover_geo.py --disease "heart failure" --write-yaml --out-dir ops/geo_curation
+python ops/internal/auto_discover_geo.py --disease "heart failure" --write-yaml --out-dir ops/internal/geo_curation
 
 # Batch mode (all 15 CV diseases)
-python ops/auto_discover_geo.py --batch ops/disease_list_day1_origin.txt --write-yaml --out-dir ops/geo_curation
+python ops/internal/auto_discover_geo.py --batch ops/internal/disease_list_day1_origin.txt --write-yaml --out-dir ops/internal/geo_curation
 ```
 
 Output per disease:
-- `geo_curation/<disease>/candidates.tsv` — all candidate GSE with scores
-- `geo_curation/<disease>/selected.tsv` — top-K selected
-- `geo_curation/<disease>/candidate_config.yaml` — ready-to-review dsmeta config
-- `geo_curation/<disease>/discovery_log.txt` — detailed search report
-- `geo_curation/<disease>/route_recommendation.txt` — Direction A/B route advice
+- `ops/internal/geo_curation/<disease>/candidates.tsv` — all candidate GSE with scores
+- `ops/internal/geo_curation/<disease>/selected.tsv` — top-K selected
+- `ops/internal/geo_curation/<disease>/candidate_config.yaml` — ready-to-review dsmeta config
+- `ops/internal/geo_curation/<disease>/discovery_log.txt` — detailed search report
+- `ops/internal/geo_curation/<disease>/route_recommendation.txt` — Direction A/B route advice
 
 **Route recommendation** (auto-generated per disease):
 
@@ -325,8 +293,8 @@ Reads auto-discovery results and generates final dsmeta YAML configs.
 Only diseases with **≥2 GSE and no TODO placeholders** are added to the dual disease list.
 
 ```bash
-python ops/generate_dsmeta_configs.py \
-    --geo-dir ops/geo_curation \
+python ops/internal/generate_dsmeta_configs.py \
+    --geo-dir ops/internal/geo_curation \
     --config-dir dsmeta_signature_pipeline/configs \
     --update-disease-list
 ```
@@ -335,35 +303,26 @@ python ops/generate_dsmeta_configs.py \
 
 ```bash
 # 1. Auto-discover GEO datasets (~1 min)
-python ops/auto_discover_geo.py --disease "heart failure" --write-yaml --out-dir ops/geo_curation
+python ops/internal/auto_discover_geo.py --disease "heart failure" --write-yaml --out-dir ops/internal/geo_curation
 
 # 2. Check route recommendation
-cat ops/geo_curation/heart_failure/route_recommendation.txt
-#    If DIRECTION_B_ONLY → skip Direction A for this disease
-#    If DIRECTION_A_LOW_CONFIDENCE → consider manual GEO search for more datasets
+cat ops/internal/geo_curation/heart_failure/route_recommendation.txt
 
 # 3. AI-assisted review: feed discovery_log.txt to LLM for quality check
-#    Check 3 things per GSE:
-#    (a) Is it standard mRNA expression profiling? (not 16S rRNA, circRNA, miRNA, etc.)
-#    (b) Is the disease biologically correct? (not a different disease/subtype)
-#    (c) Is the case/control regex matching the right groups?
-cat ops/geo_curation/heart_failure/discovery_log.txt
+cat ops/internal/geo_curation/heart_failure/discovery_log.txt
 #    → Give this to Claude/ChatGPT and ask: "review these GSE selections for heart failure"
 
 # 4. Apply review: edit YAML to remove disqualified GSEs
-#    In dsmeta_signature_pipeline/configs/<disease>.yaml:
-#    - Remove bad GSE IDs from geo.gse_list
-#    - Remove matching blocks from labeling.regex_rules
-#    If <2 GSE remain after review → remove disease from disease_list_day1_dual.txt
+#    If <2 GSE remain → remove disease from ops/internal/disease_list_day1_dual.txt
 
-# 5. Generate config + update disease list (only ≥2 GSE diseases are added)
-python ops/generate_dsmeta_configs.py --geo-dir ops/geo_curation --config-dir dsmeta_signature_pipeline/configs --update-disease-list
+# 5. Generate config + update disease list
+python ops/internal/generate_dsmeta_configs.py --geo-dir ops/internal/geo_curation --config-dir dsmeta_signature_pipeline/configs --update-disease-list
 
 # 6. Validate (runs dsmeta Step 1-2)
-bash ops/precheck_dual_dsmeta.sh ops/disease_list_day1_dual.txt
+bash ops/start.sh check --mode dual
 
 # 7. Restart runner
-bash ops/quickstart.sh --mode dual --run-only
+bash ops/start.sh start --mode dual
 ```
 
 **AI Review Checklist** — what to ask the LLM to check in `discovery_log.txt`:
@@ -379,17 +338,30 @@ bash ops/quickstart.sh --mode dual --run-only
 
 ### Ops File Reference
 
+**用户可见（ops/）**:
+
 | File | Purpose |
 |------|---------|
-| `ops/quickstart.sh` | One-command setup + launch (env check, venv install, GEO discovery, pipeline start) |
-| `ops/auto_discover_geo.py` | NCBI GEO auto-discovery (pure rules, no LLM) |
-| `ops/generate_dsmeta_configs.py` | Batch dsmeta YAML config generator |
-| `ops/run_24x7_all_directions.sh` | 24/7 continuous runner (dual/origin modes) |
-| `ops/precheck_dual_dsmeta.sh` | Pre-flight validation for dual-mode diseases |
-| `ops/start_day1_aliyun.sh` | Cloud launcher (starts dual + origin runners) |
-| `ops/disease_list_day1_origin.txt` | 15 CV diseases for origin-only mode |
-| `ops/disease_list_day1_dual.txt` | 8 diseases with GEO-ready dsmeta config (≥2 GSE, auto-discovered 2026-02-16) |
-| `ops/check_status.sh` | Pipeline status dashboard — overview, per-disease detail, failures, Ollama health, disk usage |
+| `ops/start.sh` | **唯一入口** — setup, single-disease run, production launch |
+| `ops/check_status.sh` | Pipeline status dashboard — per-disease detail, failures, Ollama health, disk |
+| `ops/show_results.sh` | 查看/导出结果 |
+| `ops/compare_ab_routes.py` | Direction A+B 交叉验证: 输出 ab_comparison.csv |
+| `ops/disease_list.txt` | 疾病列表模板 |
+| `ops/disease_list_test.txt` | 最小测试列表 (2 diseases) |
+
+**底层脚本（ops/internal/）— 由 start.sh 内部调用**:
+
+| File | Purpose |
+|------|---------|
+| `ops/internal/runner.sh` | 24/7 continuous runner (dual/origin modes) |
+| `ops/internal/env_guard.py` | 环境预检 + 自动修复 |
+| `ops/internal/topn_policy.py` | TopN 自动调控策略 |
+| `ops/internal/auto_discover_geo.py` | GEO auto-discovery |
+| `ops/internal/generate_dsmeta_configs.py` | dsmeta config generator |
+| `ops/internal/cleanup.sh` | 磁盘空间清理 |
+| `ops/internal/retry_disease.sh` | 重试失败疾病 |
+| `ops/internal/restart_runner.sh` | 停止/重启 runner |
+| `ops/internal/disease_list_day1_*.txt` | 按模式分的疾病子列表 |
 
 ### Pipeline Status Monitoring
 
@@ -470,12 +442,11 @@ bash ops/check_status.sh --all
 | File | Description |
 |------|-------------|
 | `base.py` | Shared scoring utilities (hub penalty, path aggregation) |
-| `v1.py` | Ranker v1: Drug-Disease direct association (CT.gov conditions) |
-| `v2.py` | Ranker v2: Drug-Target-Disease (ChEMBL + OpenTargets) |
-| `v3.py` | Ranker v3: Drug-Target-Pathway-Disease (+ Reactome) |
-| `v4.py` | Ranker v4: v3 + Evidence Pack (for RAG consumption) |
-| `v5.py` | Ranker v5: Full explainable paths + FAERS safety + Phenotype + Bootstrap CI + 靶点结构来源标记 |
+| `dtpd.py` | DTPD 基础路径评分: Drug→Target→Pathway→Disease (被 ranker 内部调用) |
+| `ranker.py` | **完整排名器**: DTPD 路径 + FAERS 安全惩罚 + 表型加成 + Bootstrap CI + 靶点结构标记 |
 | `uncertainty.py` | Bootstrap CI (1000x): `bootstrap_ci()`, `assign_confidence_tier()`, `add_uncertainty_to_ranking()` |
+
+> v1 (Drug-Disease 直连)、v2 (Drug-Target-Disease)、v4 (v3+Evidence Pack) 已删除。v5 包含全部功能。
 
 #### Evaluation (`evaluation/`)
 | File | Description |
@@ -589,6 +560,29 @@ bash ops/check_status.sh --all
 
 ---
 
+### archs4_signature_pipeline/ (2026-02-21 新增)
+
+ARCHS4 RNA-seq 替代签名管线，在 dsmeta (GEO microarray) 失败时自动回退使用。
+
+| File | Description |
+|------|-------------|
+| `run.py` | 5步管线编排器 (Step1-4 + meta)，含步骤缓存 + manifest |
+| `scripts/01_opentargets_prior.py` | Step1: OpenTargets 疾病关联基因 (先验知识) |
+| `scripts/02_archs4_select.py` | Step2: 从 human_gene_v2.4.h5 中检索疾病相关 GEO series |
+| `scripts/03_de_analysis.R` | Step3: DESeq2 差异表达分析 (per-series) |
+| `scripts/03b_meta_effects.R` | Step3b: 随机效应 meta-analysis (cross-series) |
+| `scripts/04_assemble_signature.py` | Step4: OT 先验 × DE 结果 → top300 up + top300 down 签名 |
+| `scripts/generate_test_h5.py` | 生成测试用小型 H5 文件 (0.3MB，用于本地调试) |
+| `scripts/auto_generate_config.py` | 自动生成疾病配置 YAML |
+| `configs/*.yaml` | 17个心血管疾病配置文件 |
+
+**数据依赖**: 需要 `data/archs4/human_gene_v2.4.h5` (43GB，从 ARCHS4 官网下载)。
+测试时可用 `generate_test_h5.py` 生成 0.3MB 替代文件。
+
+**输出**: `outputs/<disease>/signature/disease_signature_meta.json` (与 dsmeta 格式完全兼容)
+
+---
+
 ### sigreverse/sigreverse/
 
 | File | Description |
@@ -672,14 +666,14 @@ pip install -r requirements.txt
 
 ### One-Command Start (recommended)
 ```bash
-# Fast verification (single cycle, foreground, origin route)
-bash ops/quickstart.sh --single atherosclerosis
+# Fast verification (foreground, origin route)
+bash ops/start.sh run atherosclerosis
 
-# Full A+B routes for one disease (single cycle, foreground)
-RUN_MODE=dual bash ops/quickstart.sh --single atherosclerosis
+# Full A+B routes for one disease (foreground)
+bash ops/start.sh run atherosclerosis --mode dual
 
 # Disable auto-repair if you only want strict check-and-stop
-bash ops/quickstart.sh --single atherosclerosis --no-auto-repair
+bash ops/start.sh run atherosclerosis --no-auto-repair
 ```
 
 ### Full Pipeline (Path A)
@@ -750,10 +744,10 @@ python scripts/step9_validation_plan.py \
 ### Key Outputs
 | File | Content |
 |------|---------|
-| `kg_explain/output/drug_disease_rank_v5.csv` | Ranked drug-disease pairs with CI columns |
+| `kg_explain/output/drug_disease_rank.csv` | Ranked drug-disease pairs with CI columns |
 | `kg_explain/output/bridge_repurpose_cross.csv` | Direction A: cross-disease repurposing bridge (含靶点 + 结构来源) |
 | `kg_explain/output/bridge_origin_reassess.csv` | Direction B: origin disease reassessment bridge (含靶点 + 结构来源) |
-| `kg_explain/output/evidence_pack_v5/*.json` | Per-pair evidence packs |
+| `kg_explain/output/evidence_pack/*.json` | Per-pair evidence packs |
 | `LLM+RAG/output/step7_repurpose_cross/` | Direction A: GO/MAYBE/NO-GO decisions |
 | `LLM+RAG/output/step7_origin_reassess/` | Direction B: GO/MAYBE/NO-GO decisions |
 | `LLM+RAG/output/step8_*/step8_shortlist_topK.csv` | Final shortlist (含靶点/UniProt/PDB/AlphaFold + docking就绪字段) |
@@ -770,14 +764,19 @@ Bridge 文件新增两列，用于分子对接准备:
   - `has_alphafold` (是否有 AlphaFold 预测)
   - `structure_source`: `PDB+AlphaFold` | `PDB` | `AlphaFold_only` | `none`
 
-### Step8 Docking 就绪列 (2026-02-17 新增)
+### Step8 Docking 就绪列 (2026-02-17 新增, 2026-02-21 更新)
 
 `step8_shortlist_topK.csv` 在保留 `targets`/`target_details` 的同时新增:
 - `docking_primary_target_chembl_id`, `docking_primary_target_name`, `docking_primary_uniprot`
 - `docking_primary_structure_source`, `docking_primary_structure_provider`, `docking_primary_structure_id`
+- `alphafold_structure_id`: **AlphaFold 结构 ID** (格式 `AF-{UniProt}-F1`，即使有PDB也会展示)
 - `docking_backup_targets_json` (默认主靶1 + 备选2)
-- `docking_feasibility_tier`: `READY_PDB` | `AF_FALLBACK` | `NO_STRUCTURE`
+- `docking_feasibility_tier`: `READY_PDB` | `READY_AF` | `LIMITED` | `BLOCKED`
 - `docking_target_selection_score` (0-1), `docking_risk_flags`, `docking_policy_version`
+
+**AlphaFold ID 来源说明**: ChEMBL API 返回靶点交叉引用 (`target_component_xrefs`)，
+若 `xref_src_db == "AlphaFoldDB"` 则标记 `has_alphafold=True`，
+然后按 AlphaFold 官方命名规则拼接: `AF-{UniProt}-F1`。
 
 默认策略: `PDB优先 + AlphaFold回退`，无PDB时不阻断流程，仅打降级标记。
 
@@ -800,7 +799,7 @@ Bridge 文件新增两列，用于分子对接准备:
 - `bridge_*.csv` → KG 排名 + 靶点信息
 
 **第三优先 — 排查问题:**
-- `drug_disease_rank_v5.csv` → 某药排名高/低的原因
+- `drug_disease_rank.csv` → 某药排名高/低的原因
 - `poolA_drug_level.csv` → CT.gov 拉到了哪些药
 - `manual_review_queue.csv` → 需人工确认的试验
 - `step6 dossiers/*.json` → PubMed 证据原文
@@ -874,12 +873,14 @@ Key parameters:
 | Document | Location |
 |----------|----------|
 | This README | `README.md` |
-| User Guide | `USER_GUIDE.md` |
+| How to Run (详细启动指南) | `HOW_TO_RUN.md` |
+| User Guide (中文用户手册) | `USER_GUIDE.md` |
 | Project Overview (中文 HTML) | `项目全览.html` |
 | Human Review Checklist | `HUMAN_JUDGMENT_CHECKLIST.md` |
 | LLM+RAG Module | `LLM+RAG证据工程/README.md` |
 | KG Pipeline | `kg_explain/README.md` |
-| Signature Pipeline | `dsmeta_signature_pipeline/README.md` |
+| Signature Pipeline (GEO) | `dsmeta_signature_pipeline/README.md` |
+| ARCHS4 Pipeline (RNA-seq) | `archs4_signature_pipeline/` (见本 README archs4 部分) |
 | Sigreverse | `sigreverse/README.md` |
 | Quality Templates | `LLM+RAG证据工程/docs/quality/README.md` |
-| Ops Toolchain | `ops/quickstart.sh`, `ops/auto_discover_geo.py`, `ops/generate_dsmeta_configs.py` |
+| Ops Toolchain | `ops/start.sh`, `ops/auto_discover_geo.py`, `ops/generate_dsmeta_configs.py` |

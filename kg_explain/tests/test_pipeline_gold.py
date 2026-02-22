@@ -3,7 +3,7 @@
 Gold‑Standard 端到端测试
 ========================
 用 **两个药物 × 三个靶点** 的极小数据集, 手工计算每一步的期望输出,
-验证 pipeline Step 8 (build edges) + Step 9 (V5 ranking) 的全部逻辑。
+验证 pipeline Step 8 (build edges) + Step 9 (ranking) 的全部逻辑。
 
 数据图谱 (已知真值):
   DrugA  ──target──▶  T1 ──pathway──▶  P_alpha  ──disease──▶  D001 (score 0.8)
@@ -51,8 +51,8 @@ from kg_explain.evaluation.metrics import (
 )
 from kg_explain.evaluation.benchmark import run_benchmark
 from kg_explain.graph import build_kg, graph_stats, find_dtpd_paths, drug_summary, export_graphml
-from kg_explain.rankers.v3 import run_v3
-from kg_explain.rankers.v5 import run_v5
+from kg_explain.rankers.dtpd import run_dtpd
+from kg_explain.rankers.ranker import run_ranker
 from kg_explain.utils import read_csv, load_canonical_map, concurrent_map
 
 
@@ -158,14 +158,14 @@ def write_gold_inputs(data_dir: Path) -> None:
         {"targetId": "ENSG0003", "diseaseId": "EFO_D001", "diseaseName": "Disease_One",   "score": "0.9"},
     ]).to_csv(data_dir / "edge_target_disease_ot.csv", index=False)
 
-    # -- edge_drug_ae_faers.csv   (V5 FAERS safety signals) --
+    # -- edge_drug_ae_faers.csv   (FAERS safety signals) --
     # PRR=3.0 表示该AE在DrugA上的报告率是背景率的3倍 (明确信号)
     pd.DataFrame([
         {"drug_normalized": "druga", "ae_term": "Death",
          "report_count": 20, "drug_total_reports": 100, "prr": 3.0},
     ]).to_csv(data_dir / "edge_drug_ae_faers.csv", index=False)
 
-    # -- edge_disease_phenotype.csv (V5 phenotypes) --
+    # -- edge_disease_phenotype.csv (phenotypes) --
     pd.DataFrame([
         {"diseaseId": "EFO_D001", "diseaseName": "Disease_One",
          "phenotypeId": "HP_0001", "phenotypeName": "Pheno_X", "score": 0.7},
@@ -201,7 +201,7 @@ def write_gold_inputs(data_dir: Path) -> None:
 #   → is_safety=True (matches "adverse", "safety"), is_efficacy=False
 # DrugB NCT0002 whyStopped="" → is_safety=False, is_efficacy=False
 
-# ---- Step D: V3 ranking ----
+# ---- Step D: DTPD ranking ----
 # merge drug_target × target_pathway → dtp
 # dtp rows:
 #   druga | T1 | R-HSA-100   (drug_raw: DrugA)
@@ -236,7 +236,7 @@ def write_gold_inputs(data_dir: Path) -> None:
 #   (druga, D002): 0.63691                       → final_score = 0.63691
 #   (drugb, D001): 1.43304                       → final_score = 1.43304
 
-# ---- Step E: V5 final scoring ----
+# ---- Step E: final scoring ----
 # safety_penalty for DrugA ("druga"):
 #   AE "Death" count=20, is_serious=True (matches "death")
 #   ae_penalty = log(1+20)/10 * 2.0 = log(21)/10 * 2 ≈ 3.04452/10*2 = 0.60890
@@ -253,7 +253,7 @@ def write_gold_inputs(data_dir: Path) -> None:
 # phenotypes for D001: 2 phenotypes → phenotype_multiplier = 1 + 0.1 * log(1+2) ≈ 1.10986
 # phenotypes for D002: 0 phenotypes → phenotype_multiplier = 1 + 0.1 * log(1+0) = 1.0
 #
-# V5 formula:
+# final scoring formula:
 #   final = mechanism * exp(-0.3*safety_pen - 0.2*trial_pen) * phenotype_multiplier
 #
 # (druga, D001): 2.22917 * exp(-0.3*0.60890 - 0.2*0.10) * 1.10986
@@ -342,18 +342,18 @@ class TestGold:
         assert len(b) == 1
         assert str(b.iloc[0]["is_safety_stop"]) == "0"
 
-    # ------- Step D: V3 ranking -------
-    def test_step_d_v3_ranking(self):
+    # ------- Step D: DTPD ranking -------
+    def test_step_d_dtpd_ranking(self):
         # prerequisites
         build_gene_pathway(self.cfg)
         build_pathway_disease(self.cfg)
 
-        run_v3(self.cfg)
-        v3 = read_csv(self.output_dir / "drug_disease_rank_v3.csv", dtype=str)
-        print("\n=== drug_disease_rank_v3.csv ===")
-        print(v3.to_string(index=False))
+        run_dtpd(self.cfg)
+        dtpd = read_csv(self.output_dir / "dtpd_rank.csv", dtype=str)
+        print("\n=== dtpd_rank.csv ===")
+        print(dtpd.to_string(index=False))
 
-        assert len(v3) == 3  # 3 drug-disease pairs
+        assert len(dtpd) == 3  # 3 drug-disease pairs
 
         # 计算期望值
         hp = 1.0 / np.log1p(1.0)           # 1 / log(2) ≈ 1.4427
@@ -364,9 +364,9 @@ class TestGold:
         exp_b_d001 = 0.9 * hp * ws
 
         # 检查
-        row_a_d001 = v3[(v3["drug_normalized"] == "druga") & (v3["diseaseId"] == "EFO_D001")]
-        row_a_d002 = v3[(v3["drug_normalized"] == "druga") & (v3["diseaseId"] == "EFO_D002")]
-        row_b_d001 = v3[(v3["drug_normalized"] == "drugb") & (v3["diseaseId"] == "EFO_D001")]
+        row_a_d001 = dtpd[(dtpd["drug_normalized"] == "druga") & (dtpd["diseaseId"] == "EFO_D001")]
+        row_a_d002 = dtpd[(dtpd["drug_normalized"] == "druga") & (dtpd["diseaseId"] == "EFO_D002")]
+        row_b_d001 = dtpd[(dtpd["drug_normalized"] == "drugb") & (dtpd["diseaseId"] == "EFO_D001")]
 
         assert len(row_a_d001) == 1
         assert abs(float(row_a_d001.iloc[0]["final_score"]) - exp_a_d001) < 0.001, \
@@ -380,19 +380,19 @@ class TestGold:
 
         print(f"\n期望值:  DrugA-D001={exp_a_d001:.5f}, DrugA-D002={exp_a_d002:.5f}, DrugB-D001={exp_b_d001:.5f}")
 
-    # ------- Step E: V5 ranking -------
-    def test_step_e_v5_ranking(self):
+    # ------- Step E: ranker (full) -------
+    def test_step_e_ranker(self):
         # prerequisites
         build_gene_pathway(self.cfg)
         build_pathway_disease(self.cfg)
         build_trial_ae(self.data_dir)
 
-        results = run_v5(self.cfg)
-        v5 = read_csv(self.output_dir / "drug_disease_rank_v5.csv", dtype=str)
-        print("\n=== drug_disease_rank_v5.csv ===")
-        print(v5.to_string(index=False))
+        results = run_ranker(self.cfg)
+        rank = read_csv(self.output_dir / "drug_disease_rank.csv", dtype=str)
+        print("\n=== drug_disease_rank.csv ===")
+        print(rank.to_string(index=False))
 
-        assert len(v5) == 3
+        assert len(rank) == 3
 
         # 重算期望
         hp = 1.0 / np.log1p(1.0)
@@ -416,25 +416,25 @@ class TestGold:
         pheno_m_d001 = 1.0 + 0.1 * np.log1p(2)
         pheno_m_d002 = 1.0 + 0.1 * np.log1p(0)
 
-        # V5 formula
+        # final scoring formula
         risk_a = np.exp(-0.3 * safety_pen_a - 0.2 * trial_pen_a)
         risk_b = np.exp(-0.3 * safety_pen_b - 0.2 * trial_pen_b)
         exp_a_d001 = mech_a_d001 * risk_a * pheno_m_d001
         exp_a_d002 = mech_a_d002 * risk_a * pheno_m_d002
         exp_b_d001 = mech_b_d001 * risk_b * pheno_m_d001
 
-        row_a_d001 = v5[(v5["drug_normalized"] == "druga") & (v5["diseaseId"] == "EFO_D001")]
-        row_a_d002 = v5[(v5["drug_normalized"] == "druga") & (v5["diseaseId"] == "EFO_D002")]
-        row_b_d001 = v5[(v5["drug_normalized"] == "drugb") & (v5["diseaseId"] == "EFO_D001")]
+        row_a_d001 = rank[(rank["drug_normalized"] == "druga") & (rank["diseaseId"] == "EFO_D001")]
+        row_a_d002 = rank[(rank["drug_normalized"] == "druga") & (rank["diseaseId"] == "EFO_D002")]
+        row_b_d001 = rank[(rank["drug_normalized"] == "drugb") & (rank["diseaseId"] == "EFO_D001")]
 
         assert abs(float(row_a_d001.iloc[0]["final_score"]) - exp_a_d001) < 0.01, \
-            f"V5 DrugA-D001: got {float(row_a_d001.iloc[0]['final_score']):.5f}, expected {exp_a_d001:.5f}"
+            f"DrugA-D001: got {float(row_a_d001.iloc[0]['final_score']):.5f}, expected {exp_a_d001:.5f}"
         assert abs(float(row_a_d002.iloc[0]["final_score"]) - exp_a_d002) < 0.01, \
-            f"V5 DrugA-D002: got {float(row_a_d002.iloc[0]['final_score']):.5f}, expected {exp_a_d002:.5f}"
+            f"DrugA-D002: got {float(row_a_d002.iloc[0]['final_score']):.5f}, expected {exp_a_d002:.5f}"
         assert abs(float(row_b_d001.iloc[0]["final_score"]) - exp_b_d001) < 0.01, \
-            f"V5 DrugB-D001: got {float(row_b_d001.iloc[0]['final_score']):.5f}, expected {exp_b_d001:.5f}"
+            f"DrugB-D001: got {float(row_b_d001.iloc[0]['final_score']):.5f}, expected {exp_b_d001:.5f}"
 
-        print(f"\nV5 期望值:")
+        print(f"\n期望值:")
         print(f"  DrugA-D001: mech={mech_a_d001:.5f}, safety_pen={safety_pen_a:.5f}, trial_pen={trial_pen_a:.5f}, pheno_m={pheno_m_d001:.5f}, final={exp_a_d001:.5f}")
         print(f"  DrugA-D002: mech={mech_a_d002:.5f}, safety_pen={safety_pen_a:.5f}, trial_pen={trial_pen_a:.5f}, pheno_m={pheno_m_d002:.5f}, final={exp_a_d002:.5f}")
         print(f"  DrugB-D001: mech={mech_b_d001:.5f}, safety_pen={safety_pen_b:.5f}, trial_pen={trial_pen_b:.5f}, pheno_m={pheno_m_d001:.5f}, final={exp_b_d001:.5f}")
@@ -447,9 +447,9 @@ class TestGold:
         assert exp_a_d002 < exp_b_d001 < exp_a_d001, \
             f"排序应为: DrugA-D001({exp_a_d001:.4f}) > DrugB-D001({exp_b_d001:.4f}) > DrugA-D002({exp_a_d002:.4f})"
 
-        # ------- 检查 evidence_pack_v5 目录 -------
-        ep_dir = self.output_dir / "evidence_pack_v5"
-        assert ep_dir.exists(), "evidence_pack_v5 目录应存在"
+        # ------- 检查 evidence_pack 目录 -------
+        ep_dir = self.output_dir / "evidence_pack"
+        assert ep_dir.exists(), "evidence_pack 目录应存在"
         pack_files = sorted(ep_dir.glob("*.json"))
         assert len(pack_files) == 3, f"应有 3 个 evidence pack, 实际 {len(pack_files)}"
 
@@ -468,17 +468,17 @@ class TestGold:
         print(f"  scores={pack['scores']}")
         print(f"  paths={len(pack['explainable_paths'])}, AE={len(pack['safety_signals'])}, trials={len(pack['trial_evidence'])}, pheno={len(pack['phenotypes'])}")
 
-    # ------- Step F: evidence_paths_v3.jsonl -------
-    def test_step_f_evidence_paths_v3(self):
+    # ------- Step F: dtpd_paths.jsonl -------
+    def test_step_f_dtpd_paths(self):
         build_gene_pathway(self.cfg)
         build_pathway_disease(self.cfg)
-        run_v3(self.cfg)
+        run_dtpd(self.cfg)
 
-        evp = self.output_dir / "evidence_paths_v3.jsonl"
+        evp = self.output_dir / "dtpd_paths.jsonl"
         assert evp.exists()
         with open(evp, "r", encoding="utf-8") as f:
             lines = [json.loads(l) for l in f]
-        print(f"\n=== evidence_paths_v3.jsonl: {len(lines)} paths ===")
+        print(f"\n=== dtpd_paths.jsonl: {len(lines)} paths ===")
 
         # 应该有 4 条路径 (4个唯一的 drug-target-pathway-disease 组合)
         assert len(lines) == 4
@@ -508,9 +508,9 @@ def main():
         ("Step A: build_gene_pathway",   t.test_step_a_gene_pathway),
         ("Step B: build_pathway_disease", t.test_step_b_pathway_disease),
         ("Step C: build_trial_ae",        t.test_step_c_trial_ae),
-        ("Step D: V3 ranking",            t.test_step_d_v3_ranking),
-        ("Step F: evidence_paths_v3",     t.test_step_f_evidence_paths_v3),
-        ("Step E: V5 ranking (full)",     t.test_step_e_v5_ranking),
+        ("Step D: DTPD ranking",           t.test_step_d_dtpd_ranking),
+        ("Step F: dtpd_paths",            t.test_step_f_dtpd_paths),
+        ("Step E: ranker (full)",         t.test_step_e_ranker),
     ]
 
     passed = 0
@@ -625,12 +625,12 @@ class TestPRR:
         assert _calc_prr(10, 100, 10, 100) == 0.0  # bg_total == drug_total
         assert _calc_prr(10, 0, 100, 1000) == 0.0   # drug_total == 0
 
-    def test_v5_prr_gate_filters_low_prr(self):
-        """V5 排序: PRR 低于阈值的 AE 不计入安全惩罚"""
+    def test_prr_gate_filters_low_prr(self):
+        """排序: PRR 低于阈值的 AE 不计入安全惩罚"""
         cfg = _cfg(self.__class__._data_dir, self.__class__._output_dir)
         cfg.raw.setdefault("faers", {})["min_prr"] = 1.5
 
-        # 先构建 V3 所需的中间文件
+        # 先构建 DTPD 所需的中间文件
         build_gene_pathway(cfg)
         build_pathway_disease(cfg)
         build_trial_ae(self.__class__._data_dir)
@@ -641,12 +641,12 @@ class TestPRR:
              "report_count": 50, "drug_total_reports": 200, "prr": 0.5},
         ]).to_csv(self.__class__._data_dir / "edge_drug_ae_faers.csv", index=False)
 
-        # 运行 V5
-        results = run_v5(cfg)
-        v5 = read_csv(self.__class__._output_dir / "drug_disease_rank_v5.csv", dtype=str)
+        # 运行 ranker
+        results = run_ranker(cfg)
+        rank = read_csv(self.__class__._output_dir / "drug_disease_rank.csv", dtype=str)
 
         # DrugA 不应有安全惩罚 (PRR=0.5 < min_prr=1.5, 被过滤)
-        row_a = v5[v5["drug_normalized"] == "druga"].iloc[0]
+        row_a = rank[rank["drug_normalized"] == "druga"].iloc[0]
         assert float(row_a["safety_penalty"]) == 0.0, \
             f"PRR=0.5 低于阈值, safety_penalty 应为 0, got {row_a['safety_penalty']}"
 
@@ -825,7 +825,7 @@ class TestBenchmarkMetrics:
 
 
 class TestBenchmarkE2E:
-    """Benchmark 端到端测试: 用 V5 排序结果 + 合成 gold standard"""
+    """Benchmark 端到端测试: 用排序结果 + 合成 gold standard"""
 
     @classmethod
     def setup_class(cls):
@@ -837,11 +837,11 @@ class TestBenchmarkE2E:
         write_gold_inputs(cls._data_dir)
         cls._cfg = _cfg(cls._data_dir, cls._output_dir)
 
-        # 运行 V5 生成排序结果
+        # 运行 ranker 生成排序结果
         build_gene_pathway(cls._cfg)
         build_pathway_disease(cls._cfg)
         build_trial_ae(cls._data_dir)
-        run_v5(cls._cfg)
+        run_ranker(cls._cfg)
 
     @classmethod
     def teardown_class(cls):
@@ -855,7 +855,7 @@ class TestBenchmarkE2E:
             {"drug_normalized": "drugb", "diseaseId": "EFO_D001"},
         ]).to_csv(gold_csv, index=False)
 
-        rank_csv = self._output_dir / "drug_disease_rank_v5.csv"
+        rank_csv = self._output_dir / "drug_disease_rank.csv"
         result = run_benchmark(rank_csv, gold_csv, ks=[1, 2, 3])
 
         assert result["n_diseases_evaluated"] == 1
@@ -864,7 +864,7 @@ class TestBenchmarkE2E:
 
         m = result["per_disease"]["EFO_D001"]
         # D001 排序: druga 和 drugb 都在结果中, 它们都是正例
-        # 在 V5 中 D001 有 druga 和 drugb 两个药物
+        # D001 有 druga 和 drugb 两个药物
         assert m["mrr"] == 1.0, "第一个药物就是正例, MRR=1"
         assert m["auroc"] == 0.0, "全正无负例, AUROC=0 (退化情况)"
         assert m["hit@1"] == 1.0
@@ -876,13 +876,13 @@ class TestBenchmarkE2E:
             {"drug_normalized": "drugb", "diseaseId": "EFO_D001"},
         ]).to_csv(gold_csv, index=False)
 
-        rank_csv = self._output_dir / "drug_disease_rank_v5.csv"
+        rank_csv = self._output_dir / "drug_disease_rank.csv"
         result = run_benchmark(rank_csv, gold_csv, ks=[1, 2])
 
         m = result["per_disease"]["EFO_D001"]
         assert m["n_positive"] == 1
-        # drugb 在 V5 D001 排序中排第几取决于分数
-        # V5: druga-D001 final ≈ 2.021, drugb-D001 final ≈ 1.591
+        # drugb 在 D001 排序中排第几取决于分数
+        # druga-D001 final ≈ 2.021, drugb-D001 final ≈ 1.591
         # → druga 排第一, drugb 排第二
         assert m["hit@1"] == 0.0, "drugb 不在 top-1"
         assert m["hit@2"] == 1.0, "drugb 在 top-2"

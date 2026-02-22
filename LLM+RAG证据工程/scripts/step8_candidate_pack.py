@@ -333,6 +333,7 @@ def _select_docking_targets(
     primary_score = 0.0
     primary_tid = ""
     primary_name = ""
+    alphafold_structure_id = ""
     if primary:
         primary_provider, primary_structure_id = _structure_provider_and_id(primary)
         primary_source = str(primary.get("structure_source", "none"))
@@ -340,6 +341,11 @@ def _select_docking_targets(
         primary_score = _to_float(primary.get("docking_selection_score", 0.0))
         primary_tid = str(primary.get("target_chembl_id", "")).strip()
         primary_name = str(primary.get("target_name", "")).strip()
+        # Always construct AlphaFold ID when has_alphafold and uniprot exist,
+        # regardless of whether PDB is used as primary docking structure.
+        has_af = _to_bool(primary.get("has_alphafold", False))
+        if has_af and primary_uniprot:
+            alphafold_structure_id = f"AF-{primary_uniprot}-F1"
 
     if primary_provider == "PDB":
         feasibility = "READY_PDB"
@@ -386,6 +392,7 @@ def _select_docking_targets(
         "docking_primary_structure_source": primary_source,
         "docking_primary_structure_provider": primary_provider,
         "docking_primary_structure_id": primary_structure_id,
+        "alphafold_structure_id": alphafold_structure_id,
         "docking_backup_targets_json": json.dumps(backup_payload, ensure_ascii=False),
         "docking_feasibility_tier": feasibility,
         "docking_target_selection_score": round(primary_score, 6),
@@ -500,6 +507,7 @@ def main():
     ap.add_argument("--outdir", default="output/step8")
     ap.add_argument("--target_disease", default="atherosclerosis")
     ap.add_argument("--topk", type=int, default=3)
+    ap.add_argument("--route", default="", help="Route label (origin|cross). Cross route gets novelty boost for exploration bias.")
     ap.add_argument("--prefer_go", type=int, default=1, help="1: GO优先；0: 纯按rank_key排序")
     ap.add_argument(
         "--docking_primary_n",
@@ -659,13 +667,30 @@ def main():
     if df.empty:
         raise ValueError("No candidates found in step7_cards.json")
 
-    # 自动排序（更像真实平台）：unique PMIDs > topic > total > (harm/neg trials/safety)惩罚
+    # ----- Ranking formula (v2: log-cap literature + novelty boost + route-aware) -----
+    # Rationale: linear PMID weight (v1) over-rewards well-studied drugs and crushes
+    # novel repurposing candidates.  log1p + cap compresses the gap so a drug with
+    # 20 papers no longer dominates one with 3.  Novelty weight is raised so that
+    # explore-track candidates can surface.  Cross route gets a novelty multiplier
+    # because it is inherently exploratory (signature-reversal candidates).
+    PMID_CAP = 30.0          # max contribution from literature count
+    PMID_SCALE = 10.0        # scale factor inside log
+    NOVELTY_W = 15.0         # base novelty weight (was 8.0)
+    CROSS_NOVELTY_BOOST = 1.3  # extra multiplier for cross route
+
     df["topic_match_ratio_filled"] = df["topic_match_ratio"].fillna(0.0).astype(float)
+    pmid_score = df["unique_supporting_pmids_count"].fillna(0).astype(float).apply(
+        lambda x: min(PMID_CAP, math.log1p(x) * PMID_SCALE)
+    )
+
+    route_label = (args.route or "").strip().lower()
+    novelty_w = NOVELTY_W * CROSS_NOVELTY_BOOST if route_label == "cross" else NOVELTY_W
+
     df["rank_key"] = (
-        df["unique_supporting_pmids_count"].fillna(0).astype(float) * 10.0
+        pmid_score
         + df["topic_match_ratio_filled"] * 5.0
         + df["total_score_0_100"].fillna(0).astype(float)
-        + df["novelty_score"].fillna(0).astype(float) * 8.0
+        + df["novelty_score"].fillna(0).astype(float) * novelty_w
         - df["uncertainty_score"].fillna(0).astype(float) * 4.0
         - df["harm_or_neutral_sentence_count"].fillna(0).astype(float) * 0.5
         - df["neg_trials_n"].fillna(0).astype(float) * 1.0
@@ -698,6 +723,21 @@ def main():
     else:
         shortlist = sorted_all.head(args.topk).copy()
 
+    # ===== Export explore_nogo.csv: all NO-GO candidates for researcher review =====
+    # These drugs failed hard/soft gates but may still hold repurposing value.
+    # Outputting them separately preserves recall without polluting the main shortlist.
+    nogo_all = sorted_all[sorted_all["gate"] == "NO-GO"].copy()
+    if not nogo_all.empty:
+        nogo_export_cols = [c for c in [
+            "canonical_name", "drug_id", "gate", "decision_channel",
+            "total_score_0_100", "novelty_score", "uncertainty_score",
+            "rank_key", "endpoint_type", "safety_blacklist_hit",
+            "unique_supporting_pmids_count", "topic_match_ratio",
+        ] if c in nogo_all.columns]
+        nogo_path = outdir / "explore_nogo.csv"
+        nogo_all[nogo_export_cols].to_csv(nogo_path, index=False)
+        print(f"[INFO] Exported {len(nogo_all)} NO-GO candidates to {nogo_path.name} for explore review")
+
     # ===== Release Gate: block if NO-GO drugs in shortlist =====
     try:
         gate_cfg = ReleaseGateConfig(block_nogo=True, min_go_ratio=0.0, strict=True)
@@ -707,7 +747,8 @@ def main():
             print(f"[RELEASE GATE BLOCKED] {gate_result.summary()}")
             nogo_drugs = shortlist[shortlist["gate"] == "NO-GO"]["canonical_name"].tolist()
             shortlist = shortlist[shortlist["gate"] != "NO-GO"].copy()
-            print(f"  Removed {len(nogo_drugs)} NO-GO drug(s): {nogo_drugs}")
+            print(f"  Removed {len(nogo_drugs)} NO-GO drug(s) from shortlist: {nogo_drugs}")
+            print(f"  (These drugs are preserved in explore_nogo.csv for researcher review)")
             if shortlist.empty:
                 raise ValueError("Release gate: all candidates were NO-GO. Cannot produce shortlist.")
         else:

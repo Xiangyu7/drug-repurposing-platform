@@ -5,7 +5,7 @@
 # Provides: Python 3.11, R 4.3+, Bioconductor, all pip deps
 #
 # Build:  docker compose build
-# Run:    docker compose run app bash ops/quickstart.sh --single atherosclerosis
+# Run:    docker compose run app bash ops/start.sh run atherosclerosis
 # Shell:  docker compose run app bash
 # ============================================================
 
@@ -92,7 +92,7 @@ RUN mkdir -p /app/runtime/work \
              /app/runtime/quarantine \
              /app/runtime/state \
              /app/logs/continuous_runner \
-             /app/logs/quickstart \
+             /app/logs/pipeline \
              /app/data
 
 # ── Make scripts executable ──────────────────────────────────
@@ -110,4 +110,4 @@ cat('R packages OK\n')" \
 
 # ── Default entrypoint ───────────────────────────────────────
 ENTRYPOINT ["bash"]
-CMD ["ops/quickstart.sh", "--check-only"]
+CMD ["ops/start.sh", "check"]

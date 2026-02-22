@@ -86,10 +86,10 @@ fusion:
     dose_response: 0.05
     literature: 0.05
   normalization: "rank"            # "rank" or "minmax"
-  # KG_Explain V5 output — supports raw drug-disease level CSV directly.
+  # KG_Explain output — supports raw drug-disease level CSV directly.
   # Columns auto-detected: drug_normalized → drug, final_score.
   # Multi-row data aggregated to drug level via max(final_score).
-  # kg_scores_path: "../kg_explain/output/drug_disease_rank_v5.csv"
+  # kg_scores_path: "../kg_explain/output/drug_disease_rank.csv"
   # Filter KG results to a specific disease (matches diseaseName column).
   # Leave unset to use all diseases.
   # disease_filter: "atherosclerosis"

@@ -295,6 +295,19 @@ def build_bridge(
     # 5. Load V5 per-drug penalties (median across all diseases)
     penalty_map: Dict[str, dict] = {}
     v5p = Path(v5_path)
+    if not v5p.exists():
+        logger.warning(
+            "V5 penalties file not found: %s — all drugs will use default "
+            "risk_multiplier=1.0 and phenotype_multiplier=1.0 (final_score ≈ mechanism_score)",
+            v5p,
+        )
+    elif v5p.stat().st_size <= 100:
+        logger.warning(
+            "V5 penalties file too small (%d bytes): %s — treating as empty, "
+            "all drugs will use default multipliers",
+            v5p.stat().st_size,
+            v5p,
+        )
     if v5p.exists() and v5p.stat().st_size > 100:
         v5 = pd.read_csv(v5p)
         for drug, grp in v5.groupby("drug_normalized"):
@@ -441,15 +454,15 @@ def main():
                         help="Target disease name (fuzzy match, e.g. 'atherosclerosis')")
     parser.add_argument("--disease-ids", type=str, default=None,
                         help="Comma-separated disease IDs (e.g. EFO_0003914,MONDO_0021661)")
-    parser.add_argument("--v3", type=str,
-                        default=str(_project_root / "output" / "drug_disease_rank_v3.csv"),
-                        help="V3 ranking CSV path")
-    parser.add_argument("--v5", type=str,
-                        default=str(_project_root / "output" / "drug_disease_rank_v5.csv"),
-                        help="V5 ranking CSV path")
+    parser.add_argument("--v3", "--dtpd-rank", type=str,
+                        default=str(_project_root / "output" / "dtpd_rank.csv"),
+                        help="DTPD base ranking CSV path")
+    parser.add_argument("--v5", "--rank", type=str,
+                        default=str(_project_root / "output" / "drug_disease_rank.csv"),
+                        help="Final ranking CSV path")
     parser.add_argument("--paths", type=str,
-                        default=str(_project_root / "output" / "evidence_paths_v3.jsonl"),
-                        help="Evidence paths JSONL path")
+                        default=str(_project_root / "output" / "dtpd_paths.jsonl"),
+                        help="DTPD evidence paths JSONL path")
     parser.add_argument("--chembl", type=str,
                         default=str(_project_root / "data" / "drug_chembl_map.csv"),
                         help="ChEMBL mapping CSV path")

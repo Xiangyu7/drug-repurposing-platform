@@ -1,6 +1,0 @@
-disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
-cardiomyopathy	GSE230585	21697	11	5	patient	donor	auto_selected	RNA-sequencing of patients with hypertrophic cardiomyopathy , score=64.1, conf=high
-cardiomyopathy	GSE133754	9052	4	4	patient	control|healthy	auto_selected	SS-31 Reverses Mitochondrial Fragmentation in Fibroblasts fr, score=62.0, conf=high
-cardiomyopathy	GSE246298	18573	6	3	fibrosis	control	auto_selected	Cardiac Fibrosis in Dilated Cardiomyopathy: Transcriptomics , score=55.0, conf=high
-cardiomyopathy	GSE125990	18573	3	6	patient	control|donor	auto_selected	Gene expression profiling of fibroblasts in a family with LM, score=55.0, conf=high
-cardiomyopathy	GSE152261	21697	7	3	lesion	control	auto_selected	Differential Deep RNA Sequencing Revealed Various Bacterial , score=53.6, conf=high

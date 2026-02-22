@@ -1,4 +1,0 @@
-disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
-heart_failure	GSE253498	24676	15	15	case	normal	auto_selected	The biological mechanisms related to hub genes in the develo, score=80.0, conf=high
-heart_failure	GSE262690	24676	22	36	stenosis	control	auto_selected	Proteo-transcriptional architecture of human pressure overlo, score=77.2, conf=high
-heart_failure	GSE157205	18573	6	4	disease	healthy	auto_selected	Heart failure impairs the mechanotransduction properties of , score=58.3, conf=high

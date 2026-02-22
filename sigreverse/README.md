@@ -122,7 +122,7 @@
     ▼ ─── Step 13: 融合 (可选) ──────────────────────────────
     │  加权融合 3 路分数:
     │  • 50% SigReverse 反向分
-    │  • 30% KG_Explain 机制分 (drug_disease_rank_v5.csv)
+    │  • 30% KG_Explain 机制分 (drug_disease_rank.csv)
     │  • 20% FAERS 安全分 (edge_drug_ae_faers.csv)
     │
     │  药物名匹配策略 (跨项目):
@@ -248,7 +248,7 @@ python scripts/run.py \
 # Step 3 (可选): 融合 KG 分数
 python scripts/run_fusion_with_kg.py \
     --sigreverse-csv data/output_atherosclerosis/drug_reversal_rank.csv \
-    --kg-csv ../kg_explain/output/drug_disease_rank_v5.csv \
+    --kg-csv ../kg_explain/output/drug_disease_rank.csv \
     --faers-csv ../kg_explain/data/edge_drug_ae_faers.csv \
     --disease atherosclerosis \
     --out data/output_atherosclerosis/fusion_rank.csv
@@ -279,7 +279,7 @@ python scripts/run.py \
 # 融合 KG 机制分 + FAERS 安全分
 python scripts/run_fusion_with_kg.py \
     --sigreverse-csv data/output/drug_reversal_rank.csv \
-    --kg-csv ../kg_explain/output/drug_disease_rank_v5.csv \
+    --kg-csv ../kg_explain/output/drug_disease_rank.csv \
     --faers-csv ../kg_explain/data/edge_drug_ae_faers.csv \
     --disease atherosclerosis \
     --out data/output/fusion_rank.csv
@@ -324,7 +324,7 @@ fusion:
     reversal: 0.50       # SigReverse 反向分权重
     kg_explain: 0.30     # KG 机制分权重
     safety: 0.20         # FAERS 安全分权重
-  kg_scores_path: "../kg_explain/output/drug_disease_rank_v5.csv"
+  kg_scores_path: "../kg_explain/output/drug_disease_rank.csv"
   disease_filter: "atherosclerosis"
   safety_scores_path: "../kg_explain/data/edge_drug_ae_faers.csv"
 ```
@@ -493,7 +493,7 @@ SigReverse 的融合输出可对接下游 KG_Explain + LLM+RAG 的完整质量�
 | Release Gate | LLM+RAG | Step8 shortlist 自动拦截 NO-GO 药物 |
 | 跨项目集成测试 | 根目录 | 验证 kg_explain ↔ LLM+RAG 接口兼容性 |
 
-融合 KG 分数时，`drug_disease_rank_v5.csv` 新增字段:
+融合 KG 分数时，`drug_disease_rank.csv` 新增字段:
 
 | 字段 | 说明 |
 |------|------|

@@ -33,6 +33,8 @@
 
 四个项目**互补**：dsmeta 造签名 → SigReverse 找药 → KG_Explain 解释机制 → LLM+RAG 补充文献证据。
 
+> **2026-02-21 新增备选签名源**: `archs4_signature_pipeline/` 提供 ARCHS4 RNA-seq 签名作为 dsmeta 的备选方案。当 dsmeta 失败（GEO 数据不足、芯片注释缺失等）时，24/7 runner 会自动回退到 ARCHS4 管线。ARCHS4 输出格式与 dsmeta 完全兼容（`disease_signature_meta.json` + `sigreverse_input.json`）。
+>
 > **2026-02-12**: 下游 KG_Explain 新增 Bootstrap CI 不确定性量化、数据泄漏审计；LLM+RAG 新增 Schema 强制执行 + Release Gate。dsmeta 产出的签名质量直接影响全链路可信度。
 
 ---
@@ -195,24 +197,21 @@ labeling:
 
 ```bash
 # 1. 自动搜索（~1分钟/疾病，纯规则无 LLM）
-cd .. && python ops/auto_discover_geo.py --disease "heart failure" --write-yaml --out-dir ops/geo_curation
+cd .. && python ops/internal/auto_discover_geo.py --disease "heart failure" --write-yaml --out-dir ops/internal/geo_curation
 
 # 2. AI 辅助审核（把 discovery_log.txt 喂给 LLM）
-cat ops/geo_curation/heart_failure/discovery_log.txt
-# → 复制给 Claude/ChatGPT，问："请审核这些 heart failure 的 GSE 选择"
-# AI 检查：数据类型(mRNA?)、疾病匹配、组织/细胞类型、regex正确性、重复、研究设计
+cat ops/internal/geo_curation/heart_failure/discovery_log.txt
 
 # 3. 应用审核 — 编辑生成的 YAML 移除不合格 GSE
-#    修改 configs/<disease>.yaml 的 geo.gse_list 和 labeling.regex_rules
-#    如果审核后 GSE < 2 → 从 disease_list_day1_dual.txt 移除
+#    如果审核后 GSE < 2 → 从 ops/internal/disease_list_day1_dual.txt 移除
 
 # 4. 生成正式 dsmeta 配置
-python ops/generate_dsmeta_configs.py \
-    --geo-dir ops/geo_curation \
+python ops/internal/generate_dsmeta_configs.py \
+    --geo-dir ops/internal/geo_curation \
     --config-dir dsmeta_signature_pipeline/configs
 
 # 5. 验证（运行 Step1-2 检查样本数）
-bash ops/precheck_dual_dsmeta.sh
+bash ops/start.sh check --mode dual
 ```
 
 **AI 审核检查清单（喂给 LLM 的 6 项检查）：**

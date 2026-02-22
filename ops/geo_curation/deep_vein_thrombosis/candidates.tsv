@@ -1,2 +1,0 @@
-gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
-GSE307102	NAT10-mediated ac4C-modification exacerbates ferroptosis by stabilizing HMOX1 in	27713	Homo sapiens	12	0	0	low	20.0			0	

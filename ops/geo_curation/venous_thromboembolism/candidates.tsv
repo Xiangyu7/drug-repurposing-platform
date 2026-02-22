@@ -1,4 +1,0 @@
-gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
-GSE118259	Gene expression profile of Endothelial colony-forming cells (ECFCs) isolated fro	10558	Homo sapiens	13	0	0	low	17.0			0	
-GSE48000	Whole blood gene expression profiles distinguish clinical phenotypes of venous t	10558	Homo sapiens	132	0	0	low	17.0			0	
-GSE19151	Whole Blood Gene Expression Profiles Distinguish Patients with Single versus Rec	571	Homo sapiens	133	0	0	low	14.0			0	

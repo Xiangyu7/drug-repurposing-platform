@@ -22,8 +22,8 @@ WORK_DIR="${RUNTIME_DIR}/work"
 LOG_DIR="${ROOT_DIR}/logs"
 DSMETA_DIR="${ROOT_DIR}/dsmeta_signature_pipeline"
 LLM_DIR="${ROOT_DIR}/LLM+RAG证据工程"
-DUAL_LIST="${ROOT_DIR}/ops/disease_list_day1_dual.txt"
-ORIGIN_LIST="${ROOT_DIR}/ops/disease_list_day1_origin.txt"
+DUAL_LIST="${ROOT_DIR}/ops/internal/disease_list_day1_dual.txt"
+ORIGIN_LIST="${ROOT_DIR}/ops/internal/disease_list_day1_origin.txt"
 
 # Colors
 RED='\033[0;31m'
@@ -382,7 +382,6 @@ check_disk() {
     "kg_explain/cache:kg_explain HTTP 缓存"
     "LLM+RAG证据工程/data:LLM+RAG 数据缓存"
     "logs:日志文件"
-    "ops/geo_curation:GEO 发现结果"
   )
 
   for entry in "${dirs[@]}"; do

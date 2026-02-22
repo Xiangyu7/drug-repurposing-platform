@@ -1,6 +1,0 @@
-disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
-coronary_artery_disease	GSE242047	24676	31	21	case	control	auto_selected	Alternations in gut microbiota and host transcriptome of pat, score=78.5, conf=high
-coronary_artery_disease	GSE242046	24676	30	20	case	control	auto_selected	Alternations in gut microbiota and host transcriptome of pat, score=78.3, conf=high
-coronary_artery_disease	GSE120774	6244	17	19	case	control	auto_selected	Expression Data from epicardial  (EAT) and subcutaneous adip, score=74.9, conf=high
-coronary_artery_disease	GSE166780	20795	8	8	lesion	normal	auto_selected	Gene expression analysis suggests immunological changes of p, score=67.0, conf=medium
-coronary_artery_disease	GSE152498	16791	3	3	disease	control	auto_selected	Plasma-derived exosomal circular RNA hsa_circ_0005540 as a n, score=65.0, conf=high

@@ -101,7 +101,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
     # pipeline: 运行完整管道
     p_pipeline = subparsers.add_parser("pipeline", help="运行完整管道")
     p_pipeline.add_argument("--disease", default="atherosclerosis", help="疾病名称")
-    p_pipeline.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5", "v5_test"], help="排序版本")
+    p_pipeline.add_argument("--version", default="v5", choices=["v5", "v5_test"], help="排序版本")
     p_pipeline.add_argument("--skip-fetch", action="store_true", help="跳过数据获取")
     p_pipeline.add_argument("--drug-source", default="ctgov", choices=["ctgov", "signature"],
                             help="药物来源: ctgov (CT.gov失败试验) 或 signature (基因签名反查)")
@@ -110,7 +110,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
 
     # rank: 仅运行排序
     p_rank = subparsers.add_parser("rank", help="运行排序算法")
-    p_rank.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5", "v5_test"], help="排序版本")
+    p_rank.add_argument("--version", default="v5", choices=["v5", "v5_test"], help="排序版本")
     p_rank.add_argument("--config", help="配置文件路径")
 
     # fetch: 数据获取
@@ -156,7 +156,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
 
     # benchmark: 评估排序质量
     p_bench = subparsers.add_parser("benchmark", help="评估排序结果 (需提供 gold-standard CSV)")
-    p_bench.add_argument("--version", default="v5", choices=["v1", "v2", "v3", "v4", "v5", "v5_test"], help="排序版本")
+    p_bench.add_argument("--version", default="v5", choices=["v5", "v5_test"], help="排序版本")
     p_bench.add_argument("--gold", required=True, help="Gold-standard CSV (需含 drug_normalized, diseaseId)")
     p_bench.add_argument("--ks", default="5,10,20", help="K 值列表, 逗号分隔 (默认: 5,10,20)")
 

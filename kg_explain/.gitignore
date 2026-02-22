@@ -11,6 +11,8 @@ out/
 *.egg-info/
 
 # Large generated outputs (regenerable)
-output/evidence_pack_v5/
-output/evidence_paths_v3.jsonl
-output/evidence_paths_v5.jsonl
+output/evidence_pack/
+output/dtpd_paths.jsonl
+output/evidence_paths.jsonl
+output/dtpd_rank.csv
+output/drug_disease_rank.csv

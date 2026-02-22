@@ -4,11 +4,13 @@
 
 ```
 Drug Repurposing/
-  ├── dsmeta_signature_pipeline/   # Direction A: GEO gene signature generation
+  ├── dsmeta_signature_pipeline/   # Direction A: GEO microarray 基因签名 (主签名源)
+  ├── archs4_signature_pipeline/   # Direction A: ARCHS4 RNA-seq 基因签名 (备选签名源)
   ├── sigreverse/                  # Direction A: LINCS L1000 signature reversal
-  ├── kg_explain/                  # Both A & B: Knowledge Graph + V5 Ranking
-  ├── LLM+RAG证据工程/              # Both A & B: PubMed RAG + LLM evidence extraction
-  ├── ops/                         # Operations: runner scripts, disease lists, configs
+  ├── kg_explain/                  # Both A & B: Knowledge Graph + V5 Ranking + 靶点结构标注
+  ├── LLM+RAG证据工程/              # Both A & B: PubMed RAG + LLM evidence + docking就绪评估
+  ├── ops/                         # 用户入口: start.sh, check_status.sh, compare_ab_routes.py
+  │   └── internal/                # 底层脚本: runner, env_guard, topn_policy, disease lists
   └── runtime/                     # Auto-generated: work dirs, results, logs
 ```
 
@@ -42,10 +44,10 @@ sudo apt update && sudo apt install -y python3.10-venv r-base r-base-dev \
 sudo Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(c("limma","GEOquery","Biobase","affy","fgsea"))'
 
 # 3. Install all Python venvs + pip packages (4 modules)
-bash ops/quickstart.sh --setup-only
+bash ops/start.sh setup
 
 # 4. Verify everything
-bash ops/quickstart.sh --check-only
+bash ops/start.sh check
 ```
 
 > **Note:** If you only need Direction B (origin_only), skip steps 1-2 (R is not required).
@@ -54,7 +56,7 @@ bash ops/quickstart.sh --check-only
 
 ```bash
 brew install python r
-bash ops/quickstart.sh --setup-only
+bash ops/start.sh setup
 ```
 
 ### Hardware Recommendations
@@ -74,24 +76,24 @@ bash ops/quickstart.sh --setup-only
 cd /path/to/Drug\ Repurposing
 
 # Check environment prerequisites
-bash ops/quickstart.sh --check-only
+bash ops/start.sh check
 # 或按当前运行模式检查（origin_only 下 A 路问题降级为 warning）
-bash ops/quickstart.sh --check-only --mode origin_only --check-scope mode
+bash ops/start.sh check --mode origin_only --check-scope mode
 
 # Install all dependencies (creates venvs, installs pip packages)
-bash ops/quickstart.sh --setup-only
+bash ops/start.sh setup
 
 # Full flow: check -> install -> GEO discovery -> launch pipeline
-bash ops/quickstart.sh
+bash ops/start.sh
 
 # Run a single disease only
-bash ops/quickstart.sh --single atherosclerosis
+bash ops/start.sh run atherosclerosis
 
 # Run only Direction B (origin)
-bash ops/quickstart.sh --mode origin_only
+bash ops/start.sh start --mode origin_only
 ```
 
-### Quickstart 行为升级（工业级）
+### start.sh 行为升级（工业级）
 
 1. `--single` 默认会执行：`check -> auto-repair(必要时) -> re-check -> run`。  
 2. `--check-only` 默认是全量深检（A+B），并落盘可审计报告 JSON。  
@@ -104,10 +106,50 @@ bash ops/quickstart.sh --mode origin_only
 
 ```bash
 # 关闭自动修复（检查失败即退出）
-bash ops/quickstart.sh --single atherosclerosis --no-auto-repair
+bash ops/start.sh run atherosclerosis --no-auto-repair
 
 # 自定义报告输出文件（check-only）
-bash ops/quickstart.sh --check-only --report-json runtime/state/my_env_check.json
+bash ops/start.sh check --report-json runtime/state/my_env_check.json
+```
+
+### 路径约定（重要）
+
+1. 以疾病级输出路径为主：`kg_explain/output/<disease>/`  
+2. 常用产物示例：
+   - `kg_explain/output/<disease>/pipeline_manifest.json`
+   - `kg_explain/output/<disease>/bridge_origin_reassess.csv`
+   - `kg_explain/output/<disease>/bridge_repurpose_cross.csv`
+3. `kg_explain/output/*.csv` 仅作为 legacy 回退路径，不建议作为主输入路径。
+
+### 两疾病最小量 Smoke（origin_only / fastest）
+
+```bash
+cd /Users/xinyueke/Desktop/Drug\ Repurposing
+
+# 1) 预检（按 origin_only 模式）
+bash ops/start.sh check --mode origin_only --check-scope mode
+
+# 2) 生成 day1 前两个疾病临时列表（不改仓库文件）
+tmp_list="$(mktemp /tmp/day1_origin_two_XXXXXX.txt)"
+awk 'NF && $1 !~ /^#/ {print $1; n++; if (n==2) exit}' ops/internal/disease_list_day1_origin.txt > "$tmp_list"
+cat "$tmp_list"
+
+# 3) 最小预算运行
+RUN_MODE=origin_only \
+SCREEN_MAX_STUDIES=60 \
+TOPN_ORIGIN=6 \
+TOPN_STAGE2_ENABLE=0 \
+bash ops/internal/runner.sh "$tmp_list"
+
+# 4) 监控日志（另开终端）
+tail -f "$(ls -t logs/continuous_runner/runner_origin_only_*.log | head -1)"
+```
+
+可选快速检查：
+
+```bash
+log="$(ls -t logs/continuous_runner/runner_origin_only_*.log | head -1)"
+grep -E "\[ERROR\]|\[FAIL\]|=== Disease done|Cycle 1 done" "$log"
 ```
 
 ---
@@ -140,9 +182,9 @@ python3 -m venv .venv
 
 ### 4.3 dsmeta_signature_pipeline
 
-**Option A: quickstart (recommended)**
+**Option A: start.sh (recommended)**
 
-`bash ops/quickstart.sh --setup-only` handles this automatically. It creates the venv and installs all Python dependencies.
+`bash ops/start.sh setup` handles this automatically. It creates the venv and installs all Python dependencies.
 
 **Option B: manual setup**
 ```bash
@@ -168,6 +210,23 @@ cd dsmeta_signature_pipeline
 mamba env create -f environment.yml
 conda activate dsmeta
 ```
+
+### 4.3b archs4_signature_pipeline (ARCHS4 备选签名源)
+
+```bash
+cd archs4_signature_pipeline
+# 与 dsmeta 共享同一个 Python 虚拟环境即可
+# 需要 R + DESeq2 (用于差异表达分析)
+
+# 数据依赖: 下载 ARCHS4 H5 文件 (43GB)
+mkdir -p data/archs4
+# 从 https://s3.dev.maayanlab.cloud/archs4/files/human_gene_v2.4.h5 下载
+# 或用测试文件代替:
+python scripts/generate_test_h5.py --out data/archs4/human_gene_v2.4.h5
+```
+
+> **说明**: 默认签名优先级为 dsmeta → ARCHS4 回退（通过 `SIG_PRIORITY=dsmeta` 控制）。
+> 设置 `SIG_PRIORITY=archs4` 可切换为 ARCHS4 优先。
 
 ### 4.4 LLM+RAG
 
@@ -243,12 +302,41 @@ python run.py --config configs/atherosclerosis.yaml --from-step 3 --to-step 9
 
 **Output:** `dsmeta_signature_pipeline/outputs/<disease>/signature/`
 
+### 5.2b ARCHS4 Signature Pipeline (备选签名源)
+
+```bash
+cd archs4_signature_pipeline
+
+# Full pipeline (5 steps)
+python run.py --config configs/atherosclerosis.yaml
+
+# Partial run
+python run.py --config configs/atherosclerosis.yaml --from-step 2
+
+# Steps:
+#   1. OpenTargets prior   -> 疾病关联基因列表
+#   2. ARCHS4 select       -> 从H5中检索疾病GEO series + 提取计数矩阵
+#   3. DE analysis (DESeq2) -> 差异表达 (per-series logFC/FDR)
+#   3b. Meta-analysis       -> 随机效应 meta-analysis (cross-series)
+#   4. Assemble signature   -> OT先验 × DE结果 → top300 up + top300 down
+
+# 使用测试数据 (不需要下载43GB H5文件)
+python scripts/generate_test_h5.py --out data/archs4/human_gene_v2.4.h5
+python run.py --config configs/atherosclerosis.yaml
+```
+
+**Output:** `archs4_signature_pipeline/outputs/<disease>/signature/` (与 dsmeta 格式完全兼容)
+
+**签名源优先级** (runner 自动处理，通过 `SIG_PRIORITY` 环境变量控制):
+- `SIG_PRIORITY=dsmeta` (默认): dsmeta 优先 → ARCHS4 回退
+- `SIG_PRIORITY=archs4`: ARCHS4 优先 → dsmeta 回退
+
 ### 5.3 SigReverse (LINCS L1000)
 
 ```bash
 cd sigreverse
 
-# SigReverse is called automatically by the runner (run_24x7_all_directions.sh)
+# SigReverse is called automatically by the runner (runner.sh)
 # Manual run:
 .venv/bin/python -m sigreverse.cli \
   --signature ../dsmeta_signature_pipeline/outputs/<disease>/signature/sigreverse_input.json \
@@ -265,26 +353,24 @@ ollama serve &
 
 # Step 6: PubMed RAG + LLM evidence extraction
 .venv/bin/python scripts/step6_evidence_extraction.py \
-  --input data/step6_rank.csv \
-  --output-dir data/step6_output \
-  --disease atherosclerosis
+  --rank_in data/step6_rank.csv \
+  --out output/step6 \
+  --target_disease atherosclerosis
 
 # Step 7: 5-dimension scoring + gating (GO/MAYBE/NO-GO)
 .venv/bin/python scripts/step7_score_and_gate.py \
-  --dossiers data/step6_output \
-  --scores data/step7_scores.csv \
-  --gating data/step7_gating.csv
+  --input output/step6 \
+  --out output/step7
 
 # Step 8: Release gate + candidate pack (Excel)
 .venv/bin/python scripts/step8_candidate_pack.py \
-  --step7_dir data/ \
-  --bridge data/step6_rank.csv \
-  --outdir data/step8_output
+  --step7_dir output/step7 \
+  --outdir output/step8
 
 # Step 9: Validation plan generation
 .venv/bin/python scripts/step9_validation_plan.py \
-  --step8_dir data/step8_output \
-  --outdir data/step9_output
+  --step8_dir output/step8 \
+  --outdir output/step9
 ```
 
 **Output:** `data/step8_output/` (Excel), `data/step9_output/` (validation plans)
@@ -304,20 +390,24 @@ heart_failure|heart failure|EFO_0003144|
 stroke|stroke|EFO_0000712|
 ```
 
-Three lists provided:
+Disease lists (in `ops/internal/`):
 - `disease_list_day1_dual.txt` -- diseases for both Direction A+B (7 diseases)
 - `disease_list_day1_origin.txt` -- all diseases for Direction B (15 diseases)
 - `disease_list_b_only.txt` -- diseases only needing Direction B (9 diseases)
+
+User-facing lists (in `ops/`):
+- `disease_list.txt` -- master template
+- `disease_list_test.txt` -- minimal test set (2 diseases)
 
 ### 6.2 Cloud Server (Aliyun/AWS) -- Parallel
 
 ```bash
 # Start both dual + origin runners in parallel (background)
-bash ops/start_day1_aliyun.sh
+bash ops/start.sh start --mode dual
 
 # Monitor
-tail -f logs/day1_aliyun/dual_*.log
-tail -f logs/day1_aliyun/origin_*.log
+tail -f logs/continuous_runner/runner_dual_*.log
+tail -f logs/continuous_runner/runner_origin_only_*.log
 ```
 
 ### 6.3 Mac M1 (16GB) -- Serial (saves memory)
@@ -325,9 +415,9 @@ tail -f logs/day1_aliyun/origin_*.log
 ```bash
 # Serial: first dual (7 diseases), then B-only (9 diseases)
 # Estimated ~13 hours total
-bash ops/start_m1_serial.sh              # background
-bash ops/start_m1_serial.sh --foreground # foreground (see output)
-bash ops/start_m1_serial.sh --dry-run    # preview only
+bash ops/start.sh start                  # background
+bash ops/start.sh start --foreground     # foreground (see output)
+bash ops/start.sh start --dry-run        # preview only
 ```
 
 ### 6.4 Key Environment Variables
@@ -335,12 +425,10 @@ bash ops/start_m1_serial.sh --dry-run    # preview only
 ```bash
 # Example: customize and launch
 export RUN_MODE=dual                # dual | origin_only | cross_only
-export MAX_CYCLES=1                 # 0=infinite loop, 1=run once
-export SLEEP_SECONDS=300            # interval between cycles
 export TOPN_PROFILE=stable          # stable | balanced | recall
 export STEP_TIMEOUT=1800            # per-step timeout (seconds)
 export DSMETA_CLEANUP=1             # 1=cleanup work dir after dsmeta
-bash ops/run_24x7_all_directions.sh ops/disease_list_day1_dual.txt
+bash ops/internal/runner.sh ops/internal/disease_list_day1_dual.txt
 ```
 
 ---
@@ -387,16 +475,16 @@ bash ops/show_results.sh
 
 ```bash
 # Retry Direction B (default)
-bash ops/retry_disease.sh atherosclerosis
+bash ops/internal/retry_disease.sh atherosclerosis
 
 # Retry both directions
-bash ops/retry_disease.sh atherosclerosis --mode dual
+bash ops/internal/retry_disease.sh atherosclerosis --mode dual
 
 # Retry Direction A only
-bash ops/retry_disease.sh atherosclerosis --mode cross_only
+bash ops/internal/retry_disease.sh atherosclerosis --mode cross_only
 
 # Skip cleanup of previous artifacts
-bash ops/retry_disease.sh atherosclerosis --no-clean
+bash ops/internal/retry_disease.sh atherosclerosis --no-clean
 ```
 
 ### 8.2 View Results
@@ -416,32 +504,32 @@ bash ops/show_results.sh atherosclerosis --copy /tmp/export
 
 ```bash
 # Preview what would be cleaned (dry run)
-bash ops/cleanup.sh --dry-run --all 7
+bash ops/internal/cleanup.sh --dry-run --all 7
 
 # Clean everything older than 7 days
-bash ops/cleanup.sh --all 7
+bash ops/internal/cleanup.sh --all 7
 
 # Clean only work directories older than 3 days
-bash ops/cleanup.sh --work 3
+bash ops/internal/cleanup.sh --work 3
 
 # Clean only quarantine older than 14 days
-bash ops/cleanup.sh --quarantine 14
+bash ops/internal/cleanup.sh --quarantine 14
 
 # Clean only logs older than 30 days
-bash ops/cleanup.sh --logs 30
+bash ops/internal/cleanup.sh --logs 30
 ```
 
 ### 8.4 Restart / Stop Runners
 
 ```bash
 # Stop all runners
-bash ops/restart_runner.sh --stop
+bash ops/internal/restart_runner.sh --stop
 
 # Restart a specific runner
-bash ops/restart_runner.sh --runner dual
+bash ops/internal/restart_runner.sh --runner dual
 
 # Restart all active runners
-bash ops/restart_runner.sh
+bash ops/internal/restart_runner.sh
 ```
 
 ---
@@ -450,19 +538,42 @@ bash ops/restart_runner.sh
 
 ```
 runtime/
-  ├── results/<disease>/
-  │   ├── direction_a/          # Direction A results
-  │   │   ├── dsmeta/           # Gene signatures
-  │   │   ├── sigreverse/       # Signature reversal scores
-  │   │   ├── kg/               # KG ranking (signature mode)
-  │   │   └── llm/              # LLM evidence (step6-9)
-  │   └── direction_b/          # Direction B results
-  │       ├── kg/               # KG ranking (ctgov mode)
-  │       └── llm/              # LLM evidence (step6-9)
-  ├── work/<disease>/           # Intermediate files (auto-cleaned)
-  ├── quarantine/<disease>/     # Failed runs moved here
-  └── state/                    # PID files, lock files
+  ├── results/<disease>/<YYYY-MM-DD>/<run_id>/
+  │   ├── direction_a/                  # Direction A (跨疾病迁移)
+  │   │   ├── dsmeta/                   # dsmeta 基因签名
+  │   │   ├── archs4/                   # ARCHS4 签名 (如果dsmeta失败)
+  │   │   ├── sigreverse/               # LINCS 反向匹配分数
+  │   │   ├── kg/                       # KG ranking (signature mode)
+  │   │   │   ├── bridge_repurpose_cross.csv  # ★ 含靶点+PDB/AlphaFold结构标注
+  │   │   │   └── drug_disease_rank.csv
+  │   │   └── llm/                      # LLM evidence (step6-9)
+  │   │       ├── step6/dossiers/       # 每药 PubMed 证据档案
+  │   │       ├── step7/                # GO/MAYBE/NO-GO 决策
+  │   │       ├── step8/                # ★ 候选包 (CSV+Excel+one-pager)
+  │   │       │   ├── step8_shortlist_topK.csv   # ★★★ 最终候选 (含docking列+alphafold_structure_id)
+  │   │       │   └── step8_candidate_pack.xlsx  # Excel 报告
+  │   │       └── step9/                # 验证计划
+  │   ├── direction_b/                  # Direction B (原疾病重评估)
+  │   │   ├── kg/
+  │   │   │   └── bridge_origin_reassess.csv
+  │   │   └── llm/step6-9/
+  │   └── ab_comparison.csv             # ★ A+B 交叉验证 (两路线重叠药物)
+  ├── work/<disease>/                   # 中间文件 (自动清理)
+  ├── quarantine/<disease>/             # 失败运行隔离
+  └── state/                            # PID, lock, env check 报告
 ```
+
+### 最终输出文件优先级（按重要性排序）
+
+| 优先级 | 文件 | 用途 |
+|--------|------|------|
+| ★★★ | `ab_comparison.csv` | A+B 交叉验证: 两路线都推荐的药物 = 最高可信度 |
+| ★★★ | `step8_shortlist_topK.csv` | 最终候选药列表 (含靶点/结构/docking/AlphaFold) |
+| ★★ | `step8_candidate_pack.xlsx` | Excel 候选报告 (每药独立 Sheet) |
+| ★★ | `step9_validation_plan.csv` | 实验验证计划 (P1/P2/P3 优先级) |
+| ★ | `bridge_*.csv` | KG 中间排名 + 靶点结构信息 |
+| | `step7_gating_decision.csv` | 全部药物 GO/MAYBE/NO-GO 决策 |
+| | `step6/dossiers/*.json` | PubMed 证据原文 (调试/溯源用) |
 
 ---
 
@@ -470,8 +581,8 @@ runtime/
 
 | Problem | Cause | Solution |
 |---|---|---|
-| `No module named 'xxx'` | venv not activated / not created | Run `bash ops/quickstart.sh --setup-only` |
-| `python3-venv not available` | Missing system package | `sudo apt install python3.10-venv` (auto-detected by quickstart) |
+| `No module named 'xxx'` | venv not activated / not created | Run `bash ops/start.sh setup` |
+| `python3-venv not available` | Missing system package | `sudo apt install python3.10-venv` (auto-detected by start.sh) |
 | R packages missing | dsmeta needs Bioconductor | `sudo Rscript -e 'BiocManager::install(c("limma","GEOquery","fgsea"))'` |
 | R not found | Direction A needs R | `sudo apt install -y r-base r-base-dev` |
 | Ollama connection refused | Ollama not running | `ollama serve &` then `ollama list` |
@@ -481,6 +592,9 @@ runtime/
 | Disk full | GEO data accumulates | Set `DSMETA_CLEANUP=1` or `RETENTION_DAYS=7` |
 | API rate limit | NCBI/ChEMBL throttling | Auto-retried; set `NCBI_API_KEY` in `.env` |
 | Permission denied on .sh | Scripts not executable | `chmod +x ops/*.sh` |
+| ARCHS4 H5 file not found | 未下载 43GB 数据文件 | 用 `generate_test_h5.py` 生成测试文件，或下载真实 H5 |
+| numpy int64 JSON error | h5py 返回 numpy 类型 | 已修复: `02_archs4_select.py` 含 NumpyEncoder |
+| ARCHS4 空签名 | 疾病在 ARCHS4 无数据 | runner 自动回退到 dsmeta 或 OT-only |
 
 ---
 
@@ -526,16 +640,16 @@ cd drug-repurposing-platform
 docker compose up --build
 
 # Run a single disease (Direction B only)
-docker compose run app bash ops/quickstart.sh --single atherosclerosis
+docker compose run app bash ops/start.sh run atherosclerosis
 
 # Run a single disease (Direction A only)
-docker compose run app bash ops/quickstart.sh --single atherosclerosis --mode cross_only
+docker compose run app bash ops/start.sh run atherosclerosis --mode cross_only
 
 # Run a single disease (Direction A + B)
-docker compose run app bash ops/quickstart.sh --single atherosclerosis --mode dual
+docker compose run app bash ops/start.sh run atherosclerosis --mode dual
 
 # Check environment
-docker compose run app bash ops/quickstart.sh --check-only
+docker compose run app bash ops/start.sh check
 ```
 
 ### Background / 24x7 Mode
@@ -577,14 +691,14 @@ Disease lists are text files. Edit them before running, or bind-mount them in `d
 
 ```bash
 # Edit on the server, then run
-vi ops/disease_list_day1_origin.txt
-docker compose run app bash ops/quickstart.sh --run-only
+vi ops/internal/disease_list_day1_origin.txt
+docker compose run app bash ops/start.sh start
 ```
 
 Or uncomment the bind-mount lines in `docker-compose.yml` to live-edit configs:
 ```yaml
 volumes:
-  - ./ops/disease_list_day1_origin.txt:/app/ops/disease_list_day1_origin.txt
+  - ./ops/internal/disease_list_day1_origin.txt:/app/ops/internal/disease_list_day1_origin.txt
   - ./dsmeta_signature_pipeline/configs:/app/dsmeta_signature_pipeline/configs
 ```
 
@@ -619,8 +733,6 @@ docker-compose.yml
 | Variable | Default | Description |
 |---|---|---|
 | `RUN_MODE` | `dual` | Run mode: `dual` (A+B), `origin_only` (B), `cross_only` (A) |
-| `MAX_CYCLES` | `0` | Max cycles (0=infinite, 1=run once) |
-| `SLEEP_SECONDS` | `300` | Seconds between cycles |
 | `STEP_TIMEOUT` | `1800` | Per-step timeout in seconds |
 
 ### TopN / Quality Control
@@ -631,16 +743,16 @@ docker-compose.yml
 | `TOPN_CROSS` | `auto` | Direction A bridge topn: `auto` or integer |
 | `TOPN_ORIGIN` | `auto` | Direction B bridge topn: `auto` or integer |
 | `TOPN_STAGE2_ENABLE` | `1` | Allow second-stage expansion if quality low |
-| `TOPN_MAX_EXPAND_ROUNDS` | `1` | Max expansion rounds |
 | `STRICT_CONTRACT` | `1` | Strict data contract enforcement |
 
 ### Disk & Cleanup
 
 | Variable | Default | Description |
 |---|---|---|
-| `DISK_MIN_GB` | `5` | Min free disk space (GB) before cycle starts |
+| `DISK_MIN_GB` | `5` | Min free disk space (GB) before pipeline starts |
 | `DSMETA_DISK_MIN_GB` | `8` | Min free disk space (GB) before dsmeta runs |
 | `DSMETA_CLEANUP` | `1` | Auto-clean dsmeta workdir after each disease |
+| `SIG_PRIORITY` | `dsmeta` | Signature source priority: `dsmeta` or `archs4` |
 | `RETENTION_DAYS` | `7` | Work/quarantine retention (days) |
 | `LOG_RETENTION_DAYS` | `30` | Log retention (days) |
 | `CACHE_RETENTION_DAYS` | `1` | KG HTTP cache retention (days) |
@@ -651,17 +763,7 @@ docker-compose.yml
 |---|---|---|
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama API endpoint |
 | `NCBI_API_KEY` | _(empty)_ | NCBI API key for faster PubMed access |
-| `API_BACKOFF_SECONDS` | `600` | Wait time when all APIs are down |
 | `SCREEN_MAX_STUDIES` | `500` | Max CT.gov studies to screen per disease |
-
-### LLM Step6 Budget
-
-| Variable | Default | Description |
-|---|---|---|
-| `STEP6_PUBMED_RETMAX` | `120` | Max PubMed articles to retrieve |
-| `STEP6_PUBMED_PARSE_MAX` | `60` | Max articles to parse |
-| `STEP6_MAX_RERANK_DOCS` | `40` | Max documents for reranking |
-| `STEP6_MAX_EVIDENCE_DOCS` | `12` | Max evidence documents per drug |
 
 ---
 
@@ -671,22 +773,22 @@ docker-compose.yml
 # === MOST COMMON COMMANDS ===
 
 # First time setup
-bash ops/quickstart.sh --setup-only
+bash ops/start.sh setup
 
 # Run everything for one disease (Direction B)
-bash ops/quickstart.sh --single atherosclerosis
+bash ops/start.sh run atherosclerosis
 
 # Run everything for one disease (Direction A + B)
-bash ops/quickstart.sh --single atherosclerosis --mode dual
+bash ops/start.sh run atherosclerosis --mode dual
 
 # Run everything for one disease (Direction A only)
-bash ops/quickstart.sh --single atherosclerosis --mode cross_only
+bash ops/start.sh run atherosclerosis --mode cross_only
 
 # Run full pipeline on cloud server
-bash ops/start_day1_aliyun.sh
+bash ops/start.sh start --mode dual
 
 # Run full pipeline on Mac (serial, saves memory)
-bash ops/start_m1_serial.sh
+bash ops/start.sh start
 
 # Check what's happening
 bash ops/check_status.sh
@@ -694,17 +796,17 @@ bash ops/check_status.sh
 # === OPERATIONS ===
 
 # Retry a failed disease
-bash ops/retry_disease.sh atherosclerosis --mode dual
+bash ops/internal/retry_disease.sh atherosclerosis --mode dual
 
 # View results
 bash ops/show_results.sh atherosclerosis
 
 # Stop all runners
-bash ops/restart_runner.sh --stop
+bash ops/internal/restart_runner.sh --stop
 
 # Clean up disk (dry run first)
-bash ops/cleanup.sh --dry-run --all 7
-bash ops/cleanup.sh --all 7
+bash ops/internal/cleanup.sh --dry-run --all 7
+bash ops/internal/cleanup.sh --all 7
 
 # Track progress
 grep "PROGRESS" logs/continuous_runner/runner_*.log

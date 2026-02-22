@@ -47,7 +47,11 @@ class GatingConfig:
     min_benefit_papers: int = 2
     max_harm_ratio: float = 0.5  # If harm > 50% of classified, reject
     min_total_pmids: int = 3
-    blacklist_is_hard_gate: bool = True
+    # Blacklist as soft gate (v2): blacklisted drugs get a scoring penalty but are
+    # NOT hard-rejected.  This preserves recall for repurposing — a drug with known
+    # systemic risk (e.g. prednisone) may still be a strong candidate for a
+    # specific indication.  NO-GO drugs are output to explore_nogo.csv for review.
+    blacklist_is_hard_gate: bool = False
 
     # Soft gates (scoring)
     go_threshold: float = 60.0

@@ -1,0 +1,36 @@
+project:
+  name: stroke_archs4_signature
+  outdir: archs4_signature_pipeline/outputs/stroke
+  workdir: archs4_signature_pipeline/work/stroke
+  seed: 42
+disease:
+  name: stroke
+  efo_id: EFO_0000712
+archs4:
+  h5_path: archs4_signature_pipeline/data/archs4/human_gene_v2.4.h5
+  min_samples_per_group: 3
+  max_samples_per_group: 50
+  max_series: 5
+  case_keywords:
+  - stroke
+  - ischemic stroke
+  - cerebral infarction
+  - cerebrovascular
+  control_keywords:
+  - normal
+  - healthy
+  - control
+opentargets:
+  min_association_score: 0.1
+de:
+  method: deseq2
+  min_count: 10
+  min_samples: 3
+meta:
+  model: DL
+  min_sign_concordance: 0.8
+  flag_i2_above: 0.75
+signature:
+  top_n: 300
+  min_de_fdr: 0.5
+  weight_formula: meta_z_times_ot_score

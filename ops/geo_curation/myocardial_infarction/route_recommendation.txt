@@ -1,6 +1,0 @@
-Disease: myocardial infarction (myocardial_infarction)
-GSE found: 5 (high=5, med=0, low=0)
-Route: DIRECTION_A_IDEAL
-Action: Direction A has ideal coverage. Meta-analysis will be robust with strong cross-study validation.
-Direction A (signature): YES
-Direction B (origin-only): YES (always available)

@@ -15,7 +15,7 @@
   - `--pubmed_parse_max` (默认 60)
   - `--max_rerank_docs` (默认 40)
   - `--max_evidence_docs` (默认 12)
-- `ops/quickstart.sh` 默认采用工业级自动 topn 策略（保持手动数字 topn 兼容）
+- `ops/start.sh` 默认采用工业级自动 topn 策略（保持手动数字 topn 兼容）
 
 - **Release Gate** (`scoring/release_gate.py`): Step8 自动拦截 NO-GO 药物, GO 比例检查, 人工审核质量门控 (kill/miss rate, IRR Kappa)
 - **Contract Enforcer** (`contracts_enforcer.py`): Step7/8/9 所有输出 schema 强制校验 (strict 模式 raise / soft 模式 warn)
@@ -311,13 +311,13 @@ ollama pull nomic-embed-text
 cd "/Users/xinyueke/Desktop/Drug Repurposing"
 
 # 单病种快速验证（默认 origin_only）
-bash ops/quickstart.sh --single atherosclerosis
+bash ops/start.sh run atherosclerosis
 
 # 单病种 A+B 全跑（Cross + Origin）
-RUN_MODE=dual bash ops/quickstart.sh --single atherosclerosis
+bash ops/start.sh run atherosclerosis --mode dual
 
 # 24/7 常驻（工业级 topn 自动策略）
-TOPN_PROFILE=stable RUN_MODE=dual bash ops/quickstart.sh --mode dual --run-only
+TOPN_PROFILE=stable bash ops/start.sh start --mode dual
 ```
 
 说明：
@@ -425,7 +425,7 @@ python scripts/step6_evidence_extraction.py \
 ```
 
 两个方向的 Step7-9 各自独立运行，输出到 `step7_repurpose_cross/` 和 `step7_origin_reassess/` 等目录。
-若希望使用自动 topn + 质量门控扩容，请走主仓 `ops/run_24x7_all_directions.sh` 或 `ops/quickstart.sh`。
+若希望使用自动 topn + 质量门控扩容，请走主仓 `ops/runner.sh` 或 `ops/start.sh`。
 
 ### ← dsmeta (签名 → SigReverse → 药物列表)
 

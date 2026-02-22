@@ -203,8 +203,8 @@ def load_kg_outputs():
 
     # Root-level files
     root_files = []
-    for f in ["drug_disease_rank_v5.csv", "bridge_origin_reassess.csv",
-              "bridge_repurpose_cross.csv", "evidence_paths_v5.jsonl",
+    for f in ["drug_disease_rank.csv", "bridge_origin_reassess.csv",
+              "bridge_repurpose_cross.csv", "evidence_paths.jsonl",
               "pipeline_manifest.json"]:
         fp = kg_out_dir / f
         if fp.exists():
@@ -213,7 +213,7 @@ def load_kg_outputs():
 
     # Per-disease
     for d in kg_out_dir.iterdir():
-        if d.is_dir() and d.name != "evidence_pack_v5":
+        if d.is_dir() and d.name != "evidence_pack":
             files = []
             for f in d.iterdir():
                 if f.is_file() and f.suffix in (".csv", ".json", ".jsonl", ".tsv"):
@@ -527,11 +527,6 @@ select:focus, input:focus {{ outline:none; border-color:var(--blue); }}
           </div>
         </div>
         <div class="form-row">
-          <label>MAX_CYCLES:</label>
-          <input type="number" id="maxCycles" value="1" min="0" style="width:80px" onchange="updateLaunchCmd()">
-          <span style="font-size:11px;color:var(--text3)">0=&#x65E0;&#x9650;&#x5FAA;&#x73AF;</span>
-        </div>
-        <div class="form-row">
           <label>STEP_TIMEOUT:</label>
           <input type="number" id="stepTimeout" value="1800" min="300" style="width:100px" onchange="updateLaunchCmd()">
           <span style="font-size:11px;color:var(--text3)">&#x79D2;</span>
@@ -540,17 +535,17 @@ select:focus, input:focus {{ outline:none; border-color:var(--blue); }}
     </div>
 
     <div style="margin-top:14px">
-      <div class="cmd-box" id="launchCmdBox">bash ops/quickstart.sh --single atherosclerosis --mode origin_only</div>
+      <div class="cmd-box" id="launchCmdBox">bash ops/start.sh run atherosclerosis</div>
     </div>
 
     <div class="quick-btns">
-      <button class="btn btn-blue" onclick="showCmd('bash ops/quickstart.sh --check-only')">&#x2705; &#x73AF;&#x5883;&#x68C0;&#x67E5;</button>
-      <button class="btn btn-blue" onclick="showCmd('bash ops/quickstart.sh --setup-only')">&#x1F4E6; &#x5B89;&#x88C5;&#x4F9D;&#x8D56;</button>
-      <button class="btn btn-blue" onclick="showCmd('bash ops/quickstart.sh --discover-only')">&#x1F50D; GEO&#x53D1;&#x73B0;</button>
+      <button class="btn btn-blue" onclick="showCmd('bash ops/start.sh check')">&#x2705; &#x73AF;&#x5883;&#x68C0;&#x67E5;</button>
+      <button class="btn btn-blue" onclick="showCmd('bash ops/start.sh setup')">&#x1F4E6; &#x5B89;&#x88C5;&#x4F9D;&#x8D56;</button>
+      <button class="btn btn-blue" onclick="showCmd('bash ops/start.sh discover')">&#x1F50D; GEO&#x53D1;&#x73B0;</button>
       <button class="btn btn-green" onclick="showCmd('bash ops/check_status.sh --all')">&#x1F4CA; &#x67E5;&#x770B;&#x72B6;&#x6001;</button>
-      <button class="btn btn-red" onclick="showCmd('bash ops/restart_runner.sh --stop')">&#x23F9; &#x505C;&#x6B62;Runner</button>
-      <button class="btn btn-blue" onclick="showCmd('bash ops/restart_runner.sh')">&#x1F504; &#x91CD;&#x542F;Runner</button>
-      <button class="btn" onclick="showCmd('bash ops/cleanup.sh --dry-run --all 7')">&#x1F9F9; &#x6E05;&#x7406;&#x78C1;&#x76D8;</button>
+      <button class="btn btn-red" onclick="showCmd('bash ops/internal/restart_runner.sh --stop')">&#x23F9; &#x505C;&#x6B62;Runner</button>
+      <button class="btn btn-blue" onclick="showCmd('bash ops/internal/restart_runner.sh')">&#x1F504; &#x91CD;&#x542F;Runner</button>
+      <button class="btn" onclick="showCmd('bash ops/internal/cleanup.sh --dry-run --all 7')">&#x1F9F9; &#x6E05;&#x7406;&#x78C1;&#x76D8;</button>
       <button class="btn" onclick="showCmd('bash ops/show_results.sh')">&#x1F4C1; &#x67E5;&#x770B;&#x7ED3;&#x679C;</button>
     </div>
   </div>
@@ -705,7 +700,6 @@ function updateLaunchCmd() {{
 
   let cmd = '';
   const topn = getSelectedRadio('topn');
-  const cycles = document.getElementById('maxCycles').value;
   const timeout = document.getElementById('stepTimeout').value;
   const envPrefix = (topn !== 'stable' ? 'TOPN_PROFILE=' + topn + ' ' : '') +
                     (timeout !== '1800' ? 'STEP_TIMEOUT=' + timeout + ' ' : '');
@@ -714,19 +708,18 @@ function updateLaunchCmd() {{
     const disease = document.getElementById('launchDisease').value;
     const dir = getSelectedRadio('dir');
     cmd = (envPrefix ? envPrefix + '\\\\\\n  ' : '') +
-          'bash ops/quickstart.sh --single ' + disease + ' --mode ' + dir;
-    if (cycles !== '1') cmd += ' --cycles ' + cycles;
+          'bash ops/start.sh run ' + disease + ' --mode ' + dir;
   }} else if (mode === 'batch_b') {{
-    cmd = envPrefix + 'RUN_MODE=origin_only MAX_CYCLES=' + cycles +
-          ' bash ops/run_24x7_all_directions.sh ops/disease_list_day1_origin.txt';
+    cmd = envPrefix + 'RUN_MODE=origin_only' +
+          ' bash ops/internal/runner.sh ops/internal/disease_list_day1_origin.txt';
   }} else if (mode === 'batch_dual') {{
-    cmd = envPrefix + 'RUN_MODE=dual MAX_CYCLES=' + cycles +
-          ' bash ops/run_24x7_all_directions.sh ops/disease_list_day1_dual.txt';
+    cmd = envPrefix + 'RUN_MODE=dual' +
+          ' bash ops/internal/runner.sh ops/internal/disease_list_day1_dual.txt';
   }} else if (mode === 'batch_a') {{
-    cmd = envPrefix + 'RUN_MODE=cross_only MAX_CYCLES=' + cycles +
-          ' bash ops/run_24x7_all_directions.sh ops/disease_list_day1_dual.txt';
+    cmd = envPrefix + 'RUN_MODE=cross_only' +
+          ' bash ops/internal/runner.sh ops/internal/disease_list_day1_dual.txt';
   }} else if (mode === 'cloud') {{
-    cmd = 'bash ops/start_day1_aliyun.sh';
+    cmd = 'bash ops/start.sh start --mode dual';
   }}
 
   const box = document.getElementById('launchCmdBox');

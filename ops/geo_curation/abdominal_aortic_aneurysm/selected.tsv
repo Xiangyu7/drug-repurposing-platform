@@ -1,3 +1,0 @@
-disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
-abdominal_aortic_aneurysm	GSE183464	20301	7	7	aneurysm	normal	auto_selected	RNA-sequencing of abdominal aortic aneurysm (AAA) and contro, score=75.0, conf=high
-abdominal_aortic_aneurysm	GSE7084	2507;570	9	10	aneurysm	control	auto_selected	Expression data from the abdominal aorta and abdominal aorti, score=64.0, conf=high

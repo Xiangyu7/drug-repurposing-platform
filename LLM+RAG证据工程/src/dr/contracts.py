@@ -84,6 +84,7 @@ STEP8_SHORTLIST_REQUIRED_COLUMNS = {
     "docking_primary_structure_source",
     "docking_primary_structure_provider",
     "docking_primary_structure_id",
+    "alphafold_structure_id",
     "docking_backup_targets_json",
     "docking_feasibility_tier",
     "docking_target_selection_score",

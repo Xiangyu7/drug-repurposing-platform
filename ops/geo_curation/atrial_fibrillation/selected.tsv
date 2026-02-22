@@ -1,2 +1,0 @@
-disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
-atrial_fibrillation	GSE222739	24676	5	5	patient	control	auto_selected	Long noncoding RNA and messenger RNA profiling in epicardial, score=65.0, conf=high

@@ -1,7 +1,0 @@
-Disease: angina pectoris (angina_pectoris)
-GSE found: 0 (high=0, med=0, low=0)
-Route: DIRECTION_B_ONLY
-Action: Skip Direction A (no GEO data). Use Direction B (origin-only: CT.gov → KG → LLM) only.
-Direction A (signature): NO — skip, use Direction B only
-Direction B (origin-only): YES (always available)
-Warning: No suitable GEO expression datasets found. Disease signature cannot be computed.

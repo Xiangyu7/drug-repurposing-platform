@@ -9,7 +9,7 @@
 #
 # Usage:
 #   docker compose up --build          # First run: build + start + pull models
-#   docker compose run app bash ops/quickstart.sh --single atherosclerosis
+#   docker compose run app bash ops/start.sh run atherosclerosis
 #   docker compose up -d app           # Background 24/7 mode
 #   docker compose logs -f app         # View live logs
 #   docker compose run app bash        # Interactive shell
@@ -84,8 +84,6 @@ services:
       OLLAMA_HOST: "http://ollama:11434"
       # Pipeline configuration
       RUN_MODE: "origin_only"
-      MAX_CYCLES: "1"
-      SLEEP_SECONDS: "300"
       TOPN_PROFILE: "stable"
       STRICT_CONTRACT: "1"
       DSMETA_CLEANUP: "1"

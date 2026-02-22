@@ -190,10 +190,10 @@ configs/
     │    • n_signature_targets: 该药命中的签名靶点数
     ▼
   output/
-  ├── drug_disease_rank_v5.csv      最终排序 (含 is_known_indication + CI 列)
+  ├── drug_disease_rank.csv      最终排序 (含 is_known_indication + CI 列)
   │                                 ci_lower, ci_upper, ci_width, confidence_tier, n_evidence_paths
-  ├── evidence_paths_v5.jsonl       所有路径 (JSONL)
-  ├── evidence_pack_v5/             每对证据包 (JSON)
+  ├── evidence_paths.jsonl       所有路径 (JSONL)
+  ├── evidence_pack/             每对证据包 (JSON)
   ├── bridge_repurpose_cross.csv   Direction A: 跨疾病迁移 bridge
   ├── bridge_origin_reassess.csv   Direction B: 原疾病重评估 bridge (generate_disease_bridge.py)
   └── pipeline_manifest.json        运行元数据 (计时、缓存、药物来源)
@@ -218,9 +218,9 @@ configs/
 
 | 文件 | 说明 |
 |------|------|
-| `output/drug_disease_rank_v5.csv` | 药物-疾病排序 (final_score, mechanism, safety, is_known_indication) |
-| `output/evidence_paths_v5.jsonl` | 所有 DTPD 路径 (每行一个 JSON) |
-| `output/evidence_pack_v5/*.json` | ★ 每对药-疾病的完整证据包 |
+| `output/drug_disease_rank.csv` | 药物-疾病排序 (final_score, mechanism, safety, is_known_indication) |
+| `output/evidence_paths.jsonl` | 所有 DTPD 路径 (每行一个 JSON) |
+| `output/evidence_pack/*.json` | ★ 每对药-疾病的完整证据包 |
 | `output/bridge_repurpose_cross.csv` | Direction A: 跨疾病迁移 bridge (含靶点 + 结构来源标记) |
 | `output/bridge_origin_reassess.csv` | Direction B: 原疾病重评估 bridge (含靶点 + 结构来源标记) |
 | `output/pipeline_manifest.json` | 运行元数据 (计时、缓存命中率、配置摘要) |
@@ -256,6 +256,26 @@ Bridge 文件新增两列，为分子对接提供结构化靶点数据:
 - **`PDB`** — 仅有实验结构 → 可直接对接
 - **`AlphaFold_only`** — 仅有 AI 预测结构 → 对接结果需谨慎解读
 - **`none`** — 无结构数据
+
+### AlphaFold ID 来源说明 (2026-02-21)
+
+AlphaFold 结构 ID 的获取流程:
+1. ChEMBL API 返回靶点交叉引用 (`target_component_xrefs`)
+2. 若 `xref_src_db == "AlphaFoldDB"` → `has_alphafold = True`，`xref_id` = UniProt 编号
+3. AlphaFold ID 按官方命名规则拼接: `AF-{UniProt}-F1`（如 `AF-P30556-F1`）
+4. ChEMBL 本身不直接提供完整 AF ID，只标记"该蛋白在 AlphaFoldDB 有记录"
+
+下游 Step8 `step8_shortlist_topK.csv` 新增 `alphafold_structure_id` 列，
+即使有 PDB 实验结构也会同时展示 AlphaFold ID，方便用户查阅预测结构。
+
+### 签名源支持 (2026-02-21 更新)
+
+Direction A (Cross) 现在支持三种签名源，按优先级自动回退:
+1. **dsmeta** (GEO microarray meta-analysis) — 首选
+2. **archs4** (ARCHS4 RNA-seq) — dsmeta 失败时回退
+3. **OT-only** (仅 OpenTargets 基因列表) — 都失败时最终回退
+
+ARCHS4 管线输出与 dsmeta 格式完全兼容，无需修改 kg_explain 代码。
 
 ---
 
@@ -339,7 +359,7 @@ python -m kg_explain pipeline --disease atherosclerosis --version v5
 cd ../sigreverse
 python scripts/run_fusion_with_kg.py \
     --sigreverse-csv data/output/drug_reversal_rank.csv \
-    --kg-csv ../kg_explain/output/drug_disease_rank_v5.csv \
+    --kg-csv ../kg_explain/output/drug_disease_rank.csv \
     --faers-csv ../kg_explain/data/edge_drug_ae_faers.csv \
     --disease atherosclerosis \
     --out data/output/fused_rank.csv
@@ -366,7 +386,7 @@ python scripts/step6_evidence_extraction.py \
 
 ### 原疾病重评估 (Direction B)
 
-从 V3 排序中提取目标疾病相关药物，评估"失败药物是否真的对原疾病无效"。
+从 DTPD 排序中提取目标疾病相关药物，评估"失败药物是否真的对原疾病无效"。
 
 ```bash
 # 通用脚本 — 换疾病只改 --disease 参数
@@ -409,25 +429,25 @@ python scripts/generate_disease_bridge.py \
 
 ## 版本演进
 
-| 版本 | 路径类型 | 新增能力 |
-|------|----------|----------|
-| V1 | Drug → Disease | CT.gov conditions 直接关联 |
-| V2 | Drug → Target → Disease | + ChEMBL 靶点机制 |
-| V3 | Drug → Target → Pathway → Disease | + Reactome 通路 (核心 DTPD) |
-| V4 | V3 + Evidence Pack | + 每对证据包 (JSON) |
-| **V5** | **完整可解释路径** | **+ FAERS 安全信号 + 疾病表型加成** |
-| **V5-Sig** 🆕 | **V5 + Signature 药物来源** | **+ 基因签名反查 + 已知适应症标记** |
+| 版本 | 路径类型 | 状态 |
+|------|----------|------|
+| V1 | Drug → Disease | 已删除 (直连关联太粗糙) |
+| V2 | Drug → Target → Disease | 已删除 (缺通路维度) |
+| V3→dtpd | Drug → Target → Pathway → Disease | **保留** (ranker 内部依赖的 DTPD 基础排序) |
+| V4 | V3 + Evidence Pack | 已删除 (Evidence Pack 已集成到 LLM+RAG) |
+| **V5→ranker** | **完整可解释路径** | **当前唯一版本**: DTPD + FAERS 安全 + 表型加成 + Bootstrap CI |
+| **V5-Sig→ranker-sig** | **ranker + Signature 药物来源** | ranker + 基因签名反查 + 已知适应症标记 |
 
 ---
 
-## V5 评分公式
+## 评分公式
 
 ```
 final_score = mechanism_score
               × exp(-w1 × safety_penalty - w2 × trial_penalty)
               × (1 + w3 × log1p(min(n_phenotype, 10)))
 
-机制分 (V3 DTPD 路径):
+机制分 (DTPD 路径):
   path_score = (1 + support_gene_boost × n_support_genes)
                × pathway_score
                × exp(-hub_penalty × target_degree)
@@ -443,9 +463,9 @@ final_score = mechanism_score
 
 ---
 
-## V5 证据包格式
+## 证据包格式
 
-每个 `evidence_pack_v5/{drug}__{disease}.json` 包含:
+每个 `evidence_pack/{drug}__{disease}.json` 包含:
 
 ```json
 {
@@ -589,8 +609,9 @@ kg_explain/
 │   │   └── signature.py           🆕 基因签名→药物反查
 │   ├── builders/                   边构建
 │   │   └── edges.py               gene_pathway, pathway_disease, trial_ae
-│   ├── rankers/                    排序算法 V1-V5
-│   │   ├── v1.py ~ v5.py         各版本排序器
+│   ├── rankers/                    排序算法 (仅 V5)
+│   │   ├── dtpd.py                DTPD 基础路径评分 (被 ranker 内部调用)
+│   │   ├── ranker.py              完整排名器: DTPD + FAERS + 表型 + Bootstrap CI
 │   │   ├── base.py                hub_penalty 等共享工具
 │   │   ├── uncertainty.py         Bootstrap CI 不确定性量化 (1000x 重采样)
 │   │   └── __init__.py            run_pipeline 调度器
@@ -658,7 +679,7 @@ A: 大多数疾病基因尚无已批准/在研药物靶向。这是正常的 —
 A: 在 `configs/diseases/` 下创建新 YAML，指定 `condition` (CT.gov 搜索词)。Signature 模式还需要该疾病的 `disease_signature_meta.json`。
 
 **Q: 组合药 (如 "aspirin+ticagrelor") 分数为什么偏高?**
-A: 组合药靶点多于单药，机制分被放大。V5 已按组分数量归一化。
+A: 组合药靶点多于单药，机制分被放大。排名器已按组分数量归一化。
 
 ---
 
@@ -674,7 +695,7 @@ A: 组合药靶点多于单药，机制分被放大。V5 已按组分数量归�
 | **Model Registry** | `governance/registry.py` | config hash + data hash + metrics 快照 |
 | **Regression Suite** | `governance/regression.py` | 固定 fixture 回归测试 |
 
-V5 排序后自动附加 Bootstrap CI 列:
+排序后自动附加 Bootstrap CI 列:
 - `ci_lower` / `ci_upper`: 95% 置信区间
 - `ci_width`: 区间宽度
 - `confidence_tier`: HIGH (<0.10) / MEDIUM (<0.25) / LOW (>=0.25)
