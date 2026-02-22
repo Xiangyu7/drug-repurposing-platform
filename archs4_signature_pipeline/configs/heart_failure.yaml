@@ -1,13 +1,13 @@
 project:
   name: heart_failure_archs4_signature
-  outdir: archs4_signature_pipeline/outputs/heart_failure
-  workdir: archs4_signature_pipeline/work/heart_failure
+  outdir: outputs/heart_failure
+  workdir: work/heart_failure
   seed: 42
 disease:
   name: heart failure
   efo_id: EFO_0003144
 archs4:
-  h5_path: archs4_signature_pipeline/data/archs4/human_gene_v2.4.h5
+  h5_path: data/archs4/human_gene_v2.4.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
   max_series: 5

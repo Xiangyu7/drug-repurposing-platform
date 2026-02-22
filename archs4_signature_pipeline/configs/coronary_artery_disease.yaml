@@ -1,13 +1,13 @@
 project:
   name: coronary_artery_disease_archs4_signature
-  outdir: archs4_signature_pipeline/outputs/coronary_artery_disease
-  workdir: archs4_signature_pipeline/work/coronary_artery_disease
+  outdir: outputs/coronary_artery_disease
+  workdir: work/coronary_artery_disease
   seed: 42
 disease:
   name: coronary artery disease
   efo_id: EFO_0001645
 archs4:
-  h5_path: archs4_signature_pipeline/data/archs4/human_gene_v2.4.h5
+  h5_path: data/archs4/human_gene_v2.4.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
   max_series: 5

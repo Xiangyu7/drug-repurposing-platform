@@ -1,13 +1,13 @@
 project:
   name: atherosclerosis_archs4_signature
-  outdir: archs4_signature_pipeline/outputs/atherosclerosis
-  workdir: archs4_signature_pipeline/work/atherosclerosis
+  outdir: outputs/atherosclerosis
+  workdir: work/atherosclerosis
   seed: 42
 disease:
   name: atherosclerosis
   efo_id: EFO_0003914,MONDO_0021661
 archs4:
-  h5_path: archs4_signature_pipeline/data/archs4/human_gene_v2.4.h5
+  h5_path: data/archs4/human_gene_v2.4.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
   max_series: 5

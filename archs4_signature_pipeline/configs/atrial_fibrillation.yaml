@@ -1,13 +1,13 @@
 project:
   name: atrial_fibrillation_archs4_signature
-  outdir: archs4_signature_pipeline/outputs/atrial_fibrillation
-  workdir: archs4_signature_pipeline/work/atrial_fibrillation
+  outdir: outputs/atrial_fibrillation
+  workdir: work/atrial_fibrillation
   seed: 42
 disease:
   name: atrial fibrillation
   efo_id: EFO_0000275
 archs4:
-  h5_path: archs4_signature_pipeline/data/archs4/human_gene_v2.4.h5
+  h5_path: data/archs4/human_gene_v2.4.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
   max_series: 5

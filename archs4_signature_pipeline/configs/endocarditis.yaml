@@ -1,13 +1,13 @@
 project:
   name: endocarditis_archs4_signature
-  outdir: archs4_signature_pipeline/outputs/endocarditis
-  workdir: archs4_signature_pipeline/work/endocarditis
+  outdir: outputs/endocarditis
+  workdir: work/endocarditis
   seed: 42
 disease:
   name: endocarditis
   efo_id: EFO_0000465
 archs4:
-  h5_path: archs4_signature_pipeline/data/archs4/human_gene_v2.4.h5
+  h5_path: data/archs4/human_gene_v2.4.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
   max_series: 5

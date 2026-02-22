@@ -1,13 +1,13 @@
 project:
   name: deep_vein_thrombosis_archs4_signature
-  outdir: archs4_signature_pipeline/outputs/deep_vein_thrombosis
-  workdir: archs4_signature_pipeline/work/deep_vein_thrombosis
+  outdir: outputs/deep_vein_thrombosis
+  workdir: work/deep_vein_thrombosis
   seed: 42
 disease:
   name: deep vein thrombosis
   efo_id: EFO_0003907
 archs4:
-  h5_path: archs4_signature_pipeline/data/archs4/human_gene_v2.4.h5
+  h5_path: data/archs4/human_gene_v2.4.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
   max_series: 5
