@@ -57,6 +57,7 @@ set -Eeuo pipefail
 #   STEP_TIMEOUT        — 每步超时 (默认 1800s)
 #   DISK_MIN_GB         — 最低可用磁盘空间GB (默认 5)
 #   DSMETA_CLEANUP      — dsmeta跑完后是否自动清理workdir (默认 1=清理, 0=保留)
+#   KG_MAX_DRUGS_SIGNATURE — signature模式KG最多处理的药物数 (默认 200, 0=不限)
 # ═══════════════════════════════════════════════════════════════════
 
 # ── macOS compatibility: provide `timeout` if missing ──
@@ -1796,7 +1797,7 @@ if len(obj.get('up',[])) == 0 and len(obj.get('down',[])) == 0:
 
   next_step "${disease_key}" "Cross: KG ranking (signature mode)"
 
-  if ! run_cmd "Cross: kg signature" --timeout 3600 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source signature --signature-path "${CROSS_SIGNATURE_META}"; then
+  if ! run_cmd "Cross: kg signature" --timeout 3600 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source signature --signature-path "${CROSS_SIGNATURE_META}" --max-drugs "${KG_MAX_DRUGS_SIGNATURE:-200}"; then
     log "[ERROR] Cross: kg signature pipeline failed"
     return 1
   fi

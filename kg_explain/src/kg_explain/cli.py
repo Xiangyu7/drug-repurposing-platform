@@ -107,6 +107,8 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
                             help="药物来源: ctgov (CT.gov失败试验) 或 signature (基因签名反查)")
     p_pipeline.add_argument("--signature-path", default=None,
                             help="疾病基因签名文件路径 (signature模式必需, disease_signature_meta.json)")
+    p_pipeline.add_argument("--max-drugs", type=int, default=0,
+                            help="signature模式: 最多保留前N个药物进入KG (0=不限, 推荐200)")
 
     # rank: 仅运行排序
     p_rank = subparsers.add_parser("rank", help="运行排序算法")
@@ -279,6 +281,7 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
 
     drug_source = getattr(args, "drug_source", "ctgov")
     signature_path = getattr(args, "signature_path", None)
+    max_drugs = getattr(args, "max_drugs", 0)
 
     logger.info("=" * 60)
     logger.info("KG Explain v0.7.0 - Drug Repurposing Pipeline")
@@ -287,6 +290,8 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
     logger.info("药物来源: %s", drug_source)
     if drug_source == "signature":
         logger.info("签名文件: %s", signature_path)
+        if max_drugs > 0:
+            logger.info("药物上限: %d", max_drugs)
     logger.info("=" * 60)
 
     # Validate signature mode
@@ -313,6 +318,58 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
                 gene_source=str(sig_cfg.get("gene_source", "both")),
             )
             step_timings.append(t)
+
+            # ── Signature quality warning ──
+            import json as _json
+            with open(signature_path, "r", encoding="utf-8") as _sf:
+                _sig = _json.load(_sf)
+            _n_up = len(_sig.get("up_genes", []))
+            _n_down = len(_sig.get("down_genes", []))
+            _n_total = _n_up + _n_down
+            if _n_total < 50:
+                logger.warning("⚠ 签名基因数偏少 (%d up + %d down = %d), "
+                               "SigReverse/KG 结果可信度较低 (建议 ≥ 50)",
+                               _n_up, _n_down, _n_total)
+                if _n_total < 20:
+                    logger.warning("⚠ 签名基因 < 20, Cross 路线结果仅供参考, 建议同时参考 Origin 路线")
+
+            # ── Drug cap for signature mode ──
+            if max_drugs > 0:
+                import pandas as _pd
+                _chembl_path = data_dir / "drug_chembl_map.csv"
+                _dt_path = data_dir / "edge_drug_target.csv"
+                if _chembl_path.exists():
+                    _drugs_df = _pd.read_csv(_chembl_path, dtype=str)
+                    _n_before = len(_drugs_df)
+                    if _n_before > max_drugs:
+                        # 按 gene_weight 排序保留 top N (从 drug_from_signature.csv 取权重)
+                        _sig_path = data_dir / "drug_from_signature.csv"
+                        if _sig_path.exists():
+                            _sig_df = _pd.read_csv(_sig_path)
+                            # 每个药取最高 gene_weight
+                            _drug_weight = (_sig_df.groupby("chembl_id")["gene_weight"]
+                                            .max().reset_index()
+                                            .sort_values("gene_weight", ascending=False))
+                            _keep_ids = set(_drug_weight.head(max_drugs)["chembl_id"].tolist())
+                        else:
+                            # fallback: 保留前 N 行
+                            _keep_ids = set(_drugs_df.head(max_drugs)["chembl_id"].tolist())
+
+                        # 截断 drug_chembl_map.csv
+                        _drugs_df = _drugs_df[_drugs_df["chembl_id"].isin(_keep_ids)]
+                        _drugs_df.to_csv(_chembl_path, index=False)
+
+                        # 截断 edge_drug_target.csv
+                        if _dt_path.exists():
+                            _dt_df = _pd.read_csv(_dt_path, dtype=str)
+                            _dt_df = _dt_df[_dt_df["molecule_chembl_id"].isin(_keep_ids)]
+                            _dt_df.to_csv(_dt_path, index=False)
+
+                        logger.info("药物截断: %d → %d (max_drugs=%d, 按 gene_weight 排序)",
+                                    _n_before, len(_drugs_df), max_drugs)
+                    else:
+                        logger.info("药物数 %d ≤ max_drugs %d, 无需截断", _n_before, max_drugs)
+
             logger.info("⏭ 跳过 Step 2-5 (signature 模式已直接生成药物映射和靶点数据)")
 
         else:
