@@ -22,14 +22,28 @@
 - [ ] 泄漏审计失败（`pair_overlap` 不 clean）：立即停止放行，先修复 split/数据泄漏。
 - [ ] `kg_explain` 出现 `Uncertainty quantification skipped`：修复前禁止放行。
 - [ ] `sigreverse` 出现 `possible_toxicity_confounder=True`：补做文献核查并记录保留/剔除理由。
+- [ ] Cross 路线出现 `签名方向不平衡` 或 `签名基因极少`：确认自动降级/跳过是否合理，或手动补充签名。
+- [ ] KG 出现 `药物截断` 日志但截断量 > 50%：检查签名质量，考虑切换签名源。
 - [ ] release gate 被阻断（kill/miss/IRR 超阈）：做人工根因复核并形成书面决策。
 
 ## 3) 新疾病或大改配置时必做
 
 - [ ] 重新审核 `dsmeta` 的数据集选择（`gse_list`）和 case/control 规则。
 - [ ] 重新审核 dsmeta QC 报告（`outputs/reports/qc_summary.html`）。
+- [ ] 若使用 ARCHS4：检查 `archs4_signature_pipeline/configs/<disease>.yaml` 的 `case_keywords` 是否准确。
 - [ ] 若启用 KEGG，手工提供 `kegg.gmt` 并记录来源与许可。
 - [ ] 重新校准疾病相关安全黑名单、门控阈值和验证标准。
+
+## 3.5) 签名质量门控审核 (Cross 路线)
+
+- [ ] 确认签名来源：`run_summary.json` → `signature_source` 字段 (`dsmeta` / `archs4`)
+- [ ] 检查签名基因数：up 基因数 + down 基因数 = 总数
+  - `< 30` 或 `min(up, down) < 10` → runner 应已自动跳过 Cross（检查日志有无 `签名基因数不足` 或 `签名方向不平衡`）
+  - `30-100` → Tier 1，KG 药物上限自动收紧至 80，结果仅供探索
+  - `≥ 100` → Tier 2，正式可用，上限 200
+- [ ] 检查 KG 药物截断日志：`药物截断: N → M` 确认 cap 生效
+- [ ] 若 ARCHS4 签名 < 50 基因，建议人工审核 `disease_signature_meta.json` 中的基因列表是否有生物学意义
+- [ ] 对比 `SIG_PRIORITY` 设置与实际使用源是否一致（runner 决策 banner 中显示）
 
 ## 4) 建议放行阈值
 
@@ -42,6 +56,7 @@
 ## 5) 跑完一轮后数据检查 (按优先级)
 
 ### 第一优先：看结论
+- [ ] 确认签名来源和质量层级：`pipeline_manifest_cross_signature.json` → `signature_source` + 基因数
 - [ ] 打开 `step8_candidate_pack_from_step7.xlsx` → Shortlist sheet → 确认候选药数量和 gate 分布
 - [ ] 每个药的 Sheet → 检查靶点结构表 (Structure Source 列)
   - `PDB+AlphaFold` → 可直接做分子对接，选实验 PDB
