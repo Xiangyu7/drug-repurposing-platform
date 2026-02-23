@@ -235,8 +235,14 @@ def extract_counts(
     selected = pd.concat([cases, controls])
     indices = selected["idx"].values
 
-    # Get gene symbols
-    gene_symbols = decode_h5_strings(h5_file["meta"]["genes"]["gene_symbol"])
+    # Get gene symbols (ARCHS4 v2.4 uses "symbol", older versions used "gene_symbol")
+    genes_grp = h5_file["meta"]["genes"]
+    if "symbol" in genes_grp:
+        gene_symbols = decode_h5_strings(genes_grp["symbol"])
+    elif "gene_symbol" in genes_grp:
+        gene_symbols = decode_h5_strings(genes_grp["gene_symbol"])
+    else:
+        raise KeyError(f"No gene symbol dataset found. Available keys: {list(genes_grp.keys())}")
 
     # Extract count matrix (genes x samples)
     logger.info("  Extracting counts for %s (%d samples)...", sid, len(indices))
