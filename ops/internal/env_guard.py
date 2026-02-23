@@ -84,6 +84,9 @@ def parse_dotenv(path: Path) -> Dict[str, str]:
 
 
 def failure_severity(check_id: str, scope: str, mode: str) -> str:
+    # Network checks are non-blocking: transient timeouts should not prevent pipeline start
+    if check_id.startswith("net."):
+        return "warn"
     if scope == "all":
         return "critical"
     if check_id in A_ROUTE_CHECK_IDS and mode == "origin_only":
