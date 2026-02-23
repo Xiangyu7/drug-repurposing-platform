@@ -1779,6 +1779,24 @@ if len(obj.get('up',[])) == 0 and len(obj.get('down',[])) == 0:
     return 1
   fi
 
+  # ── Signature quality gate: < 30 genes → skip Cross ──
+  local _sig_genes
+  _sig_genes=$(python3 -c "
+import json, sys
+obj = json.load(open(sys.argv[1]))
+print(len(obj.get('up_genes', [])) + len(obj.get('down_genes', [])))
+" "${CROSS_SIGNATURE_META}" 2>/dev/null || echo "0")
+
+  if [[ "${_sig_genes}" -lt 30 ]]; then
+    log "[WARN] Cross: 签名基因数不足 (${_sig_genes} < 30), Cross 路线可信度过低"
+    log "[WARN] Cross: 跳过 Cross 路线, 建议主线走 Origin (--mode dual)"
+    return 1
+  elif [[ "${_sig_genes}" -lt 100 ]]; then
+    log "[INFO] Cross: 签名基因中等 (${_sig_genes}), 自动收紧 KG 药物上限"
+  else
+    log "[INFO] Cross: 签名基因充足 (${_sig_genes} ≥ 100)"
+  fi
+
   next_step "${disease_key}" "Cross: SigReverse (LINCS L1000)"
 
   sig_out_dir="${disease_work}/sigreverse_output"

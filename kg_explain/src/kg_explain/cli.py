@@ -319,56 +319,65 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
             )
             step_timings.append(t)
 
-            # ── Signature quality warning ──
+            # ── Signature quality tiered gate ──
+            # Tier 1: < 30 genes → should have been blocked by runner, warn here as safety
+            # Tier 2: 30-80 genes → run with tight cap (max_drugs capped at 80)
+            # Tier 3: >= 100 genes → full run with max_drugs as-is
             import json as _json
             with open(signature_path, "r", encoding="utf-8") as _sf:
                 _sig = _json.load(_sf)
             _n_up = len(_sig.get("up_genes", []))
             _n_down = len(_sig.get("down_genes", []))
             _n_total = _n_up + _n_down
-            if _n_total < 50:
-                logger.warning("⚠ 签名基因数偏少 (%d up + %d down = %d), "
-                               "SigReverse/KG 结果可信度较低 (建议 ≥ 50)",
+
+            if _n_total < 30:
+                logger.warning("⚠ 签名基因极少 (%d up + %d down = %d < 30), "
+                               "Cross 路线结果仅供探索性参考, 建议主线走 Origin",
                                _n_up, _n_down, _n_total)
-                if _n_total < 20:
-                    logger.warning("⚠ 签名基因 < 20, Cross 路线结果仅供参考, 建议同时参考 Origin 路线")
+                _effective_cap = min(max_drugs, 50) if max_drugs > 0 else 50
+            elif _n_total < 100:
+                logger.info("签名基因中等 (%d up + %d down = %d), "
+                            "Cross 可信度中等, 自动收紧药物上限",
+                            _n_up, _n_down, _n_total)
+                _effective_cap = min(max_drugs, 80) if max_drugs > 0 else 80
+            else:
+                logger.info("签名基因充足 (%d up + %d down = %d ≥ 100), "
+                            "Cross 路线正式可用",
+                            _n_up, _n_down, _n_total)
+                _effective_cap = max_drugs  # 0 means unlimited, or use the passed value
 
             # ── Drug cap for signature mode ──
-            if max_drugs > 0:
+            if _effective_cap > 0:
                 import pandas as _pd
                 _chembl_path = data_dir / "drug_chembl_map.csv"
                 _dt_path = data_dir / "edge_drug_target.csv"
                 if _chembl_path.exists():
                     _drugs_df = _pd.read_csv(_chembl_path, dtype=str)
                     _n_before = len(_drugs_df)
-                    if _n_before > max_drugs:
+                    if _n_before > _effective_cap:
                         # 按 gene_weight 排序保留 top N (从 drug_from_signature.csv 取权重)
-                        _sig_path = data_dir / "drug_from_signature.csv"
-                        if _sig_path.exists():
-                            _sig_df = _pd.read_csv(_sig_path)
-                            # 每个药取最高 gene_weight
+                        _sig_detail_path = data_dir / "drug_from_signature.csv"
+                        if _sig_detail_path.exists():
+                            _sig_df = _pd.read_csv(_sig_detail_path)
                             _drug_weight = (_sig_df.groupby("chembl_id")["gene_weight"]
                                             .max().reset_index()
                                             .sort_values("gene_weight", ascending=False))
-                            _keep_ids = set(_drug_weight.head(max_drugs)["chembl_id"].tolist())
+                            _keep_ids = set(_drug_weight.head(_effective_cap)["chembl_id"].tolist())
                         else:
-                            # fallback: 保留前 N 行
-                            _keep_ids = set(_drugs_df.head(max_drugs)["chembl_id"].tolist())
+                            _keep_ids = set(_drugs_df.head(_effective_cap)["chembl_id"].tolist())
 
-                        # 截断 drug_chembl_map.csv
                         _drugs_df = _drugs_df[_drugs_df["chembl_id"].isin(_keep_ids)]
                         _drugs_df.to_csv(_chembl_path, index=False)
 
-                        # 截断 edge_drug_target.csv
                         if _dt_path.exists():
                             _dt_df = _pd.read_csv(_dt_path, dtype=str)
                             _dt_df = _dt_df[_dt_df["molecule_chembl_id"].isin(_keep_ids)]
                             _dt_df.to_csv(_dt_path, index=False)
 
-                        logger.info("药物截断: %d → %d (max_drugs=%d, 按 gene_weight 排序)",
-                                    _n_before, len(_drugs_df), max_drugs)
+                        logger.info("药物截断: %d → %d (effective_cap=%d, genes=%d, 按 gene_weight 排序)",
+                                    _n_before, len(_drugs_df), _effective_cap, _n_total)
                     else:
-                        logger.info("药物数 %d ≤ max_drugs %d, 无需截断", _n_before, max_drugs)
+                        logger.info("药物数 %d ≤ effective_cap %d, 无需截断", _n_before, _effective_cap)
 
             logger.info("⏭ 跳过 Step 2-5 (signature 模式已直接生成药物映射和靶点数据)")
 
