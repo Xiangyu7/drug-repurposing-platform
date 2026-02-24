@@ -288,10 +288,19 @@ launch_pipeline() {
         else
             list_file="${OPS_DIR}/internal/disease_list_day1_origin.txt"
         fi
+    elif [[ ! -f "${list_file}" ]]; then
+        # Try resolving relative paths against common locations
+        for candidate in "${ROOT_DIR}/${list_file}" "${OPS_DIR}/${list_file}" "${OPS_DIR}/internal/${list_file}"; do
+            if [[ -f "${candidate}" ]]; then
+                list_file="${candidate}"
+                break
+            fi
+        done
     fi
 
     if [[ ! -f "${list_file}" ]]; then
         fail "Disease list not found: ${list_file}"
+        fail "Tried: ${DISEASE_LIST}, ${ROOT_DIR}/${DISEASE_LIST}, ${OPS_DIR}/${DISEASE_LIST}"
         return 1
     fi
 
