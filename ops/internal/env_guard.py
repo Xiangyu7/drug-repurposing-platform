@@ -614,13 +614,9 @@ class EnvGuard:
 
     def _check_cfg_disease_lists(self) -> None:
         list_paths = [
-            self.ops_dir / "disease_list.txt",
             self.ops_dir / "internal" / "disease_list_day1_origin.txt",
             self.ops_dir / "internal" / "disease_list_day1_dual.txt",
         ]
-        optional = self.ops_dir / "internal" / "disease_list_b_only.txt"
-        if optional.exists():
-            list_paths.append(optional)
 
         issues: List[str] = []
         for p in list_paths:
