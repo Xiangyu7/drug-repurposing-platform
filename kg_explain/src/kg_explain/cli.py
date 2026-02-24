@@ -330,10 +330,17 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
             _n_down = len(_sig.get("down_genes", []))
             _n_total = _n_up + _n_down
 
-            if _n_total < 30:
-                logger.warning("⚠ 签名基因极少 (%d up + %d down = %d < 30), "
-                               "Cross 路线结果仅供探索性参考, 建议主线走 Origin",
-                               _n_up, _n_down, _n_total)
+            _n_min_dir = min(_n_up, _n_down)
+
+            if _n_total < 30 or _n_min_dir < 10:
+                if _n_min_dir < 10:
+                    logger.warning("⚠ 签名方向不平衡 (%d up / %d down, min=%d < 10), "
+                                   "Cross 路线结果仅供探索性参考, 建议主线走 Origin",
+                                   _n_up, _n_down, _n_min_dir)
+                else:
+                    logger.warning("⚠ 签名基因极少 (%d up + %d down = %d < 30), "
+                                   "Cross 路线结果仅供探索性参考, 建议主线走 Origin",
+                                   _n_up, _n_down, _n_total)
                 _effective_cap = min(max_drugs, 50) if max_drugs > 0 else 50
             elif _n_total < 100:
                 logger.info("签名基因中等 (%d up + %d down = %d), "

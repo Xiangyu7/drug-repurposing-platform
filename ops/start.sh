@@ -111,6 +111,7 @@ if [[ $# -gt 0 ]]; then
             ;;
         start)    ACTION="run"; shift ;;
         status)
+            shift
             exec bash "${OPS_DIR}/check_status.sh" "$@"
             ;;
         results)

@@ -1779,15 +1779,21 @@ if len(obj.get('up',[])) == 0 and len(obj.get('down',[])) == 0:
     return 1
   fi
 
-  # ── Signature quality gate: < 30 genes → skip Cross ──
-  local _sig_genes
-  _sig_genes=$(python3 -c "
+  # ── Signature quality gate: total < 30 or min(up,down) < 10 → skip Cross ──
+  local _sig_genes _sig_up _sig_down _sig_min_dir
+  read -r _sig_up _sig_down < <(python3 -c "
 import json, sys
 obj = json.load(open(sys.argv[1]))
-print(len(obj.get('up_genes', [])) + len(obj.get('down_genes', [])))
-" "${CROSS_SIGNATURE_META}" 2>/dev/null || echo "0")
+print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
+" "${CROSS_SIGNATURE_META}" 2>/dev/null || echo "0 0")
+  _sig_genes=$(( _sig_up + _sig_down ))
+  _sig_min_dir=$(( _sig_up < _sig_down ? _sig_up : _sig_down ))
 
-  if [[ "${_sig_genes}" -lt 30 ]]; then
+  if [[ "${_sig_min_dir}" -lt 10 ]]; then
+    log "[WARN] Cross: 签名方向不平衡 (${_sig_up} up / ${_sig_down} down, min=${_sig_min_dir} < 10), Cross 路线可信度过低"
+    log "[WARN] Cross: 跳过 Cross 路线, 建议主线走 Origin (--mode dual)"
+    return 1
+  elif [[ "${_sig_genes}" -lt 30 ]]; then
     log "[WARN] Cross: 签名基因数不足 (${_sig_genes} < 30), Cross 路线可信度过低"
     log "[WARN] Cross: 跳过 Cross 路线, 建议主线走 Origin (--mode dual)"
     return 1

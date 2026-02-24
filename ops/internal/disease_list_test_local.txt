@@ -1,6 +1,0 @@
-# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
-# Minimal local test: 2 diseases, dual mode
-# myocarditis: no dsmeta config → origin only (tests cross skip logic)
-myocarditis|myocarditis|EFO_0009609|
-# abdominal_aortic_aneurysm: has dsmeta config → dual (tests both routes)
-abdominal_aortic_aneurysm|abdominal aortic aneurysm|EFO_0004214|
