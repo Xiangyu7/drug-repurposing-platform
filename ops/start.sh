@@ -136,6 +136,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# If no subcommand but --list was given, default to batch run
+if [[ "${ACTION}" == "help" && -n "${DISEASE_LIST}" ]]; then
+    ACTION="run"
+fi
+
 # Show help if no command given
 if [[ "${ACTION}" == "help" ]]; then
     show_help
