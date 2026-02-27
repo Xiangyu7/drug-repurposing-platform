@@ -10,7 +10,7 @@ seed_nct_list.csv
   → step5  → drug_master.csv + poolA_drug_level.csv
   → step6  → dossiers/ + step6_rank_v2.csv
   → step7  → hypothesis_cards + gating_decision
-  → step8  → step8_shortlist_topK.csv + candidate_pack.xlsx
+  → step8  → step8_shortlist_topK.csv + fusion_rank_report.xlsx
   → step9  → step9_validation_plan.csv
 ```
 
@@ -19,12 +19,12 @@ seed_nct_list.csv
 | Step | 脚本 | 输入 | 输出 | 说明 |
 |------|------|------|------|------|
 | 0 | step0_build_pool.py | seed_nct_list.csv | poolA_trials.csv | 从种子 NCT 构建试验池 |
-| 1-3 | step1_3_fetch_failed_drugs.py | poolA_trials.csv | poolA_trials_labeled.csv | 获取失败药物信息 |
+| 1-3 | step1_fetch_trial_drugs.py | poolA_trials.csv | poolA_trials_labeled.csv | 获取失败药物信息 |
 | 4 | step4_label_trials.py | poolA_trials.csv | step4_final_trial_labels.csv | AI+人工标注试验结果 |
 | 5 | step5_normalize_drugs.py | step4 输出 | drug_master.csv, poolA_drug_level.csv | 药物归一化和聚合 |
 | 6 | step6_evidence_extraction.py | poolA_drug_level.csv | dossiers/ + step6_rank_v2.csv | PubMed RAG + LLM 证据提取 |
 | 7 | step7_score_and_gate.py | step6 dossiers | hypothesis_cards, gating_decision | 评分和门控决策 |
-| 8 | step8_candidate_pack.py | step7 输出 + bridge CSV | step8_shortlist_topK.csv (含靶点+docking就绪列) + candidate_pack.xlsx (含靶点结构表) + step8_manifest.json | 打包候选药物 (含靶点/PDB/AlphaFold + docking优先级) |
+| 8 | step8_fusion_rank.py | step7 输出 + bridge CSV | step8_shortlist_topK.csv (含靶点+docking就绪列) + fusion_rank_report.xlsx (含靶点结构表) + step8_manifest.json | 打包候选药物 (含靶点/PDB/AlphaFold + docking优先级) |
 | 9 | step9_validation_plan.py | step8 输出 | step9_validation_plan.csv + step9_manifest.json | 验证计划生成 |
 
 ## Step 6 子步骤（核心）

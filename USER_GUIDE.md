@@ -1,6 +1,6 @@
 # Drug Repurposing Platform - 用户使用手册（最新版）
 
-更新时间：2026-02-21
+更新时间：2026-02-26
 适用目录：`/Users/xinyueke/Desktop/Drug Repurposing`
 
 ---
@@ -16,6 +16,8 @@
 5. `LLM+RAG证据工程`：PubMed + LLM 抽取证据，输出 GO/MAYBE/NO-GO + 候选包（含分子对接就绪评估）+ 验证计划
 6. `ops/` 运维工具链：一键启动（`start.sh`）+ 状态查看 + A/B交叉验证。底层脚本统一收入 `ops/internal/`
 
+> **2026-02-26 新增**: runner.sh Cross 路线全自动化 — 新疾病无需手动创建签名 config，`ensure_cross_signature_config()` 自动搜 GEO → dsmeta config → ARCHS4 config fallback。V5 排名公式更新：safety_penalty 改为 PRR-based + tanh 饱和，trial_penalty 改为 log-saturating，phenotype_boost 加入 avg_pheno_score。全量测试 1189+ 通过。
+>
 > **2026-02-21 新增**: ARCHS4 备选签名管线（RNA-seq）; Step8 新增 `alphafold_structure_id` 列（即使有PDB也展示AF ID）; A+B 路线交叉验证（`compare_ab_routes.py`）; 空签名自动回退机制。
 >
 > **2026-02-16 新增运维工具链**: `auto_discover_geo.py` 自动搜索 GEO 数据集 + 检测 case/control；`generate_dsmeta_configs.py` 批量生成 dsmeta 配置；`start.sh` 一键环境检查/安装/启动。
@@ -67,18 +69,37 @@ bash ops/check_status.sh
 ### 可选参数（按需加）
 
 ```bash
-# 想跑 A+B 两条路线（默认只跑 B）
+# 想跑 A+B 两条路线（默认 dual，Cross + Origin 都跑）
 bash ops/start.sh run atherosclerosis --mode dual
+
+# 只跑 Origin（跳过 Cross 签名路线）
+bash ops/start.sh run atherosclerosis --mode origin_only
 
 # 检查环境有没有问题（不运行）
 bash ops/start.sh check
+
+# ARCHS4 优先（默认 dsmeta 优先）
+SIG_PRIORITY=archs4 bash ops/start.sh run atherosclerosis --mode dual
 ```
 
 > 底层脚本（`runner.sh`、`env_guard.py`、`topn_policy.py` 等）已移入 `ops/internal/`，`start.sh` 已经封装了它们，你不需要直接调用。
 
+### Cross 路线全自动化 (2026-02-26)
+
+新疾病无需提前手动创建签名 config。`runner.sh` 在进入 Cross 路线时自动执行：
+
+1. **搜 GEO** → `auto_discover_geo.py` 搜 NCBI GEO 表达数据集
+2. **生成 dsmeta config** → `generate_dsmeta_configs.py` 把找到的 GSE 转成配置
+3. **GEO 失败 → ARCHS4 fallback** → `auto_generate_config.py` 生成 ARCHS4 config（有优化关键词）
+4. **都失败 → skip Cross** → 继续跑 Origin 路线
+
+然后 `run_cross_route()` 内部再按 `SIG_PRIORITY` 顺序运行 dsmeta / ARCHS4 互相 fallback。
+
 ### 添加新疾病到 Direction A
 
-之前需要手动查 GEO、手动写 dsmeta YAML，现在自动化了：
+> **2026-02-26 更新**: 现在 `runner.sh` 会**全自动**处理新疾病的签名 config 生成。只需在 disease list 里加一行（填好 disease_key、disease_query、EFO ID），运行 `bash ops/start.sh start` 即可。runner 会自动搜 GEO → 生成 dsmeta config → 失败则生成 ARCHS4 config → 都失败则 skip Cross 继续 Origin。
+>
+> 以下手动流程仅在你想**精细控制** GEO 数据集选择时使用：
 
 ```bash
 # Step 1: 自动搜索 GEO 数据集（纯规则，无 LLM，~1分钟）
@@ -353,7 +374,7 @@ python scripts/step7_score_and_gate.py \
   --out output/step7_repurpose_cross \
   --strict_contract 1
 
-python scripts/step8_candidate_pack.py \
+python scripts/step8_fusion_rank.py \
   --step7_dir output/step7_repurpose_cross \
   --neg data/poolA_negative_drug_level.csv \
   --bridge ../kg_explain/output/bridge_repurpose_cross.csv \
@@ -408,7 +429,7 @@ python scripts/step7_score_and_gate.py \
   --input output/step6_origin_reassess \
   --out output/step7_origin_reassess --strict_contract 1
 
-python scripts/step8_candidate_pack.py \
+python scripts/step8_fusion_rank.py \
   --step7_dir output/step7_origin_reassess \
   --bridge ../kg_explain/output/bridge_origin_reassess.csv \
   --outdir output/step8_origin_reassess \
@@ -602,7 +623,7 @@ hypertension                       │ — │ ✅ │ 2026-02-16 │ 失败(2�
 |--------|------|------|
 | ★★★ | `ab_comparison.csv` | A+B 交叉验证: 两路线重叠药 = 最高可信 |
 | ★★★ | `step8_shortlist_topK.csv` | 最终候选药 (含靶点/PDB/AlphaFold/docking) |
-| ★★ | `step8_candidate_pack.xlsx` | Excel 候选报告 (每药独立 Sheet) |
+| ★★ | `step8_fusion_rank_report.xlsx` | Excel 候选报告 (每药独立 Sheet) |
 | ★★ | `step9_validation_plan.csv` | 实验验证计划 (P1/P2/P3 优先级) |
 | ★ | `bridge_*.csv` | KG 中间排名 + 靶点结构信息 |
 | ★ | `step7_gating_decision.csv` | 全部药物 GO/MAYBE/NO-GO |

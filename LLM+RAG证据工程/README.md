@@ -203,7 +203,7 @@ data/seed_nct_list.csv  (种子 NCT ID 列表)
     ▼
   output/step8/
   ├── step8_shortlist_topK.csv     排序短名单 (含 targets + target_details 列)
-  ├── step8_candidate_pack_from_step7.xlsx  Excel 报告 (短名单 + 每药靶点结构表)
+  ├── step8_fusion_rank_report.xlsx  Excel 报告 (短名单 + 每药靶点结构表)
   ├── step8_one_pagers_topK.md     Markdown 单页摘要 (含靶点/UniProt/PDB)
   └── step8_manifest.json          Step8 运行清单 (provenance)
 
@@ -244,7 +244,7 @@ data/seed_nct_list.csv  (种子 NCT ID 列表)
 | `output/step7/step7_gating_decision.csv` | 门控决策 (GO/MAYBE/NO-GO) |
 | `output/step7/step7_cards.json` | 假设卡片 (每药机制假设 + 证据) |
 | `output/step8/step8_shortlist_topK.csv` | 候选短名单 (含 targets + target_details + docking就绪字段) |
-| `output/step8/step8_candidate_pack_from_step7.xlsx` | ★ Excel 候选报告 (每药 Sheet 含靶点结构表) |
+| `output/step8/step8_fusion_rank_report.xlsx` | ★ Excel 候选报告 (每药 Sheet 含靶点结构表) |
 | `output/step8/step8_one_pagers_topK.md` | Markdown 候选报告 (含靶点/UniProt/PDB 链接) |
 | `output/step8/step8_manifest.json` | Step8 运行清单 (输入/输出哈希 + 配置) |
 | `output/step9/step9_validation_plan.csv` | 验证方案 (实验设计 + 成功标准) |
@@ -363,7 +363,7 @@ python scripts/step7_score_and_gate.py \
 ### Step 8: 候选打包
 
 ```bash
-python scripts/step8_candidate_pack.py \
+python scripts/step8_fusion_rank.py \
     --step7_dir output/step7 \
     --neg data/poolA_negative_drug_level.csv \
     --outdir output/step8 \
@@ -552,12 +552,12 @@ class ScoringConfig:
 LLM+RAG证据工程/
 ├── scripts/                         管道脚本
 │   ├── step0_build_pool.py                   试验池扩展
-│   ├── step1_3_fetch_failed_drugs.py         失败药物抓取
+│   ├── step1_fetch_trial_drugs.py         失败药物抓取
 │   ├── step4_label_trials.py                 AI 标注
 │   ├── step5_normalize_drugs.py              药物标准化
 │   ├── step6_evidence_extraction.py          ★ PubMed RAG 核心
 │   ├── step7_score_and_gate.py               评分 + 门控
-│   ├── step8_candidate_pack.py               候选打包
+│   ├── step8_fusion_rank.py               候选打包
 │   ├── step9_validation_plan.py              验证方案
 │   ├── eval_extraction.py                    抽取质量评估
 │   └── build_reject_audit_queue.py           拒绝样本回抽复核

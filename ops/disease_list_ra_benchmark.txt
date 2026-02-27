@@ -1,0 +1,4 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Benchmark: Rheumatoid Arthritis — ground truth validation
+# Known repurposed drugs: methotrexate, tofacitinib, baricitinib, tocilizumab, rituximab, leflunomide
+rheumatoid_arthritis|rheumatoid arthritis|EFO_0000685|

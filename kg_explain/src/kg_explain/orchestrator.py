@@ -55,12 +55,17 @@ class StepResult:
 class PipelineOrchestrator:
     """DAG-based pipeline orchestrator with idempotency."""
 
-    def __init__(self, state_path: Path):
+    def __init__(self, state_path: Path, config_hash: str = ""):
         """
         Args:
             state_path: Path to JSON state file for resume/skip tracking
+            config_hash: Hash of the config YAML (or version string).
+                When config changes, all steps are re-executed even if
+                input data files are unchanged. Pass e.g.,
+                hashlib.sha256(yaml_content.encode()).hexdigest()[:12]
         """
         self.state_path = state_path
+        self._config_hash = config_hash
         self.steps: Dict[str, StepDefinition] = {}
         self.state: Dict[str, Dict[str, Any]] = {}
         self._load_state()
@@ -97,11 +102,19 @@ class PipelineOrchestrator:
         return h.hexdigest()
 
     def _compute_input_hash(self, step: StepDefinition) -> str:
-        """Compute combined hash of all input files for a step."""
+        """Compute combined hash of all input files + config version for a step.
+
+        v3: Includes config_version in the hash so that algorithm changes
+        (e.g., switching path aggregation from MAX to top3_mean) trigger
+        re-execution even when input data files are unchanged.
+        """
         hashes = []
         for inp in sorted(step.inputs):
             h = self._compute_file_hash(inp)
             hashes.append(f"{inp}:{h}")
+        # v3: Include config version hash if set (allows detecting algo changes)
+        if self._config_hash:
+            hashes.append(f"__config__:{self._config_hash}")
         combined = "|".join(hashes)
         return hashlib.sha256(combined.encode("utf-8")).hexdigest()
 

@@ -191,7 +191,8 @@ class TestGenerateLeakageReport:
         report = generate_leakage_report(train, test)
         expected_keys = {
             "split_name", "passed", "drug_overlap", "disease_overlap",
-            "pair_overlap", "seen_drug_test_fraction", "recommendations",
+            "pair_overlap", "target_overlap", "pathway_overlap",
+            "seen_drug_test_fraction", "recommendations",
         }
         assert expected_keys == set(report.keys())
 
@@ -225,7 +226,8 @@ class TestSaveLeakageReport:
         loaded = json.loads(out_file.read_text(encoding="utf-8"))
         expected_keys = {
             "split_name", "passed", "drug_overlap", "disease_overlap",
-            "pair_overlap", "seen_drug_test_fraction", "recommendations",
+            "pair_overlap", "target_overlap", "pathway_overlap",
+            "seen_drug_test_fraction", "recommendations",
         }
         assert expected_keys == set(loaded.keys())
 

@@ -428,8 +428,15 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
             step_timings.append(t)
 
         # ══════════════════════════════════════════
-        # Step 6-10: 两种模式共享
+        # Step 5b-10: 两种模式共享
         # ══════════════════════════════════════════
+
+        # Step 5b: Drug-Target Affinity (ChEMBL bioactivity: IC50/Ki/Kd)
+        # Creates edge_drug_target_affinity.csv with pChEMBL values
+        # Used by DTPD ranker for affinity-weighted mechanism scoring
+        _, t = _timed_step("[5b] Drug→Target 亲和力 (pChEMBL)",
+            datasources.fetch_drug_target_affinities, data_dir, cache)
+        step_timings.append(t)
 
         # Step 6: Target Xref
         def _step6():
@@ -477,6 +484,22 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
                     top_ae=int(faers_cfg.get("top_ae_per_drug", 50)),
                     max_drugs=int(faers_cfg.get("max_drugs", 500)),
                 )
+
+                # ── SIDER integration (FDA drug label side effects) ──
+                # Complements FAERS: SIDER = label-confirmed AEs, FAERS = post-market signals
+                # Gracefully skips if SIDER data files not present
+                sider_df = datasources.load_sider_safety(data_dir, drug_list=drugs)
+                if not sider_df.empty:
+                    faers_path = data_dir / "drug_ae_faers.csv"
+                    if faers_path.exists():
+                        faers_df = read_csv(faers_path)
+                        merged_ae = datasources.merge_faers_sider(faers_df, sider_df)
+                        merged_ae.to_csv(faers_path, index=False)
+                        logger.info("FAERS+SIDER 合并完成: %d 条安全信号", len(merged_ae))
+                    else:
+                        # No FAERS data, use SIDER alone
+                        sider_df.to_csv(faers_path, index=False)
+                        logger.info("仅 SIDER 安全数据: %d 条", len(sider_df))
 
                 phe_cfg = cfg.phenotype
                 diseases = read_csv(data_dir / "edge_target_disease_ot.csv", dtype=str)["diseaseId"].dropna().unique().tolist()

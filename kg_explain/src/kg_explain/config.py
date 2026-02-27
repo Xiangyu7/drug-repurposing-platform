@@ -232,6 +232,49 @@ class Config:
                 except (ValueError, TypeError) as e:
                     errors.append(f"rank.{key} 无法解析为浮点数: {e}")
 
+        # ── v3: Cross-parameter consistency checks ──
+        # 1. Total weight budget: safety + trial + phenotype should be reasonable
+        spw = float(rank.get("safety_penalty_weight", 0.3))
+        tfw = float(rank.get("trial_failure_penalty", 0.2))
+        pob = float(rank.get("phenotype_overlap_boost", 0.1))
+        total_weight = spw + tfw + pob
+        if total_weight > 1.0:
+            errors.append(
+                f"rank weights sum ({total_weight:.2f}) > 1.0: safety={spw}, "
+                f"trial={tfw}, phenotype={pob}. Penalties may dominate mechanism scores."
+            )
+
+        # 2. Hub penalty lambda vs expected degree range
+        hub_lam = float(rank.get("hub_penalty_lambda", 1.0))
+        if hub_lam > 3.0:
+            errors.append(
+                f"rank.hub_penalty_lambda={hub_lam} is very high — targets with "
+                "degree>5 will have near-zero weight. Consider ≤2.0."
+            )
+
+        # 3. FAERS thresholds: min_prr < 2.0 is below literature standard (Evans et al.)
+        faers = self.faers
+        min_prr = float(faers.get("min_prr", 0))
+        if 0 < min_prr < 2.0:
+            errors.append(
+                f"faers.min_prr={min_prr} is below the commonly accepted threshold "
+                "of 2.0 (Evans et al., 2001). May produce false positive safety signals."
+            )
+        min_count = int(faers.get("min_report_count", 0))
+        if 0 < min_count < 10:
+            errors.append(
+                f"faers.min_report_count={min_count} is low for statistical significance. "
+                "Consider ≥10 (Bate et al., 1998)."
+            )
+
+        # 4. Pathway breadth discount consistency
+        max_pw_genes = float(rank.get("max_pathway_genes_soft", 50))
+        if max_pw_genes < 10:
+            errors.append(
+                f"rank.max_pathway_genes_soft={max_pw_genes} is too strict — "
+                "most Reactome pathways have 20-100 genes. Consider ≥20."
+            )
+
         return errors
 
     def validate_or_raise(self) -> None:

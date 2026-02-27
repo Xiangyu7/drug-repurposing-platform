@@ -28,6 +28,10 @@ rank:
   hub_penalty_lambda: 1.0
   support_gene_boost: 0.15
 
+  # v3: Path aggregation — max + diversity bonus instead of rank-weighted sum
+  path_diversity_bonus: 0.10      # Bonus per additional path (log-scaled)
+  max_pathway_genes_soft: 50      # Pathways with >50 genes get breadth discount
+
   # V5 安全相关权重
   safety_penalty_weight: 0.3    # FAERS不良事件惩罚权重
   trial_failure_penalty: 0.2    # 试验失败惩罚
@@ -38,9 +42,12 @@ ctgov:
   also_completed: true   # 同时获取 COMPLETED+negative 试验
 
 # FAERS配置
+# v3: Thresholds aligned with pharmacovigilance literature:
+#   min_prr: 2.0 (Evans et al., 2001 — standard disproportionality threshold)
+#   min_report_count: 10 (Bate et al., 1998 — minimum for statistical significance)
 faers:
-  min_report_count: 5
-  min_prr: 1.5
+  min_report_count: 10
+  min_prr: 2.0
   max_drugs: 500
   top_ae_per_drug: 50
 

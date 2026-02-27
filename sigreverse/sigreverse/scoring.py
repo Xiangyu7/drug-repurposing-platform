@@ -200,32 +200,41 @@ def _wtcs_like_score(z_up: float, z_down: float) -> tuple[float, float]:
         - z-down < 0: disease-DOWN genes are UP-regulated by drug (reversed)
         - Both negative = REVERSER, both positive = MIMICKER
 
-    CMap WTCS principle adapted for LDP3:
-        Only score when z_up and z_down have the SAME sign (coherent signal).
-        This prevents single-direction enrichment from producing false positives.
+    v2: Partial reversers now receive attenuated scores instead of zero.
+    Rationale: Many genuine repurposing drugs reverse only one arm of the
+    disease signature (e.g., they suppress upregulated inflammatory genes
+    but don't affect downregulated structural genes). Zeroing out partial
+    reversers discards real biological signal. Instead, we apply a
+    coherence penalty (0.3x) to opposing-sign cases.
 
     Scoring formula:
         - Same sign (coherent): wtcs = (z_up + z_down) / 2
           · Reverser: both < 0 → wtcs < 0 (more negative = stronger reversal)
           · Mimicker: both > 0 → wtcs > 0
-        - Opposing signs (incoherent): wtcs = 0
+        - Opposing signs (partial): wtcs = (z_up + z_down) / 2 * PARTIAL_PENALTY
+          · Attenuated but non-zero score
 
     Returns:
         (sig_score, sig_strength)
     """
+    PARTIAL_PENALTY = 0.3  # Attenuation for incoherent signals (was: zeroed)
+
     sign_up = 1 if z_up >= 0 else -1
     sign_down = 1 if z_down >= 0 else -1
 
     if sign_up == sign_down and (z_up != 0 or z_down != 0):
-        # Same sign → coherent directional signal
+        # Same sign → coherent directional signal → full score
         wtcs = (z_up + z_down) / 2.0
         strength = abs(wtcs)
         return wtcs, strength
+    elif z_up == 0 and z_down == 0:
+        return 0.0, 0.0
     else:
-        # Opposing signs or both zero → incoherent → zero score
-        # But still compute potential strength for diagnostics
-        strength = abs(z_up - z_down) / 2.0
-        return 0.0, strength
+        # Opposing signs → partial signal → attenuated score
+        raw_wtcs = (z_up + z_down) / 2.0
+        wtcs = raw_wtcs * PARTIAL_PENALTY
+        strength = abs(raw_wtcs)  # Report full strength for diagnostics
+        return wtcs, strength
 
 
 def _continuous_score(z_up: float, z_down: float) -> tuple[float, float]:

@@ -363,7 +363,7 @@ ollama serve &
   --out output/step7
 
 # Step 8: Release gate + candidate pack (Excel)
-.venv/bin/python scripts/step8_candidate_pack.py \
+.venv/bin/python scripts/step8_fusion_rank.py \
   --step7_dir output/step7 \
   --outdir output/step8
 
@@ -390,6 +390,8 @@ heart_failure|heart failure|EFO_0003144|
 stroke|stroke|EFO_0000712|
 ```
 
+> **2026-02-26 新增**: 第 3 列 `origin_disease_ids` (EFO ID) 现在也用于 ARCHS4 config 自动生成。建议为所有疾病填写 EFO ID。
+
 Disease lists (in `ops/internal/`):
 - `disease_list_day1_dual.txt` -- diseases for both Direction A+B (7 diseases)
 - `disease_list_day1_origin.txt` -- all diseases for Direction B (15 diseases)
@@ -398,6 +400,27 @@ Disease lists (in `ops/internal/`):
 User-facing lists (in `ops/`):
 - `disease_list.txt` -- master template
 - `disease_list_test.txt` -- minimal test set (2 diseases)
+
+### 6.1b Cross Route Auto-Discovery (2026-02-26 新增)
+
+新疾病不需要提前手动创建 dsmeta 或 ARCHS4 的 config YAML。`runner.sh` 在 Cross 路线入口会自动执行：
+
+```
+ensure_cross_signature_config(disease_key, disease_query, efo_ids)
+│
+├─ 已有 dsmeta 或 ARCHS4 config? → 跳过，直接用
+│
+├─ ① auto_discover_geo.py 搜 NCBI GEO
+│     → 找到 GSE → generate_dsmeta_configs.py → 生成 dsmeta config
+│
+└─ ② GEO 无结果 → archs4/scripts/auto_generate_config.py
+      → 用 DISEASE_KEYWORD_MAP + EFO ID 生成 ARCHS4 config
+      → 也失败 → skip Cross → Origin 照跑
+```
+
+然后进入 `run_cross_route()`，按 `SIG_PRIORITY` 顺序互相 fallback（默认 dsmeta → ARCHS4）。
+
+**这意味着**：只要在 disease list 里加一行（填好 disease_key、disease_query、EFO ID），`bash ops/start.sh start` 就能自动跑 Cross + Origin 双路线，无需任何手动配置。
 
 ### 6.2 Cloud Server (Aliyun/AWS) -- Parallel
 
@@ -551,7 +574,7 @@ runtime/
   │   │       ├── step7/                # GO/MAYBE/NO-GO 决策
   │   │       ├── step8/                # ★ 候选包 (CSV+Excel+one-pager)
   │   │       │   ├── step8_shortlist_topK.csv   # ★★★ 最终候选 (含docking列+alphafold_structure_id)
-  │   │       │   └── step8_candidate_pack.xlsx  # Excel 报告
+  │   │       │   └── step8_fusion_rank_report.xlsx  # Excel 报告
   │   │       └── step9/                # 验证计划
   │   ├── direction_b/                  # Direction B (原疾病重评估)
   │   │   ├── kg/
@@ -569,7 +592,7 @@ runtime/
 |--------|------|------|
 | ★★★ | `ab_comparison.csv` | A+B 交叉验证: 两路线都推荐的药物 = 最高可信度 |
 | ★★★ | `step8_shortlist_topK.csv` | 最终候选药列表 (含靶点/结构/docking/AlphaFold) |
-| ★★ | `step8_candidate_pack.xlsx` | Excel 候选报告 (每药独立 Sheet) |
+| ★★ | `step8_fusion_rank_report.xlsx` | Excel 候选报告 (每药独立 Sheet) |
 | ★★ | `step9_validation_plan.csv` | 实验验证计划 (P1/P2/P3 优先级) |
 | ★ | `bridge_*.csv` | KG 中间排名 + 靶点结构信息 |
 | | `step7_gating_decision.csv` | 全部药物 GO/MAYBE/NO-GO 决策 |
@@ -601,7 +624,7 @@ runtime/
 ## 11. Running Tests
 
 ```bash
-# kg_explain tests (287 tests)
+# kg_explain tests (353 tests)
 cd kg_explain && .venv/bin/python -m pytest tests/ -x -q
 
 # dsmeta tests

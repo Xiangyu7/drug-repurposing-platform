@@ -73,15 +73,17 @@ class TestWTCSLikeScore:
         assert score == pytest.approx((4.0 + 3.0) / 2.0)  # 3.5
         assert score > 0
 
-    def test_opposing_signs_gives_zero(self):
-        """z_up<0, z_down>0 → opposing → incoherent → score=0"""
+    def test_opposing_signs_attenuated(self):
+        """z_up<0, z_down>0 → opposing → partial → attenuated score (v2: 0.3x penalty)"""
         score, strength = _wtcs_like_score(-4.0, 3.0)
-        assert score == 0.0
+        # raw = (-4+3)/2 = -0.5, attenuated = -0.5 * 0.3 = -0.15
+        assert score == pytest.approx(-0.15)
 
-    def test_opposing_signs_reverse_gives_zero(self):
-        """z_up>0, z_down<0 → opposing → incoherent → score=0"""
+    def test_opposing_signs_reverse_attenuated(self):
+        """z_up>0, z_down<0 → opposing → partial → attenuated score (v2: 0.3x penalty)"""
         score, strength = _wtcs_like_score(4.0, -3.0)
-        assert score == 0.0
+        # raw = (4-3)/2 = 0.5, attenuated = 0.5 * 0.3 = 0.15
+        assert score == pytest.approx(0.15)
 
     def test_zero_zero(self):
         score, strength = _wtcs_like_score(0.0, 0.0)
@@ -94,10 +96,11 @@ class TestWTCSLikeScore:
         assert strength == pytest.approx(9.0)
 
     def test_strength_for_incoherent(self):
-        """Incoherent (opposing signs) should still compute diagnostic strength."""
+        """Incoherent (opposing signs) should still compute diagnostic strength.
+        v2: score is attenuated (not zero), strength = abs(raw_wtcs)."""
         score, strength = _wtcs_like_score(-4.0, 3.0)
-        assert score == 0.0
-        assert strength > 0  # diagnostic strength is abs(z_up - z_down)/2
+        assert score == pytest.approx(-0.15)  # v2: attenuated, not zero
+        assert strength == pytest.approx(0.5)  # abs((-4+3)/2) = 0.5
 
 
 # ===== Continuous scoring (LDP3 convention) =====
@@ -157,12 +160,12 @@ class TestComputeSignatureScore:
         assert ss.direction_category == "mimicker"
         assert ss.sig_score > 0
 
-    def test_partial_signal_zeroed(self):
-        """Opposing signs → partial → WTCS score = 0."""
+    def test_partial_signal_attenuated(self):
+        """Opposing signs → partial → attenuated WTCS score (v2: 0.3x penalty)."""
         ss = compute_signature_score(-4.0, 3.0)
         assert ss.is_reverser is False
         assert ss.direction_category == "partial"
-        assert ss.sig_score == 0.0
+        assert ss.sig_score == pytest.approx(-0.15)  # v2: attenuated, not zero
 
     def test_fdr_pass_both_significant(self):
         ss = compute_signature_score(-4.0, -3.0, fdr_up=0.01, fdr_down=0.02)

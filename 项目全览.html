@@ -538,11 +538,19 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
   <div class="divider"></div>
 
   <div class="step" style="border-left-color: #ff9500;">
-    <span class="step-num" style="background:#ff9500;">R</span><span class="step-title">V5 排名打分</span>
+    <span class="step-num" style="background:#ff9500;">R</span><span class="step-title">V5 排名打分 (2026-02-26 更新)</span>
     <p class="step-desc">生成 Drug→Target→Pathway→Disease 全路径，计算：<br>
-    <b>final = mechanism &times; e<sup>-(0.3&times;安全罚 + 0.2&times;试验罚)</sup> &times; (1 + 0.1&times;表型加成)</b><br>
-    Bootstrap CI (1000x) 量化不确定性。</p>
-    <p class="io"><span class="tag tag-out">OUT</span> drug_disease_rank.csv + evidence_pack/*.json</p>
+    <b>final = mechanism_score &times; e<sup>-(w1&times;safety_penalty - w2&times;trial_penalty)</sup> &times; (1 + w3&times;phenotype_boost)</b><br>
+    权重：w1=0.3, w2=0.2, w3=0.1</p>
+    <table style="margin:8px 0;font-size:0.92em;">
+      <tr><th>子项</th><th>来源</th><th>公式</th></tr>
+      <tr><td><b>mechanism_score</b></td><td>V3 路径聚合 (Drug→Target→Pathway→Disease)</td><td>base score</td></tr>
+      <tr><td><b>safety_penalty</b></td><td>FAERS 不良反应信号，PRR 过滤</td><td><code>tanh(log1p(PRR)/5 &times; confidence &times; serious_weight)</code></td></tr>
+      <tr><td><b>trial_penalty</b></td><td>失败试验，对数饱和</td><td><code>0.1 &times; log1p(safety_stops) + 0.05 &times; log1p(eff_stops)</code></td></tr>
+      <tr><td><b>phenotype_boost</b></td><td>疾病表型重叠</td><td><code>avg_pheno_score &times; log1p(n_phenotype)</code></td></tr>
+    </table>
+    <p class="step-desc">Bootstrap CI (1000x) 量化不确定性。组合药按成分数归一化，避免分数膨胀。</p>
+    <p class="io"><span class="tag tag-out">OUT</span> drug_disease_rank.csv + evidence_pack/*.json (仅 top-K)</p>
   </div>
 
   <h3>本模块数据流</h3>
@@ -591,11 +599,15 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
           └── drug_known_indications.csv (适应症)
                     │
                     ▼
-          ┌─────────────────────────────┐
-          │  V5 排名打分                 │
-          │  Drug→Target→Pathway→Disease│
-          │  54,000+ 药物-疾病对          │
-          └──────────────┬──────────────┘
+          ┌──────────────────────────────────────────┐
+          │  V5 排名打分                              │
+          │  final = mechanism × exp(-安全罚-试验罚)    │
+          │         × (1 + 表型加成)                   │
+          │  安全罚: tanh(log1p(PRR)/5 × conf × wt)   │
+          │  试验罚: 0.1·log1p(safe) + 0.05·log1p(eff)│
+          │  表型:   avg_score × log1p(n_pheno)        │
+          │  54,000+ 药物-疾病对 + Bootstrap CI         │
+          └───────────────────┬────────────────────────┘
                          │
                     ┌────┴────┐
                     ▼         ▼
@@ -778,7 +790,7 @@ bridge_repurpose_cross.csv    bridge_origin_reassess.csv
       &bull; <b>Excel 每药 Sheet</b> — 增加靶点结构表（Target ChEMBL ID / UniProt / 作用机制 / Structure Source / PDB Count / PDB IDs）<br>
       &bull; <b>Markdown one-pager</b> — 增加靶点小节，含 UniProt 链接和 PDB 链接，标注结构来源 badge
     </p>
-    <p class="io"><span class="tag tag-out">OUT</span> step8_candidate_pack.xlsx ★ 核心交付物 (含靶点结构表)</p>
+    <p class="io"><span class="tag tag-out">OUT</span> step8_fusion_rank_report.xlsx ★ 核心交付物 (含靶点结构表)</p>
   </div>
 
   <div class="step">
@@ -818,7 +830,7 @@ bridge_repurpose_cross.csv    bridge_origin_reassess.csv
               └───────┬────────┘             └───────┬────────┘
                       ▼                              ▼
               step8_repurpose_cross/          step8_origin_reassess/
-              └── candidate_pack.xlsx        └── candidate_pack.xlsx
+              └── fusion_rank_report.xlsx        └── fusion_rank_report.xlsx
                       │                              │
                       ▼                              ▼
               ┌────────────────┐             ┌────────────────┐
@@ -899,7 +911,7 @@ bridge_repurpose_cross.csv    bridge_origin_reassess.csv
   <div class="step" style="border-left-color: #e17055;">
     <span class="step-num" style="background:#e17055;">1</span><span class="step-title">候选药物清单</span>
     <p class="step-desc">
-      &bull; 打开 <b>step8_candidate_pack.xlsx</b> → Shortlist sheet → 确认候选药数量和 GO/MAYBE/NO-GO 分布<br>
+      &bull; 打开 <b>step8_fusion_rank_report.xlsx</b> → Shortlist sheet → 确认候选药数量和 GO/MAYBE/NO-GO 分布<br>
       &bull; 每个药的 Sheet → 检查<b>靶点结构表</b> (Structure Source 列)：<br>
       <span style="display:inline-block;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;font-size:10px;margin:2px;">PDB+AlphaFold</span> 可直接做分子对接，选实验 PDB
       <span style="display:inline-block;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:6px;font-size:10px;margin:2px;">AlphaFold_only</span> 对接结果需谨慎解读
@@ -940,9 +952,27 @@ bridge_repurpose_cross.csv    bridge_origin_reassess.csv
 <div id="ops"></div>
 <h2 style="background: linear-gradient(135deg, #636e72, #b2bec3);">7. 运维工具链 (ops)</h2>
 <div class="card">
-  <p class="section-intro">从 GEO 数据集自动发现到一键启动管线的完整工具链。解决了之前需要手动查 GEO、手动写 config、手动建 venv 的痛点。</p>
+  <p class="section-intro">从 GEO 数据集自动发现到一键启动管线的完整工具链。解决了之前需要手动查 GEO、手动写 config、手动建 venv 的痛点。<b>2026-02-26 更新</b>：runner.sh 现在<b>全自动</b>为新疾病生成签名 config（GEO → dsmeta config → ARCHS4 fallback），无需任何手动配置。</p>
 
   <h3>工具链概览</h3>
+  <div class="highlight-green">
+    <b>🆕 全自动模式 (2026-02-26)：</b>只需在 disease list 加一行（disease_key | disease_query | EFO_ID），<code>bash ops/start.sh start</code> 即可自动跑 Cross + Origin 双路线。runner.sh 的 <code>ensure_cross_signature_config()</code> 会自动为新疾病生成签名 config。
+  </div>
+<div class="flow-light">runner.sh ensure_cross_signature_config()     ← 全自动（新疾病无需手动配置）
+│
+├─ 已有 dsmeta 或 ARCHS4 config?  → 跳过
+│
+├─ ① auto_discover_geo.py 搜 NCBI GEO
+│     → 找到 GSE → generate_dsmeta_configs.py → dsmeta config ✅
+│
+└─ ② GEO 失败 → archs4/scripts/auto_generate_config.py
+      → 用 DISEASE_KEYWORD_MAP + EFO ID → ARCHS4 config ✅
+      → 也失败 → skip Cross → Origin 照跑
+
+然后进入 run_cross_route()，按 SIG_PRIORITY 顺序运行:
+  dsmeta pipeline  →  失败 → fallback →  ARCHS4 pipeline  →  都失败 → skip Cross</div>
+
+  <h3>手动精细控制工具链（可选）</h3>
 <div class="flow-light">auto_discover_geo.py  ──→  AI 辅助审核  ──→  generate_dsmeta_configs.py  ──→  start.sh
 │                         │                  │                               │
 │ 搜 NCBI GEO             │ 喂 discovery_log │ 读取 selected.tsv             │ 环境检查
@@ -1053,11 +1083,12 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
 
   <h3>启动决策树</h3>
   <div class="highlight">
-    <b>第一次跑？</b> → <code>bash ops/start.sh</code>（完整流程：检查→安装→发现→启动）<br>
+    <b>第一次跑？</b> → <code>bash ops/start.sh setup</code> 装环境 → <code>bash ops/start.sh start</code> 启动<br>
     <b>只跑 Direction B？</b> → <code>bash ops/start.sh start --mode origin_only</code><br>
     <b>只跑一个疾病试试？</b> → <code>bash ops/start.sh run atherosclerosis</code><br>
     <b>只跑 Cross (ARCHS4)?</b> → <code>SIG_PRIORITY=archs4 bash ops/start.sh run myocarditis --mode cross_only</code><br>
-    <b>想加新疾病？</b> → <code>auto_discover_geo.py</code> → AI 审核 discovery_log.txt → 编辑 YAML → <code>generate_dsmeta_configs.py</code><br>
+    <b>想加新疾病？</b> → 在 disease list 加一行（填好 disease_key、disease_query、EFO ID）→ <code>bash ops/start.sh start</code>（全自动：GEO→dsmeta→ARCHS4 fallback）<br>
+    <b>想精细控制 GSE 选择？</b> → <code>auto_discover_geo.py</code> → AI 审核 → 编辑 YAML → <code>generate_dsmeta_configs.py</code><br>
     <b>跑出问题了？</b> → <code>bash ops/check_status.sh --failures</code>（看哪个疾病的哪个阶段失败）
   </div>
 
@@ -1069,8 +1100,15 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
     <tr><td><code>disease_list.txt</code></td><td>模板/空</td><td>自定义</td></tr>
   </table>
 
+  <div class="highlight-green">
+    <b>🆕 新增疾病（全自动模式，推荐）：</b><br>
+    ① 在 disease list 加一行：<code>peripheral_artery_disease|peripheral artery disease|EFO_0004265|</code><br>
+    ② <code>bash ops/start.sh start</code> → runner 自动执行 ensure_cross_signature_config()：<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;→ 搜 GEO → 生成 dsmeta config → GEO 失败则生成 ARCHS4 config → 都失败则 skip Cross 继续 Origin<br>
+    ③ 完毕。无需手动创建任何 config 文件。
+  </div>
   <div class="highlight-pink">
-    <b>新增疾病到 dual 模式的流程：</b><br>
+    <b>新增疾病（精细控制模式，可选）：</b><br>
     ① <code>auto_discover_geo.py --disease "xxx" --write-yaml</code> → 搜 GEO + 自动分类<br>
     ② 查看 <code>geo_curation/xxx/route_recommendation.txt</code> → 确认路线（0 GSE = 只走 B，≥2 GSE = 可走 A）<br>
     ③ <b style="color:#d63384;">AI 审核</b>：把 <code>discovery_log.txt</code> 喂给 Claude/ChatGPT → 检查数据类型/疾病匹配/组织/regex/重复/设计<br>
@@ -1168,7 +1206,7 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
              ▼                              ▼
   ┌──────────────────────┐      ┌──────────────────────┐
   │ 跨疾病候选清单        │      │ 原疾病候选清单        │
-  │ candidate_pack.xlsx  │      │ candidate_pack.xlsx  │
+  │ fusion_rank_report.xlsx  │      │ fusion_rank_report.xlsx  │
   │ validation_plan.csv  │      │ validation_plan.csv  │
   │ (~5 个 GO 候选)      │      │ (~10 个 GO 候选)     │
   └──────────────────────┘      └──────────────────────┘
@@ -1217,7 +1255,7 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
       <td>GO / MAYBE / NO-GO 决策</td>
     </tr>
     <tr>
-      <td style="font-family:monospace;font-size:11px;">candidate_pack.xlsx</td>
+      <td style="font-family:monospace;font-size:11px;">fusion_rank_report.xlsx</td>
       <td>LLM+RAG</td><td>最终交付</td>
       <td>Excel 报告 (总表+详情+靶点结构表)</td>
     </tr>
@@ -1229,9 +1267,185 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
   </table>
 </div>
 
+<!-- ==================== 综合打分架构 ==================== -->
+<div id="scoring"></div>
+<h2 style="background: linear-gradient(135deg, #e17055, #fdcb6e);">9. 综合打分架构</h2>
+<div class="card">
+  <p class="section-intro">最终排名不是单一模块决定的，而是 <b>3 个模块的评分串行传递 + 融合</b>。每个模块独立打分，分数沿管线向下传递，最终在 Step 8 的 rank_key 汇合。</p>
+
+  <h3>实际打分流程（runner.sh 标准管线）</h3>
+<div class="flow-light">
+━━━━━━━━━━━━━━━━━  第 1 层：模块独立打分  ━━━━━━━━━━━━━━━━━
+
+  Cross 路线                              Origin 路线
+  ─────────                              ─────────
+  dsmeta / ARCHS4                        screen_drugs (CT.gov)
+       │                                       │
+       ▼                                       │
+┌─────────────────────────┐                    │
+│  SigReverse             │                    │
+│  WTCS 签名反转打分       │                    │
+│  更负 = 更强反转 = 更好  │                    │
+│  OUT: reversal_rank.csv │                    │
+└───────────┬─────────────┘                    │
+            │                                  │
+            ▼                                  ▼
+┌──────────────────────────────────────────────────────────┐
+│  kg_explain V5 排名                                      │
+│                                                          │
+│  base: DTPD 路径 → mechanism_score                       │
+│        (pathway_score × hub_penalty × affinity_weight)   │
+│        + diversity_bonus (多路径/多靶点)                   │
+│                                                          │
+│  final = mechanism_score                                 │
+│        × exp(-0.3 × safety_penalty - 0.2 × trial_penalty)│
+│        × (1 + 0.1 × phenotype_boost)                    │
+│                                                          │
+│  安全罚: tanh(log1p(PRR)/5 × confidence × serious_wt)    │
+│  试验罚: 0.1 × log1p(safety_stops) + 0.05 × log1p(eff)  │
+│  表型:   avg_pheno_score × log1p(n_phenotype)            │
+│                                                          │
+│  组合药: final_score /= 成分数 (归一化，避免膨胀)          │
+│  Bootstrap CI 1000x 量化不确定性                          │
+│                                                          │
+│  OUT: drug_disease_rank.csv (54K+ 对)                    │
+└──────────┬──────────────────────────────────┬────────────┘
+           │                                  │
+           ▼                                  ▼
+┌────────────────────────┐     ┌────────────────────────┐
+│ bridge_repurpose_cross │     │ bridge_origin_reassess │
+│ 每药全局最优疾病 (~50)  │     │ 仅目标疾病行 (~83)     │
+│ 含: final_score,       │     │ 含: final_score,       │
+│ 靶点/PDB/AlphaFold     │     │ 靶点/PDB/AlphaFold     │
+└───────────┬────────────┘     └───────────┬────────────┘
+            │                               │
+━━━━━━━━━━━━╪═══════════════════════════════╪━━━━ A/B 交叉验证
+            │                               │
+            │     compare_ab_routes.py       │
+            │     (bridge 层级比较)           │
+            │     sort = n_routes × 2.0      │
+            │         + max(score_a, score_b) │
+            │     A+B 都有 → 最高置信度       │
+            │     OUT: ab_comparison.csv      │
+            │                               │
+━━━━━━━━━━━━╪═══════════════════════════════╪━━━━ 第 2 层：文献打分 + 融合
+            │                               │
+            ▼                               ▼
+┌──────────────────────────┐  ┌──────────────────────────┐
+│  Step 6: PubMed RAG      │  │  Step 6: PubMed RAG      │
+│  多路检索 + 语义重排      │  │  多路检索 + 语义重排      │
+│  + LLM 结构化提取         │  │  + LLM 结构化提取         │
+└────────────┬─────────────┘  └────────────┬─────────────┘
+             ▼                              ▼
+┌──────────────────────────┐  ┌──────────────────────────┐
+│  Step 7: 5 维打分 (0-100) │  │  Step 7: 5 维打分 (0-100) │
+│  证据强度  0-30           │  │  证据强度  0-30           │
+│  机制合理性 0-20          │  │  机制合理性 0-20          │
+│  可转化性  0-20           │  │  可转化性  0-20           │
+│  安全性    0-20           │  │  安全性    0-20           │
+│  可行性    0-10           │  │  可行性    0-10           │
+│                          │  │                          │
+│  门控: ≥60→GO            │  │  门控: ≥60→GO            │
+│       40-60→MAYBE        │  │       40-60→MAYBE        │
+│       &lt;40→NO-GO          │  │       &lt;40→NO-GO          │
+│  硬门控: benefit&lt;1       │  │  硬门控: benefit&lt;1       │
+│    / 文献&lt;2 / 危害&gt;50%   │  │    / 文献&lt;2 / 危害&gt;50%   │
+└────────────┬─────────────┘  └────────────┬─────────────┘
+             ▼                              ▼
+┌──────────────────────────┐  ┌──────────────────────────┐
+│  Step 8: rank_key 融合   │  │  Step 8: rank_key 融合   │
+│  ★ 真正的多源融合点       │  │  ★ 真正的多源融合点       │
+│                          │  │                          │
+│  rank_key =              │  │  rank_key =              │
+│    min(30, log1p(pmid)   │  │    min(30, log1p(pmid)   │
+│         × 10)  文献量     │  │         × 10)  文献量     │
+│  + topic_match × 5       │  │  + topic_match × 5       │
+│  + LLM_score × 0.35      │  │  + LLM_score × 0.35      │
+│     ↑ 来自 Step7 5维总分  │  │     ↑ 来自 Step7 5维总分  │
+│  + novelty × 19.5        │  │  + novelty × 15          │
+│     (cross 鼓励探索)      │  │                          │
+│  - uncertainty × 4       │  │  - uncertainty × 4       │
+│  - harm_count × 0.5      │  │  - harm_count × 0.5      │
+│  - neg_trials × 1        │  │  - neg_trials × 1        │
+│  - blacklist_hit × 8     │  │  - blacklist_hit × 8     │
+│                          │  │                          │
+│  GO 优先排序              │  │  GO 优先排序              │
+│  + explore 通道 MAYBE     │  │  + explore 通道 MAYBE     │
+└────────────┬─────────────┘  └────────────┬─────────────┘
+             ▼                              ▼
+┌──────────────────────────┐  ┌──────────────────────────┐
+│  Step 9: 验证方案生成     │  │  Step 9: 验证方案生成     │
+│  P1/P2/P3 优先级          │  │  P1/P2/P3 优先级          │
+└──────────────────────────┘  └──────────────────────────┘
+             │                              │
+             ▼                              ▼
+  fusion_rank_report.xlsx ×2 → 研究者综合决策</div>
+
+  <h3>各层打分公式速查</h3>
+  <table>
+    <tr><th>层级</th><th>模块</th><th>核心公式</th><th>分数方向</th></tr>
+    <tr>
+      <td><b>L1a</b></td>
+      <td style="color:#34c759;">SigReverse</td>
+      <td><code>WTCS = (z_up + z_down) / 2</code> &times; confidence_weight<br>部分一致: &times;0.3 衰减；聚合: weighted_median + cell_line diversity bonus</td>
+      <td>更负 = 更好</td>
+    </tr>
+    <tr>
+      <td><b>L1b</b></td>
+      <td style="color:#ff9500;">kg_explain V5</td>
+      <td><code>final = mechanism &times; exp(-0.3&times;safety - 0.2&times;trial) &times; (1 + 0.1&times;pheno)</code><br>
+      safety: <code>tanh(log1p(PRR)/5 &times; conf &times; serious_wt)</code><br>
+      trial: <code>0.1&times;log1p(safe_stops) + 0.05&times;log1p(eff_stops)</code><br>
+      pheno: <code>avg_pheno_score &times; log1p(n_pheno)</code></td>
+      <td>更高 = 更好</td>
+    </tr>
+    <tr>
+      <td><b>Bridge</b></td>
+      <td style="color:#636e72;">compare_ab</td>
+      <td><code>sort_key = n_routes &times; 2.0 + max(score_a, score_b)</code><br>
+      A+B 双线 &rarr; +4 加成（bridge 层级，早期参考）</td>
+      <td>更高 = 更好</td>
+    </tr>
+    <tr>
+      <td><b>L2a</b></td>
+      <td style="color:#af52de;">LLM+RAG 5维</td>
+      <td>证据强度(30) + 机制(20) + 转化(20) + 安全(20) + 可行(10) = 0-100<br>
+      硬门控: benefit&lt;1 / 文献&lt;2 / 危害&gt;50% → NO-GO<br>
+      软门控: &ge;60→GO / 40-60→MAYBE / &lt;40→NO-GO</td>
+      <td>更高 = 更好</td>
+    </tr>
+    <tr>
+      <td><b>L2b ★</b></td>
+      <td style="color:#e84393;">Step8 rank_key</td>
+      <td><code>min(30, log1p(pmid)&times;10) + topic&times;5 + LLM_score&times;0.35 + novelty&times;15~19.5<br>- uncertainty&times;4 - harm&times;0.5 - neg_trials&times;1 - blacklist&times;8</code><br>
+      GO 优先 + explore 通道 → <b>★ 各模块分数在这里汇合为最终排名</b></td>
+      <td>更高 = 更好</td>
+    </tr>
+  </table>
+
+  <div class="highlight-green">
+    <b>备用：FusionRanker (sigreverse/fusion.py)</b><br>
+    代码已实现但<b>标准管线默认关闭</b>（<code>fusion.enabled: false</code>）。<br>
+    公式: <code>fusion = 0.50&times;norm(sig) + 0.30&times;norm(kg) + 0.10&times;norm(safety) + synergy + DR + lit</code><br>
+    可手动开启: 在 <code>sigreverse/configs/default.yaml</code> 设 <code>fusion.enabled: true</code> + 配置 kg_scores_path。<br>
+    启用后会在 SigReverse 管线内额外输出 <code>fusion_ranking.csv</code>。
+  </div>
+
+  <h3>关键设计决策</h3>
+  <div class="highlight">
+    <b>为什么是串行传递而不是一个大公式？</b><br>
+    &bull; 各模块<b>数据来源完全不同</b>（LINCS 表达谱 vs ChEMBL 靶点 vs PubMed 文献），量纲不可比<br>
+    &bull; SigReverse 筛出候选药 → kg_explain 解释机制 + 安全/试验/表型调整 → bridge 传递给 LLM+RAG<br>
+    &bull; LLM+RAG 提供<b>独立的文献验证</b>——算法说好不够，文献也要支持<br>
+    &bull; <b>Step 8 rank_key 是真正的融合点</b>：文献量 + LLM 5维总分 + novelty - 各项罚分<br>
+    &bull; LLM_score 权重被刻意压低到 <b>&times;0.35</b>（原 &times;1.0 导致 65% 权重，偏向"好讲故事"的药）<br>
+    &bull; A/B 交叉验证是<b>额外的独立性检验</b>——两条独立路线都找到 = 最高置信
+  </div>
+</div>
+
 <!-- ==================== 速查表 ==================== -->
 <div id="summary"></div>
-<h2>9. 速查总结</h2>
+<h2>10. 速查总结</h2>
 <div class="card">
 
   <h3>各模块一句话总结</h3>
@@ -1271,7 +1485,7 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
 
 <div class="card-full" style="text-align:center; color:#86868b; font-size:12px; margin-top:24px;">
   Drug Repurposing Platform &middot; 项目全览 v5<br>
-  更新于 2026-02-23 &middot; 新增：ARCHS4 签名管线 + 签名质量门控 (分层 + 平衡检查) + --max-drugs 药物上限 + 网络检查降级为 warn
+  更新于 2026-02-26 &middot; 新增：综合打分架构 + Cross 路线全自动化 + V5 打分公式更新 (PRR-based tanh + log-saturating trial)
 </div>
 
 </body>

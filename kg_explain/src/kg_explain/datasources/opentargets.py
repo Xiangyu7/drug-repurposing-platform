@@ -51,11 +51,20 @@ def fetch_gene_diseases(
     ]))
 
     headers = {"Content-Type": "application/json"}
+    # v2: Fetch per-datatype scores alongside overall score.
+    # Rationale: the overall OT score is a harmonic mean that hides evidence type.
+    # For drug repurposing, genetic (GWAS) and expression evidence are more
+    # translational than animal models alone. Downstream scoring can now weight
+    # evidence types differently.
     query = """
     query($ensg: String!, $size: Int!, $index: Int!) {
       target(ensemblId: $ensg) {
         associatedDiseases(page: {size: $size, index: $index}) {
-          rows { score disease { id name } }
+          rows {
+            score
+            datatypeScores { id score }
+            disease { id name }
+          }
         }
       }
     }
@@ -83,14 +92,30 @@ def fetch_gene_diseases(
             for row in page_rows:
                 dis = row.get("disease") or {}
                 dis_id = dis.get("id", "")
-                # Skip non-disease traits (GO terms, mouse phenotypes)
-                if dis_id.startswith(("GO_", "MP_")):
+                # Skip non-disease traits using allowlist (v2: expanded from blocklist)
+                _valid = ("EFO_", "EFO:", "MONDO_", "MONDO:", "DOID_", "DOID:", "OMIM:", "Orphanet_", "OTAR_")
+                if not dis_id.startswith(_valid):
                     continue
+                # Parse per-datatype scores
+                dt_scores = {}
+                for ds in (row.get("datatypeScores") or []):
+                    dt_id = ds.get("id", "")
+                    dt_score = ds.get("score", 0)
+                    if dt_id and dt_score:
+                        dt_scores[dt_id] = dt_score
                 gene_rows.append({
                     "targetId": g,
                     "diseaseId": dis_id,
                     "diseaseName": dis.get("name"),
                     "score": row.get("score"),
+                    # v2: per-datatype scores for downstream evidence-type weighting
+                    "genetic_association": dt_scores.get("genetic_association", 0),
+                    "somatic_mutation": dt_scores.get("somatic_mutation", 0),
+                    "known_drug": dt_scores.get("known_drug", 0),
+                    "affected_pathway": dt_scores.get("affected_pathway", 0),
+                    "literature": dt_scores.get("literature", 0),
+                    "rna_expression": dt_scores.get("rna_expression", 0),
+                    "animal_model": dt_scores.get("animal_model", 0),
                 })
                 got += 1
                 if got >= max_diseases_per_gene:

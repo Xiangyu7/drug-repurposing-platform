@@ -653,13 +653,16 @@ class EnvGuard:
         if not kg_cfg.exists():
             issues.append(f"missing kg disease config: {kg_cfg}")
 
+        sig_warn: List[str] = []
         if self.mode in {"dual", "cross_only"}:
             ds_cfg = self.dsmeta_dir / "configs" / f"{key}.yaml"
             a4_cfg = self.root_dir / "archs4_signature_pipeline" / "configs" / f"{key}.yaml"
             has_dsmeta = ds_cfg.exists()
             has_archs4 = a4_cfg.exists()
             if not has_dsmeta and not has_archs4:
-                issues.append(f"missing signature config for mode {self.mode}: need at least one of {ds_cfg} or {a4_cfg}")
+                # Downgrade to warn: runner.sh ensure_cross_signature_config()
+                # auto-discovers GEO datasets and generates configs at runtime.
+                sig_warn.append(f"missing signature config for mode {self.mode}: will attempt auto-discovery at runtime")
 
         self._add_check(
             "cfg.single_disease",
@@ -669,6 +672,16 @@ class EnvGuard:
             repairable=False,
             detail={"single_disease": key, "issues": issues},
         )
+        if sig_warn:
+            self._add_check(
+                "cfg.single_disease_sig",
+                "config",
+                True,
+                warn_only=True,
+                message=sig_warn[0],
+                repairable=False,
+                detail={"single_disease": key, "auto_discovery": True},
+            )
 
     def run_checks(self) -> Dict[str, Any]:
         self._checks = []

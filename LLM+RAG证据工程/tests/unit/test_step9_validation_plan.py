@@ -55,6 +55,8 @@ class TestStep9ValidationPlan:
                     "docking_target_selection_score": 0.95,
                     "docking_risk_flags": "",
                     "docking_policy_version": "v1",
+                    "mechanism_score": 4.2,
+                    "reversal_score": -7.5,
                     "contract_version": STEP8_SHORTLIST_VERSION,
                 },
                 {
@@ -84,6 +86,8 @@ class TestStep9ValidationPlan:
                     "docking_target_selection_score": 0.0,
                     "docking_risk_flags": "NO_TARGET_DETAILS",
                     "docking_policy_version": "v1",
+                    "mechanism_score": 0.0,
+                    "reversal_score": 0.0,
                     "contract_version": STEP8_SHORTLIST_VERSION,
                 },
             ]

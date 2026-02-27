@@ -232,7 +232,8 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
         """
         if ae_df is None:
             return 0.0, []
-        drug_aes = ae_df[ae_df["drug_normalized"] == drug.lower().strip()]
+        # v2 FIX: lowercase the drug name for FAERS lookup (ae_df stores lowercased names)
+        drug_aes = ae_df[ae_df["drug_normalized"] == str(drug).lower().strip()]
         if drug_aes.empty:
             return 0.0, []
 
@@ -272,26 +273,42 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
                 "is_serious": is_serious,
             })
 
-        # 用平均惩罚而非累加, 避免高AE数量的药物全部饱和到 1.0
-        n_aes = len(ae_evidence) if ae_evidence else 1
-        return min(penalty / max(n_aes, 1), 1.0), ae_evidence
+        # v2 FIX: Use CUMULATIVE penalty with saturation, NOT averaging.
+        # Rationale: averaging masked multi-toxicity profiles — a drug with
+        # 10 serious AEs was penalized the same as one with 1 AE of identical PRR.
+        # Now: cumulative sum, capped at 1.0 via tanh for smooth saturation.
+        # tanh maps: penalty=0.5→0.46, 1.0→0.76, 2.0→0.96, 3.0→0.995
+        return min(float(np.tanh(penalty)), 1.0), ae_evidence
 
     # Target disease condition for filtering disease-relevant efficacy stops
     target_condition = cfg.condition.lower().strip()
 
     def _trial_condition_matches(conditions_str: str) -> bool:
-        """Check if any trial condition is relevant to the target disease."""
+        """Check if any trial condition is relevant to the target disease.
+
+        v2: Uses word-boundary matching instead of bi-directional substring.
+        Old bi-directional substring was too permissive:
+        - "heart" matched any cardiac condition
+        - "failure" matched any trial with "failure" in its name
+        Now: target_condition must appear as a whole-word match within the
+        trial condition string, or vice versa for multi-word conditions.
+        """
+        import re
         if not conditions_str:
             return False
-        # conditions is pipe-separated (e.g. "Atherosclerosis|Coronary Artery Disease")
+        # Build regex pattern with word boundaries
+        target_pattern = re.compile(r'\b' + re.escape(target_condition) + r'\b', re.IGNORECASE)
         for cond in conditions_str.split("|"):
             cond_lower = cond.strip().lower()
             if not cond_lower:
                 continue
-            # Bi-directional substring match:
-            #   "atherosclerosis" matches "coronary atherosclerosis"
-            #   "heart failure" matches "congestive heart failure"
-            if target_condition in cond_lower or cond_lower in target_condition:
+            # Target condition found as whole word(s) in trial condition
+            if target_pattern.search(cond_lower):
+                return True
+            # Trial condition found as whole word(s) in target condition
+            # (for cases like trial="heart failure", target="congestive heart failure")
+            cond_pattern = re.compile(r'\b' + re.escape(cond_lower) + r'\b', re.IGNORECASE)
+            if len(cond_lower) >= 5 and cond_pattern.search(target_condition):
                 return True
         return False
 
@@ -323,7 +340,12 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
             efficacy_stops = len(drug_trials[drug_trials["is_efficacy_stop"].astype(str) == "1"])
             efficacy_stops_skipped = 0
 
-        penalty = 0.1 * safety_stops + 0.05 * efficacy_stops
+        # v2: Use log-saturating penalty to avoid over-penalizing well-studied drugs.
+        # Old formula (0.1 * safety + 0.05 * efficacy) was linear — drugs with many
+        # historical trials (aspirin, metformin) accumulated penalty proportional to
+        # their data volume, not their actual risk.
+        # log1p saturation: 1 stop→0.069, 3 stops→0.139, 10 stops→0.240
+        penalty = 0.1 * np.log1p(safety_stops) + 0.05 * np.log1p(efficacy_stops)
 
         trial_evidence = []
         for _, t in drug_trials.head(5).iterrows():
@@ -381,8 +403,18 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
 
         # Risk decay keeps score positive and monotonic w.r.t. penalties.
         risk_multiplier = np.exp(-safety_penalty_w * safety_pen - trial_penalty_w * trial_pen)
-        n_pheno = min(len(phenotypes), phenotype_cap) if phenotypes else 0
-        phenotype_boost = phenotype_boost_w * np.log1p(n_pheno)
+
+        # v2 phenotype boost: use AVERAGE phenotype score (quality), not just count.
+        # Old formula rewarded diseases with many phenotypes regardless of relevance.
+        # New formula: boost = weight * mean(phenotype_scores) * log1p(n_pheno)
+        # This rewards both having many phenotypes AND high-quality associations.
+        if phenotypes:
+            n_pheno = min(len(phenotypes), phenotype_cap)
+            pheno_scores = [float(p.get("score", 0)) for p in phenotypes[:n_pheno]]
+            avg_pheno_score = sum(pheno_scores) / max(len(pheno_scores), 1)
+            phenotype_boost = phenotype_boost_w * avg_pheno_score * np.log1p(n_pheno)
+        else:
+            phenotype_boost = 0.0
         phenotype_multiplier = 1.0 + phenotype_boost
         final_score = base_score * risk_multiplier * phenotype_multiplier
 

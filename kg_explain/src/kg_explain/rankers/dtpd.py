@@ -49,6 +49,17 @@ def run_dtpd(cfg: Config) -> dict[str, Path]:
     pd_edge["pathway_score_f"] = pd.to_numeric(pd_edge["pathway_score"], errors="coerce").fillna(0.0)
     pd_edge["support_genes_f"] = pd.to_numeric(pd_edge["support_genes"], errors="coerce").fillna(1.0)
 
+    # v3: Penalize overly broad pathways (e.g., "Signal Transduction" with 500+ genes).
+    # A drug hitting ANY kinase in a mega-pathway gets an inflated score.
+    # Discount factor: 1.0 for ≤50 genes, decays to ~0.5 for 200 genes, ~0.3 for 500.
+    max_pathway_genes = float(rank_cfg.get("max_pathway_genes_soft", 50))
+    pd_edge["_pathway_breadth_discount"] = np.where(
+        pd_edge["support_genes_f"] <= max_pathway_genes,
+        1.0,
+        max_pathway_genes / pd_edge["support_genes_f"],
+    )
+    pd_edge["pathway_score_f"] = pd_edge["pathway_score_f"] * pd_edge["_pathway_breadth_discount"]
+
     # 合并路径
     # 只保留路径核心列, 避免 drug_raw/mechanism_of_action 等额外列造成假性重复
     dt_core = dt[["drug_normalized", "target_chembl_id"]].drop_duplicates()
@@ -78,30 +89,69 @@ def run_dtpd(cfg: Config) -> dict[str, Path]:
         paths["reactome_name"] = paths["reactome_name"].fillna(paths["reactome_name_pd"])
         paths.drop(columns=["reactome_name_pd"], inplace=True)
 
-    # 计算路径分数
+    # v3: Load drug-target affinity data if available (pChEMBL values)
+    aff_path = data_dir / "edge_drug_target_affinity.csv"
+    if aff_path.exists() and aff_path.stat().st_size > 1:
+        import logging as _logging
+        _dtpd_logger = _logging.getLogger(__name__)
+        aff_df = pd.read_csv(aff_path, dtype=str)
+        aff_df["pchembl_f"] = pd.to_numeric(aff_df.get("pchembl_value", pd.Series(dtype=float)),
+                                              errors="coerce")
+        # Affinity weight: pChEMBL 6→1.0 (baseline), 8→1.3, 10→1.6; <6→0.8
+        aff_df["_affinity_weight"] = (1.0 + 0.15 * (aff_df["pchembl_f"] - 6.0)).clip(0.7, 1.8)
+        aff_merge = aff_df[["drug_normalized", "target_chembl_id", "_affinity_weight"]].drop_duplicates(
+            subset=["drug_normalized", "target_chembl_id"]
+        )
+        paths = paths.merge(aff_merge, on=["drug_normalized", "target_chembl_id"], how="left")
+        paths["_affinity_weight"] = paths["_affinity_weight"].fillna(1.0)
+        n_with_aff = (paths["_affinity_weight"] != 1.0).sum()
+        _dtpd_logger.info("Affinity data applied to %d/%d paths", n_with_aff, len(paths))
+    else:
+        paths["_affinity_weight"] = 1.0
+
+    # 计算路径分数 (v3: includes affinity weighting)
     sb = float(rank_cfg.get("support_gene_boost", 0.15))
     paths["w_support"] = 1.0 + sb * np.log1p(paths["support_genes_f"])
-    paths["path_score"] = paths["pathway_score_f"] * paths["w_hub_target"] * paths["w_support"]
+    paths["path_score"] = (
+        paths["pathway_score_f"]
+        * paths["w_hub_target"]
+        * paths["w_support"]
+        * paths["_affinity_weight"]
+    )
 
     # 每对取top K路径
     paths["pair_key"] = paths["drug_normalized"].astype(str) + "||" + paths["diseaseId"].astype(str)
     k = int(rank_cfg.get("topk_paths_per_pair", 10))
     top_paths = paths.sort_values("path_score", ascending=False).groupby("pair_key", as_index=False).head(k).copy()
 
-    # 聚合: rank-weighted sum (1/sqrt(rank)) instead of plain SUM.
-    # Rationale: plain SUM rewards drugs with many weak paths over drugs with
-    # one strong path.  Rank decay ensures the best path dominates while still
-    # giving credit for multi-target/pathway synergy.
-    #   rank 1 → weight 1.00,  rank 2 → 0.71,  rank 3 → 0.58,  rank 10 → 0.32
+    # v3 aggregation: max(path_score) + diversity_bonus * log(n_paths)
+    #
+    # Rationale: The old rank-weighted sum (1/sqrt(rank)) systematically
+    # under-scored multi-target drugs.  Example:
+    #   Drug A: 1 path  score=1.0  → final = 1.00
+    #   Drug B: 10 paths score=0.8 → final ≈ 0.45  (should be HIGHER)
+    # Multi-target drugs hitting the same disease through independent pathways
+    # are more robust candidates.  The new formula:
+    #   mechanism_score = max(path_score) + diversity_bonus * log1p(n_paths - 1)
+    # This keeps the strongest single path as the baseline and rewards pathway
+    # diversity logarithmically (diminishing returns after ~5 paths).
+    diversity_bonus = float(rank_cfg.get("path_diversity_bonus", 0.10))
     top_paths = top_paths.sort_values(["pair_key", "path_score"], ascending=[True, False])
-    top_paths["_rank"] = top_paths.groupby("pair_key").cumcount() + 1
-    top_paths["_rank_weight"] = 1.0 / np.sqrt(top_paths["_rank"])
-    top_paths["_weighted_score"] = top_paths["path_score"] * top_paths["_rank_weight"]
 
     pair = top_paths.groupby(["drug_normalized", "diseaseId"], as_index=False).agg(
-        mechanism_score=("_weighted_score", "sum"),
+        _max_score=("path_score", "max"),
+        _n_paths=("path_score", "count"),
+        _unique_targets=("target_chembl_id", "nunique"),
         diseaseName=("diseaseName", lambda x: x.dropna().iloc[0] if len(x.dropna()) else ""),
     )
+    # Diversity bonus: log1p(n_paths-1) so 1 path → 0 bonus, 2→0.69*b, 5→1.6*b, 10→2.2*b
+    pair["mechanism_score"] = (
+        pair["_max_score"]
+        + diversity_bonus * np.log1p(pair["_n_paths"] - 1)
+        # Extra bonus for hitting disease through independent targets (not just pathways)
+        + diversity_bonus * 0.5 * np.log1p(pair["_unique_targets"] - 1)
+    )
+    pair.drop(columns=["_max_score", "_n_paths", "_unique_targets"], inplace=True)
     # Normalize combo drug scores: "drug_a+drug_b+drug_c" has 3x more targets,
     # so divide mechanism_score by component count to keep scores comparable.
     pair["n_components"] = pair["drug_normalized"].str.count(r"\+") + 1

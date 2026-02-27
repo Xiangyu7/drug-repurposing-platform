@@ -37,7 +37,16 @@ def build_gene_pathway(cfg: Config) -> Path:
     if "reactome_name" in tp.columns:
         cols.append("reactome_name")
 
-    gp = tp.merge(m, on="target_chembl_id", how="inner")[cols].dropna().drop_duplicates()
+    # Use left join + explicit logging so we know how many targets lack Ensembl mapping
+    gp_raw = tp.merge(m, on="target_chembl_id", how="left")
+    n_unmapped = int(gp_raw["ensembl_gene_id"].isna().sum())
+    n_total_targets = gp_raw["target_chembl_id"].nunique()
+    if n_unmapped > 0:
+        unmapped_targets = gp_raw[gp_raw["ensembl_gene_id"].isna()]["target_chembl_id"].unique()
+        logger.warning("Gene→Pathway: %d/%d target-pathway edges lack Ensembl mapping (%d unique targets dropped: %s)",
+                       n_unmapped, len(gp_raw), len(unmapped_targets),
+                       ", ".join(sorted(unmapped_targets)[:10]))
+    gp = gp_raw[cols].dropna().drop_duplicates()
     logger.info("Gene→Pathway 构建完成: %d 条边, %d 个基因, %d 个通路",
                 len(gp), gp["ensembl_gene_id"].nunique(), gp["reactome_stid"].nunique())
 
@@ -64,18 +73,35 @@ def build_pathway_disease(cfg: Config) -> Path:
     ot = ot[ot["targetId"].isin(genes)].copy()
     ot["score_f"] = pd.to_numeric(ot["score"], errors="coerce").fillna(0.0)
 
-    # Filter non-disease traits (GO terms, mouse phenotypes)
-    _non_disease_prefixes = ("GO_", "MP_")
+    # Filter non-disease traits using ALLOWLIST of valid disease ontology prefixes.
+    # Rationale: blocklist (old: GO_, MP_) was incomplete — HP: phenotypes,
+    # NCIT: non-disease entities, measurement traits in EFO, etc. all slipped through.
+    # Allowlist is safer: only known disease ontology prefixes pass.
+    _valid_disease_prefixes = (
+        "EFO_", "EFO:", "MONDO_", "MONDO:", "DOID_", "DOID:", "OMIM:",
+        "Orphanet_", "OTAR_",
+    )
     before = len(ot)
-    ot = ot[~ot["diseaseId"].astype(str).str.startswith(_non_disease_prefixes)]
+    disease_id_str = ot["diseaseId"].astype(str)
+    mask = disease_id_str.str.startswith(_valid_disease_prefixes)
+    ot = ot[mask].copy()
     n_filtered = before - len(ot)
     if n_filtered:
-        logger.info("Filtered %d GO_/MP_ non-disease entries from gene-disease edges", n_filtered)
+        logger.info("Filtered %d non-disease entries (kept only EFO/MONDO/DOID/OMIM/Orphanet prefixes)", n_filtered)
 
     j = gp.merge(ot, left_on="ensembl_gene_id", right_on="targetId", how="inner")
 
+    # v2: Use mean-of-top-3 instead of MAX for pathway-disease score.
+    # Rationale: MAX is dominated by a single "celebrity gene" (APOE, TP53, etc.)
+    # and inflates pathway scores for any pathway containing that gene.
+    # Mean-of-top-3 requires at least some depth of evidence across multiple
+    # pathway member genes while still rewarding strong individual associations.
+    def _top3_mean(scores):
+        top = scores.nlargest(3)
+        return top.mean()
+
     agg = j.groupby(["reactome_stid", "diseaseId"], as_index=False).agg(
-        pathway_score=("score_f", "max"),
+        pathway_score=("score_f", _top3_mean),
         support_genes=("ensembl_gene_id", "nunique"),
         diseaseName=("diseaseName", lambda x: x.dropna().iloc[0] if len(x.dropna()) else ""),
     )
@@ -122,13 +148,33 @@ def build_trial_ae(data_dir: Path) -> Path:
         if not nct or not drug:
             continue
 
-        # 安全相关关键词
-        is_safety = any(kw in why.lower() for kw in [
-            "adverse", "toxicity", "safety", "death", "fatal", "serious"
+        # 安全相关关键词 (v2: expanded coverage)
+        # Added: tolerability, hepatotox, cardiotox, side effect, risk-benefit,
+        # withdrawn/recall (safety-driven), and negated benefit-risk
+        why_lower = why.lower()
+        is_safety = any(kw in why_lower for kw in [
+            "adverse", "toxicity", "safety", "death", "fatal",
+            "tolerability", "intolera", "hepatotox", "cardiotox",
+            "nephrotox", "side effect", "risk-benefit", "benefit-risk",
+            "withdrawn", "recall", "liver", "cardiac event",
+            "thrombocyt", "bleeding", "hemorrhag",
         ])
-        # 疗效相关关键词
-        is_efficacy = any(kw in why.lower() for kw in [
-            "efficacy", "futility", "ineffective", "no benefit"
+        # Exclude false positives: "serious lack of enrollment" is NOT safety
+        if is_safety and "serious" not in why_lower:
+            pass  # keep as-is
+        elif "serious" in why_lower:
+            # Only count "serious" if paired with AE-related words
+            is_safety = is_safety or any(ae_kw in why_lower for ae_kw in [
+                "adverse", "event", "reaction", "toxicity", "effect"
+            ])
+
+        # 疗效相关关键词 (v2: expanded coverage)
+        is_efficacy = any(kw in why_lower for kw in [
+            "efficacy", "futility", "ineffective", "no benefit",
+            "failed to demonstrate", "did not show superiority",
+            "primary endpoint not met", "negative results",
+            "lack of efficacy", "did not meet", "not effective",
+            "insufficient efficacy", "no significant difference",
         ])
 
         rows.append({

@@ -128,6 +128,8 @@ class TestContracts:
             "docking_target_selection_score",
             "docking_risk_flags",
             "docking_policy_version",
+            "mechanism_score",
+            "reversal_score",
             "contract_version",
         }
         assert (

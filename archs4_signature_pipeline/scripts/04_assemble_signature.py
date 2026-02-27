@@ -5,8 +5,10 @@
 Combines OpenTargets prior genes with DE meta-analysis results:
   1. Load DE meta results (gene_meta.tsv)
   2. Load OpenTargets gene-disease associations
-  3. Inner join: keep only genes in both
-  4. Weight = |meta_z| * ot_score (percentile-based for non-OT genes)
+  3. SOFT PRIOR: keep ALL DE genes; OT genes get score boost, non-OT genes
+     get a reduced but non-zero weight (p5 of OT scores) so purely
+     data-driven discoveries can still enter the signature.
+  4. Weight = |meta_z| * ot_weight (OT score for OT genes, p5 fallback for non-OT)
   5. Select top 300 up + top 300 down
   6. Output in dsmeta-compatible format for sigreverse/KG
   7. Write gene_audit.json tracking gene counts through pipeline
@@ -237,40 +239,48 @@ def main():
         ot_df = pd.read_csv(ot_path, sep="\t")
         logger.info("OpenTargets prior: %d genes", len(ot_df))
 
-    # --- Inner join: DE ∩ OpenTargets ---
+    # --- Soft prior: OT genes boosted, non-OT genes kept with reduced weight ---
+    # RATIONALE: Hard intersection (old code) dropped all genes not in OpenTargets,
+    # preventing discovery of novel biology.  Soft prior keeps ALL DE genes but
+    # gives OT-associated genes a score boost via their OT association score.
+    # Non-OT genes receive the 5th percentile of OT scores as weight, so they
+    # can still enter the signature if their DE signal is strong enough.
     total_de = len(de_df)
     if ot_df is not None and len(ot_df) > 0:
         # OT has gene_symbol, DE has feature_id (also gene symbols from ARCHS4)
         ot_genes = set(ot_df["gene_symbol"].dropna().str.upper())
         de_df["feature_id_upper"] = de_df["feature_id"].astype(str).str.upper()
-        de_df = de_df[de_df["feature_id_upper"].isin(ot_genes)].copy()
 
-        # Merge OT score
+        # Merge OT score (left join — keep ALL DE genes)
         ot_lookup = ot_df.drop_duplicates(subset=["gene_symbol"]).set_index(
             ot_df["gene_symbol"].str.upper()
         )["ot_score"]
         de_df["ot_score"] = de_df["feature_id_upper"].map(ot_lookup)
 
-        # P2 FIX: Use percentile-based fallback instead of fixed 0.1
-        # Genes that matched the OT set but have NaN scores (shouldn't happen,
-        # but defensive) get the 5th percentile of actual OT scores, not a fixed value.
+        # Compute fallback weight for non-OT genes
         valid_scores = de_df["ot_score"].dropna()
         if len(valid_scores) > 0:
             fallback_score = float(np.percentile(valid_scores, 5))
         else:
             fallback_score = 0.1
-        n_fallback = int(de_df["ot_score"].isna().sum())
-        if n_fallback > 0:
-            logger.info("  %d genes missing OT score → using p5 fallback: %.4f", n_fallback, fallback_score)
+        # Ensure fallback is at least 0.05 so non-OT genes are not zeroed out
+        fallback_score = max(fallback_score, 0.05)
+
+        n_in_ot = int(de_df["ot_score"].notna().sum())
+        n_not_in_ot = int(de_df["ot_score"].isna().sum())
+        logger.info("  OT soft prior: %d genes in OT, %d genes NOT in OT (fallback weight: %.4f)",
+                    n_in_ot, n_not_in_ot, fallback_score)
         de_df["ot_score"] = de_df["ot_score"].fillna(fallback_score)
+        de_df["in_opentargets"] = de_df["feature_id_upper"].isin(ot_genes)
 
         de_df = de_df.drop(columns=["feature_id_upper"])
 
-        n_after_ot = len(de_df)
-        logger.info("After OT intersection: %d / %d genes (%.1f%%)",
-                    n_after_ot, total_de, 100 * n_after_ot / total_de if total_de > 0 else 0)
+        n_after_ot = len(de_df)  # Now equals total_de (no genes dropped)
+        logger.info("After OT soft prior: %d / %d genes retained (100%%, soft mode)",
+                    n_after_ot, total_de)
     else:
-        de_df["ot_score"] = 1.0  # No OT filter, uniform weight
+        de_df["ot_score"] = 1.0  # No OT data, uniform weight
+        de_df["in_opentargets"] = False
         n_after_ot = len(de_df)
 
     if len(de_df) == 0:
@@ -287,23 +297,25 @@ def main():
     n_after_fdr = len(de_df)
 
     if len(de_df) == 0:
-        logger.warning("No genes pass FDR filter. Relaxing to FDR <= 1.0...")
+        logger.warning("No genes pass FDR filter (<=%.2f). Relaxing to FDR <= 1.0...", min_de_fdr)
         de_df = pd.read_csv(meta_path, sep="\t")
         de_df = de_df.dropna(subset=["meta_logFC", "meta_z"]).copy()
         if ot_df is not None and len(ot_df) > 0:
             ot_genes = set(ot_df["gene_symbol"].dropna().str.upper())
             de_df["feature_id_upper"] = de_df["feature_id"].astype(str).str.upper()
-            de_df = de_df[de_df["feature_id_upper"].isin(ot_genes)].copy()
+            # Soft prior (same as above — keep all genes)
             ot_lookup = ot_df.drop_duplicates(subset=["gene_symbol"]).set_index(
                 ot_df["gene_symbol"].str.upper()
             )["ot_score"]
             de_df["ot_score"] = de_df["feature_id_upper"].map(ot_lookup)
             valid_scores = de_df["ot_score"].dropna()
-            fallback_score = float(np.percentile(valid_scores, 5)) if len(valid_scores) > 0 else 0.1
+            fallback_score = max(float(np.percentile(valid_scores, 5)) if len(valid_scores) > 0 else 0.1, 0.05)
             de_df["ot_score"] = de_df["ot_score"].fillna(fallback_score)
+            de_df["in_opentargets"] = de_df["feature_id_upper"].isin(ot_genes)
             de_df = de_df.drop(columns=["feature_id_upper"])
         else:
             de_df["ot_score"] = 1.0
+            de_df["in_opentargets"] = False
         n_after_fdr = len(de_df)
 
     # --- Compute weighted score ---
@@ -382,7 +394,7 @@ def main():
         "top_n": int(min(top_n, max(len(up_selected), len(down_selected)))),
         "filters": {
             "min_de_fdr": min_de_fdr,
-            "opentargets_intersection": ot_df is not None,
+            "opentargets_mode": "soft_prior" if ot_df is not None else "none",
         },
         "qc": {
             "total_de_genes": total_de,

@@ -33,7 +33,7 @@ runtime/work/<disease>/<run_id>/
 │   ├── step7_repurpose_cross/
 │   │   └── step7_gating_decision.csv           # GO/MAYBE/NO-GO + 5维打分
 │   ├── step8_repurpose_cross/
-│   │   ├── step8_candidate_pack_from_step7.xlsx  ⭐ 核心交付物 (Excel)
+│   │   ├── step8_fusion_rank_report.xlsx  ⭐ 核心交付物 (Excel)
 │   │   └── step8_shortlist_top5.csv
 │   ├── step9_repurpose_cross/
 │   │   ├── step9_validation_plan.md            ⭐ 可读版最终报告
@@ -62,7 +62,7 @@ kg_explain/output/<disease>/
 | 优先级 | 文件 | 看什么 |
 |--------|------|--------|
 | ⭐⭐⭐ | `step9_validation_plan.md` | 最终结论：每个候选药的 GO/MAYBE、P1/P2 优先级、验证方案 |
-| ⭐⭐⭐ | `step8_candidate_pack_from_step7.xlsx` | Excel 详情：Shortlist sheet 看候选数和 gate 分布，每药 Sheet 看靶点结构表 |
+| ⭐⭐⭐ | `step8_fusion_rank_report.xlsx` | Excel 详情：Shortlist sheet 看候选数和 gate 分布，每药 Sheet 看靶点结构表 |
 | ⭐⭐ | `step9_validation_plan.csv` | 机器可读版：方便批量汇总多疾病结果 |
 | ⭐⭐ | `bridge_repurpose_cross.csv` | KG 排名全表（LLM 之前的原始排名，含靶点/PDB/AlphaFold） |
 | ⭐ | `step7_gating_decision.csv` | 每药 5 维打分明细，理解 GO/NO-GO 原因 |
@@ -70,7 +70,7 @@ kg_explain/output/<disease>/
 
 ### 看结论时重点关注
 
-- [ ] `step8_candidate_pack_from_step7.xlsx` → Shortlist sheet → 候选药数量和 gate 分布 (GO / MAYBE)
+- [ ] `step8_fusion_rank_report.xlsx` → Shortlist sheet → 候选药数量和 gate 分布 (GO / MAYBE)
 - [ ] 每个药的 Sheet → 靶点结构表 (Structure Source 列)
   - `PDB+AlphaFold` → 可直接做分子对接，选实验 PDB
   - `AlphaFold_only` → 对接结果需谨慎解读

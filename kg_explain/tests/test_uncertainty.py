@@ -117,16 +117,20 @@ class TestConfidenceTier:
     """Tests for assign_confidence_tier function."""
 
     def test_high_confidence_with_enough_paths(self):
-        """CI width < 0.10 with 3+ paths should be HIGH."""
-        assert assign_confidence_tier(0.05, n_paths=5) == "HIGH"
-        assert assign_confidence_tier(0.0, n_paths=3) == "HIGH"
-        assert assign_confidence_tier(0.099, n_paths=10) == "HIGH"
+        """CI width < 0.10 with 3+ paths and reasonable score should be HIGH.
+        v3: mean_score must be >= 0.15 to reach HIGH (low scores cap at MEDIUM).
+        """
+        assert assign_confidence_tier(0.05, n_paths=5, mean_score=0.5) == "HIGH"
+        assert assign_confidence_tier(0.0, n_paths=3, mean_score=0.5) == "HIGH"
+        assert assign_confidence_tier(0.099, n_paths=10, mean_score=0.5) == "HIGH"
 
     def test_medium_confidence_with_enough_paths(self):
-        """CI width >= 0.10 and < 0.25 with 3+ paths should be MEDIUM."""
-        assert assign_confidence_tier(0.10, n_paths=3) == "MEDIUM"
-        assert assign_confidence_tier(0.15, n_paths=5) == "MEDIUM"
-        assert assign_confidence_tier(0.249, n_paths=4) == "MEDIUM"
+        """CI width >= 0.10 and < 0.25 with 3+ paths should be MEDIUM.
+        v3: mean_score must be >= 0.15 to reach MEDIUM via CI width thresholds.
+        """
+        assert assign_confidence_tier(0.10, n_paths=3, mean_score=0.5) == "MEDIUM"
+        assert assign_confidence_tier(0.15, n_paths=5, mean_score=0.5) == "MEDIUM"
+        assert assign_confidence_tier(0.249, n_paths=4, mean_score=0.5) == "MEDIUM"
 
     def test_low_confidence_wide_ci(self):
         """CI width >= 0.25 should be LOW regardless of n_paths."""

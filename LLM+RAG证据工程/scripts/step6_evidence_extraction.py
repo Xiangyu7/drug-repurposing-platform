@@ -295,7 +295,12 @@ def topic_match_ratio(text: str, endpoint_type: str) -> float:
 
 def pubmed_esearch(term: str, retmax: int = 200) -> List[str]:
     _pubmed_rate_wait()
-    params = {"db":"pubmed","term":term,"retmode":"json","retmax":str(retmax),"sort":"relevance"}
+    # v2: Use "date" sort instead of "relevance" to avoid PubMed's relevance
+    # bias toward well-studied drugs. "relevance" sort returns papers with
+    # highest citation/MeSH match scores first, systematically favoring
+    # established drugs with decades of literature. "date" sort gives recent
+    # papers priority, which is better for discovering novel repurposing signals.
+    params = {"db":"pubmed","term":term,"retmode":"json","retmax":str(retmax),"sort":"date"}
     if NCBI_API_KEY:
         params["api_key"] = NCBI_API_KEY
     url = f"{NCBI_EUTILS}/esearch.fcgi"
@@ -803,24 +808,54 @@ def load_negative_trials(neg_path: Optional[str], canonical_name: str) -> Tuple[
         lines.append(f"- **{tr['nctId']}** | {tr['conditions']} | {tr['phase']} | primary: {tr['primary_outcome_title']} | {tr['primary_outcome_pvalues']}")
     return endpoint, trials, "\n".join(lines)
 
-def negative_evidence_from_trials(trials: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def evidence_from_trials(trials: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Extract evidence from CT.gov trials — BOTH positive and negative.
+
+    v2: Old function (negative_evidence_from_trials) only produced neutral entries,
+    creating one-sided bias against drugs with trial data. Now we classify
+    based on trial status: Completed trials → benefit, Terminated/Withdrawn → harm/neutral.
+    """
     out = []
     for tr in trials[:6]:
-        # treat as neutral/harm unless p suggests benefit
+        status = (tr.get("overallStatus") or "").strip().lower()
         pv = (tr.get("primary_outcome_pvalues") or "").lower()
-        direction = "neutral"
-        supports = False
-        # if p<0.05 mentioned, still could be benefit or harm; we keep neutral and let human interpret
+
+        # Classify based on trial status
+        if status in ("completed",) and ("p<0.05" in pv or "p < 0.05" in pv or "significant" in pv):
+            direction = "benefit"
+            supports = True
+            confidence = 0.60
+        elif status in ("completed",):
+            direction = "neutral"
+            supports = False
+            confidence = 0.50
+        elif status in ("terminated", "withdrawn", "suspended"):
+            why = (tr.get("whyStopped") or "").lower()
+            if any(kw in why for kw in ["safety", "adverse", "toxicity", "death", "fatal"]):
+                direction = "harm"
+            else:
+                direction = "neutral"
+            supports = False
+            confidence = 0.55
+        else:
+            direction = "neutral"
+            supports = False
+            confidence = 0.40
+
         out.append({
             "pmid": "",
             "supports": supports,
             "direction": direction,
             "model": "human",
             "endpoint": "clinical trial primary outcome",
-            "claim": f"{tr.get('nctId','')} primary outcome: {tr.get('primary_outcome_title','')} (p-values: {tr.get('primary_outcome_pvalues','')})",
-            "confidence": 0.55
+            "claim": f"{tr.get('nctId','')} ({status}) primary outcome: {tr.get('primary_outcome_title','')} (p-values: {pv})",
+            "confidence": confidence,
         })
     return out
+
+
+# Keep old name as alias for backward compatibility
+negative_evidence_from_trials = evidence_from_trials
 
 # ---------------------------
 # Main per-candidate
@@ -1170,14 +1205,27 @@ def process_one(
 
             direction = ev.get("direction","unknown")
             supports = bool(ev.get("supports", False))
-            if supports and direction == "benefit":
+            # v2 FIX: Hallucination-flagged items should NOT count as benefit.
+            # Old code let warnings through → inflated benefit count for some drugs.
+            has_hallucination = bool(ev.get("hallucination_warnings"))
+            if supports and direction == "benefit" and not has_hallucination:
                 supporting.append(ev)
+            elif has_hallucination:
+                # Demote hallucination-flagged benefit to unknown
+                ev["direction_original"] = direction
+                ev["direction"] = "unknown"
+                ev["demoted_reason"] = "hallucination_warning"
+                harm_or_neutral.append(ev)
             else:
                 harm_or_neutral.append(ev)
 
-    # add CT.gov as negative evidence (counts)
-    trial_neg = negative_evidence_from_trials(trials)
-    harm_or_neutral.extend(trial_neg)
+    # v2: add CT.gov as BIDIRECTIONAL evidence (was negative-only)
+    trial_evidence = evidence_from_trials(trials)
+    for te in trial_evidence:
+        if te.get("supports") and te.get("direction") == "benefit":
+            supporting.append(te)
+        else:
+            harm_or_neutral.append(te)
 
     # dedupe by (pmid, claim)
     def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

@@ -143,17 +143,21 @@ TOPN_STAGE1_MIN_CROSS=""
 TOPN_STAGE1_MAX_CROSS=""
 SHORTLIST_MIN_GO_ORIGIN=3
 SHORTLIST_MIN_GO_CROSS=2
-TOPK_CROSS=5
-TOPK_ORIGIN=10
-STEP6_PUBMED_RETMAX=120
-STEP6_PUBMED_PARSE_MAX=60
-STEP6_MAX_RERANK_DOCS=40
-STEP6_MAX_EVIDENCE_DOCS=12
+# v2: TOPK raised for better recall; evidence funnel widened.
+# TOPK_CROSS was 5 — too narrow for drug discovery. 15 retains more candidates.
+# STEP6_MAX_EVIDENCE_DOCS was 12 — increased to 20 to give novel drugs more
+# chances to accumulate benefit evidence from PubMed.
+TOPK_CROSS="${TOPK_CROSS:-15}"
+TOPK_ORIGIN="${TOPK_ORIGIN:-10}"
+STEP6_PUBMED_RETMAX=150
+STEP6_PUBMED_PARSE_MAX=80
+STEP6_MAX_RERANK_DOCS=50
+STEP6_MAX_EVIDENCE_DOCS=20
 STRICT_CONTRACT="${STRICT_CONTRACT:-1}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"
 RUN_MODE="${RUN_MODE:-dual}" # dual | origin_only
-STEP_TIMEOUT="${STEP_TIMEOUT:-1800}" # 30 min per step default
+STEP_TIMEOUT="${STEP_TIMEOUT:-3600}" # 60 min per step default
 DSMETA_DISK_MIN_GB="${DSMETA_DISK_MIN_GB:-8}"  # min free GB before dsmeta (GEO downloads are large)
 DSMETA_CLEANUP="${DSMETA_CLEANUP:-1}"          # auto-clean dsmeta workdir after each disease
 SIG_PRIORITY="${SIG_PRIORITY:-dsmeta}"         # dsmeta | archs4 — which signature source to try first
@@ -165,19 +169,19 @@ TOPN_POLICY_PY="${ROOT_DIR}/ops/internal/topn_policy.py"
 apply_topn_profile_defaults() {
   case "${TOPN_PROFILE}" in
     stable)
-      TOPN_CAP_ORIGIN=18;  TOPN_CAP_CROSS=14
-      TOPN_STAGE1_MIN_ORIGIN=12; TOPN_STAGE1_MAX_ORIGIN=14
-      TOPN_STAGE1_MIN_CROSS=10;  TOPN_STAGE1_MAX_CROSS=12
+      TOPN_CAP_ORIGIN=24;  TOPN_CAP_CROSS=20
+      TOPN_STAGE1_MIN_ORIGIN=14; TOPN_STAGE1_MAX_ORIGIN=18
+      TOPN_STAGE1_MIN_CROSS=14;  TOPN_STAGE1_MAX_CROSS=18
       ;;
     balanced)
-      TOPN_CAP_ORIGIN=24;  TOPN_CAP_CROSS=18
-      TOPN_STAGE1_MIN_ORIGIN=14; TOPN_STAGE1_MAX_ORIGIN=18
-      TOPN_STAGE1_MIN_CROSS=12;  TOPN_STAGE1_MAX_CROSS=16
+      TOPN_CAP_ORIGIN=30;  TOPN_CAP_CROSS=24
+      TOPN_STAGE1_MIN_ORIGIN=18; TOPN_STAGE1_MAX_ORIGIN=24
+      TOPN_STAGE1_MIN_CROSS=16;  TOPN_STAGE1_MAX_CROSS=22
       ;;
     recall)
-      TOPN_CAP_ORIGIN=30;  TOPN_CAP_CROSS=24
-      TOPN_STAGE1_MIN_ORIGIN=16; TOPN_STAGE1_MAX_ORIGIN=24
-      TOPN_STAGE1_MIN_CROSS=14;  TOPN_STAGE1_MAX_CROSS=20
+      TOPN_CAP_ORIGIN=40;  TOPN_CAP_CROSS=32
+      TOPN_STAGE1_MIN_ORIGIN=20; TOPN_STAGE1_MAX_ORIGIN=32
+      TOPN_STAGE1_MIN_CROSS=18;  TOPN_STAGE1_MAX_CROSS=28
       ;;
     *)
       printf '[WARN] Unknown TOPN_PROFILE=%s, fallback to stable\n' "${TOPN_PROFILE}" >&2
@@ -853,7 +857,7 @@ run_route_llm_stage() {
     return 0
   fi
 
-  if ! run_cmd "${route_title}: step6 (${stage})" --timeout 7200 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step6_evidence_extraction.py --rank_in "${bridge_csv}" --neg "${neg_csv}" --out "${step6_dir}" --target_disease "${disease_query}" --topn "${topn}" --pubmed_retmax "${STEP6_PUBMED_RETMAX}" --pubmed_parse_max "${STEP6_PUBMED_PARSE_MAX}" --max_rerank_docs "${STEP6_MAX_RERANK_DOCS}" --max_evidence_docs "${STEP6_MAX_EVIDENCE_DOCS}"; then
+  if ! run_cmd "${route_title}: step6 (${stage})" --timeout 14400 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step6_evidence_extraction.py --rank_in "${bridge_csv}" --neg "${neg_csv}" --out "${step6_dir}" --target_disease "${disease_query}" --topn "${topn}" --pubmed_retmax "${STEP6_PUBMED_RETMAX}" --pubmed_parse_max "${STEP6_PUBMED_PARSE_MAX}" --max_rerank_docs "${STEP6_MAX_RERANK_DOCS}" --max_evidence_docs "${STEP6_MAX_EVIDENCE_DOCS}"; then
     write_topn_quality_skip_json "${quality_json}" "${route_key}" "${topk}" "${min_go}" "${stage}_step6_failed" "${stage}"
     return 1
   fi
@@ -863,7 +867,7 @@ run_route_llm_stage() {
     return 1
   fi
 
-  if ! run_cmd "${route_title}: step8 (${stage})" --timeout 3600 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step8_candidate_pack.py --step7_dir "${step7_dir}" --neg "${neg_csv}" --bridge "${bridge_csv}" --outdir "${step8_dir}" --target_disease "${disease_query}" --topk "${topk}" --route "${route_key}" --include_explore 1 --strict_contract "${STRICT_CONTRACT}"; then
+  if ! run_cmd "${route_title}: step8 (${stage})" --timeout 3600 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step8_fusion_rank.py --step7_dir "${step7_dir}" --neg "${neg_csv}" --bridge "${bridge_csv}" --outdir "${step8_dir}" --target_disease "${disease_query}" --topk "${topk}" --route "${route_key}" --include_explore 1 --strict_contract "${STRICT_CONTRACT}" --sensitivity_n 1000; then
     write_topn_quality_skip_json "${quality_json}" "${route_key}" "${topk}" "${min_go}" "${stage}_step8_failed" "${stage}"
     return 1
   fi
@@ -1114,6 +1118,128 @@ drug_filter:
     - BEHAVIORAL
     - DIETARY_SUPPLEMENT
 EOF_CFG
+}
+
+ensure_cross_signature_config() {
+  # Auto-discover GEO datasets and generate dsmeta config if neither
+  # dsmeta nor ARCHS4 config exists.  This makes the Cross route work
+  # out-of-the-box without a manual GEO curation step.
+  #
+  # Flow:
+  #   1. auto_discover_geo.py → generate_dsmeta_configs.py → dsmeta config
+  #   2. If GEO discovery fails → generate ARCHS4 config as fallback
+  #   3. If both fail → return 1 (caller should skip Cross)
+  local disease_key="$1"
+  local disease_query="$2"
+  local efo_ids="${3:-}"
+
+  local archs4_cfg="${ARCHS4_DIR}/configs/${disease_key}.yaml"
+  local dsmeta_cfg="${DSMETA_DIR}/configs/${disease_key}.yaml"
+
+  # Already have a config — nothing to do
+  if [[ -f "${archs4_cfg}" || -f "${dsmeta_cfg}" ]]; then
+    return 0
+  fi
+
+  log "[INFO] Cross: no signature config for ${disease_key} — running auto GEO discovery..."
+
+  local geo_out="${ROOT_DIR}/ops/internal/geo_curation"
+  local discover_py="${ROOT_DIR}/ops/internal/auto_discover_geo.py"
+  local generate_py="${ROOT_DIR}/ops/internal/generate_dsmeta_configs.py"
+
+  local dsmeta_ok=false
+
+  if [[ -f "${discover_py}" ]]; then
+    # Step 1: discover GEO datasets
+    if run_cmd "Cross: auto-discover GEO (${disease_key})" --timeout 300 \
+         python3 "${discover_py}" \
+           --disease "${disease_query}" \
+           --disease-key "${disease_key}" \
+           --out-dir "${geo_out}" \
+           --write-yaml \
+           --top-k 5; then
+
+      local selected_tsv="${geo_out}/${disease_key}/selected.tsv"
+      local n_selected=0
+      if [[ -f "${selected_tsv}" && -s "${selected_tsv}" ]]; then
+        n_selected=$(tail -n +2 "${selected_tsv}" | wc -l | tr -d ' ')
+      fi
+
+      if [[ "${n_selected}" -gt 0 ]]; then
+        # Step 2: generate dsmeta config from discovered GSEs
+        if [[ -f "${generate_py}" ]]; then
+          mkdir -p "${DSMETA_DIR}/configs"
+          if run_cmd "Cross: generate dsmeta config (${disease_key})" --timeout 60 \
+               python3 "${generate_py}" \
+                 --geo-dir "${geo_out}" \
+                 --config-dir "${DSMETA_DIR}/configs" \
+                 --disease "${disease_key}" \
+                 --overwrite; then
+            if [[ -f "${dsmeta_cfg}" ]]; then
+              log "[INFO] Cross: auto-generated dsmeta config: ${dsmeta_cfg} (${n_selected} GSEs)"
+              dsmeta_ok=true
+            fi
+          fi
+        fi
+
+        # Fallback: copy the candidate_config.yaml directly if generate_dsmeta_configs failed
+        if [[ "${dsmeta_ok}" == false ]]; then
+          local candidate_yaml="${geo_out}/${disease_key}/candidate_config.yaml"
+          if [[ -f "${candidate_yaml}" ]]; then
+            mkdir -p "${DSMETA_DIR}/configs"
+            cp "${candidate_yaml}" "${dsmeta_cfg}"
+            log "[INFO] Cross: copied candidate config as dsmeta config: ${dsmeta_cfg}"
+            dsmeta_ok=true
+          fi
+        fi
+      else
+        log "[WARN] Cross: GEO discovery found 0 datasets for ${disease_key}"
+      fi
+    else
+      log "[WARN] Cross: GEO auto-discovery failed for ${disease_key}"
+    fi
+  else
+    log "[WARN] Cross: auto_discover_geo.py not found, skipping GEO discovery"
+  fi
+
+  # If dsmeta succeeded, we're done
+  if [[ "${dsmeta_ok}" == true ]]; then
+    return 0
+  fi
+
+  # ── Fallback: generate ARCHS4 config ──────────────────────────
+  # ARCHS4 uses its own pre-indexed H5 database (not GEO), so it
+  # can work even when no GEO expression datasets are found.
+  # Use ARCHS4's own auto_generate_config.py which has optimized
+  # DISEASE_KEYWORD_MAP (e.g. AMI/STEMI for myocardial_infarction).
+  log "[INFO] Cross: GEO/dsmeta failed, generating ARCHS4 config as fallback for ${disease_key}..."
+
+  local archs4_gen_py="${ARCHS4_DIR}/scripts/auto_generate_config.py"
+
+  if [[ -z "${efo_ids}" ]]; then
+    log "[WARN] Cross: no EFO ID for ${disease_key}, cannot generate ARCHS4 config"
+    return 1
+  fi
+
+  if [[ ! -f "${archs4_gen_py}" ]]; then
+    log "[WARN] Cross: auto_generate_config.py not found at ${archs4_gen_py}"
+    return 1
+  fi
+
+  if run_cmd "Cross: generate ARCHS4 config (${disease_key})" --timeout 30 \
+       python3 "${archs4_gen_py}" \
+         --disease "${disease_key}" \
+         --disease-name "${disease_query}" \
+         --efo-id "${efo_ids}" \
+         --outdir "${ARCHS4_DIR}/configs"; then
+    if [[ -f "${archs4_cfg}" ]]; then
+      log "[INFO] Cross: auto-generated ARCHS4 config: ${archs4_cfg}"
+      return 0
+    fi
+  fi
+
+  log "[WARN] Cross: could not generate any signature config for ${disease_key}"
+  return 1
 }
 
 write_failure_record() {
@@ -1392,11 +1518,18 @@ process_disease() {
   # ----- A) Cross route (optional, RUN_MODE=dual or cross_only) -----
   # [P1-5] Cross failure no longer blocks Origin route (in dual mode)
   # Priority: ARCHS4 config > dsmeta config
+  # NEW: Auto-discover GEO + generate dsmeta config if neither exists
   if [[ "${RUN_MODE}" == "dual" || "${RUN_MODE}" == "cross_only" ]]; then
     local archs4_cfg="${ARCHS4_DIR}/configs/${disease_key}.yaml"
     local dsmeta_cfg="${DSMETA_DIR}/configs/${disease_key}.yaml"
+
+    # Auto-discover: if no config exists, try to find GEO datasets and generate one
     if [[ ! -f "${archs4_cfg}" && ! -f "${dsmeta_cfg}" ]]; then
-      log "[WARN] Cross: no ARCHS4 or dsmeta config for ${disease_key}, skipping cross route"
+      ensure_cross_signature_config "${disease_key}" "${disease_query}" "${origin_ids_input}" || true
+    fi
+
+    if [[ ! -f "${archs4_cfg}" && ! -f "${dsmeta_cfg}" ]]; then
+      log "[WARN] Cross: no ARCHS4 or dsmeta config for ${disease_key} (auto-discovery also failed), skipping cross route"
       cross_status="failed"
       if [[ "${RUN_MODE}" == "cross_only" ]]; then
         fail_disease "${disease_key}" "${run_id}" "cross_no_config" "no ARCHS4 or dsmeta config for cross_only mode" "${cross_status}" "${origin_status}"
@@ -1435,7 +1568,7 @@ process_disease() {
   origin_route_start=$SECONDS
   next_step "${disease_key}" "Origin: KG ranking (CT.gov mode)"
 
-  if ! run_cmd "Origin: kg ctgov" --timeout 3600 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source ctgov; then
+  if ! run_cmd "Origin: kg ctgov" --timeout 7200 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source ctgov; then
     fail_disease "${disease_key}" "${run_id}" "origin_kg_ctgov" "kg ctgov pipeline failed" "${cross_status}" "${origin_status}"
     return 1
   fi
@@ -1489,6 +1622,14 @@ process_disease() {
   if ! require_file "${bridge_origin}" "origin bridge"; then
     fail_disease "${disease_key}" "${run_id}" "origin_bridge_output" "missing bridge_origin_reassess.csv" "${cross_status}" "${origin_status}"
     return 1
+  fi
+
+  # Merge SigReverse reversal_score into origin bridge CSV (if cross ran and sig output exists)
+  local sig_rank_csv_origin="${disease_work}/sigreverse_output/drug_reversal_rank.csv"
+  if [[ -f "${sig_rank_csv_origin}" ]]; then
+    run_cmd "Origin: merge reversal_score into bridge" \
+      python3 "${ROOT_DIR}/ops/merge_sig_to_bridge.py" \
+        --bridge "${bridge_origin}" --sig-rank "${sig_rank_csv_origin}" || true
   fi
 
   local step6_origin="${disease_work}/llm/step6_origin_reassess"
@@ -1794,9 +1935,12 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
     log "[WARN] Cross: 跳过 Cross 路线, 建议主线走 Origin (--mode dual)"
     return 1
   elif [[ "${_sig_genes}" -lt 30 ]]; then
-    log "[WARN] Cross: 签名基因数不足 (${_sig_genes} < 30), Cross 路线可信度过低"
-    log "[WARN] Cross: 跳过 Cross 路线, 建议主线走 Origin (--mode dual)"
-    return 1
+    # v2: DON'T abort — run with tightened parameters instead.
+    # Rationale: a signature with 20-29 genes may still contain genuine disease
+    # biology that sigreverse can leverage. Aborting the entire cross route
+    # throws away potential discoveries. Instead, tighten the KG drug limit
+    # and log a warning for the researcher to review.
+    log "[WARN] Cross: 签名基因数偏少 (${_sig_genes} < 30), 自动收紧参数运行 (不中断)"
   elif [[ "${_sig_genes}" -lt 100 ]]; then
     log "[INFO] Cross: 签名基因中等 (${_sig_genes}), 自动收紧 KG 药物上限"
   else
@@ -1843,6 +1987,14 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
   if ! require_file "${bridge_cross}" "cross bridge"; then
     log "[ERROR] Cross: missing bridge_repurpose_cross.csv"
     return 1
+  fi
+
+  # Merge SigReverse reversal_score into cross bridge CSV
+  local sig_rank_csv="${sig_out_dir}/drug_reversal_rank.csv"
+  if [[ -f "${sig_rank_csv}" ]]; then
+    run_cmd "Cross: merge reversal_score into bridge" \
+      python3 "${ROOT_DIR}/ops/merge_sig_to_bridge.py" \
+        --bridge "${bridge_cross}" --sig-rank "${sig_rank_csv}" || true
   fi
 
   step6_cross="${disease_work}/llm/step6_repurpose_cross"

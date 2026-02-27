@@ -180,6 +180,23 @@ Disease lists (internal, managed by start.sh):
 - `ops/disease_list.txt` (master template)
 - `ops/disease_list_test.txt` (minimal test set)
 
+### Cross config auto-discovery (2026-02-26 新增)
+
+新疾病无需手动创建签名 config。`runner.sh` 的 `ensure_cross_signature_config()` 会自动完成：
+
+```
+没有 dsmeta 或 ARCHS4 config？
+  │
+  ├─ ① auto_discover_geo.py 搜 NCBI GEO → generate_dsmeta_configs.py → dsmeta config
+  │     └─ 成功 → 用 dsmeta 签名源
+  │
+  └─ ② GEO 失败 → archs4/scripts/auto_generate_config.py → ARCHS4 config
+        └─ 成功 → 用 ARCHS4 签名源 (有 DISEASE_KEYWORD_MAP 优化关键词)
+        └─ 也失败 → skip Cross → 继续 Origin
+```
+
+然后进入 `run_cross_route()` 内部，按 `SIG_PRIORITY` 顺序运行 dsmeta / ARCHS4 互相 fallback。
+
 ### Cross input path auto-discovery
 
 The runner no longer requires `signature_meta_path` / `sigreverse_input_path` in disease list.
@@ -356,8 +373,9 @@ bash ops/start.sh start --mode dual
 | `ops/internal/runner.sh` | 24/7 continuous runner (dual/origin modes) |
 | `ops/internal/env_guard.py` | 环境预检 + 自动修复 |
 | `ops/internal/topn_policy.py` | TopN 自动调控策略 |
-| `ops/internal/auto_discover_geo.py` | GEO auto-discovery |
-| `ops/internal/generate_dsmeta_configs.py` | dsmeta config generator |
+| `ops/internal/auto_discover_geo.py` | GEO auto-discovery (搜 NCBI GEO 数据集) |
+| `ops/internal/generate_dsmeta_configs.py` | dsmeta config generator (GSE → YAML) |
+| `archs4_signature_pipeline/scripts/auto_generate_config.py` | ARCHS4 config generator (含 DISEASE_KEYWORD_MAP) |
 | `ops/internal/cleanup.sh` | 磁盘空间清理 |
 | `ops/internal/retry_disease.sh` | 重试失败疾病 |
 | `ops/internal/restart_runner.sh` | 停止/重启 runner |
@@ -532,12 +550,12 @@ bash ops/check_status.sh --all
 | Script | Description |
 |--------|-------------|
 | `step0_build_pool.py` | Build initial drug pool from CT.gov (trial -> drug level aggregation) |
-| `step1_3_fetch_failed_drugs.py` | Fetch failed/terminated drugs from CT.gov seed list |
+| `step1_fetch_trial_drugs.py` | Fetch failed/terminated drugs from CT.gov seed list |
 | `step4_label_trials.py` | Label trials with conditions and outcomes |
 | `step5_normalize_drugs.py` | Drug name normalization |
 | `step6_evidence_extraction.py` | PubMed retrieval + LLM structured extraction -> dossier JSONs |
 | `step7_score_and_gate.py` | 5-dim scoring + gating (ContractEnforcer validates outputs) |
-| `step8_candidate_pack.py` | ReleaseGate -> shortlist CSV + Excel (含靶点结构表) + one-pager Markdown (含靶点/PDB) |
+| `step8_fusion_rank.py` | ReleaseGate -> shortlist CSV + Excel (含靶点结构表) + one-pager Markdown (含靶点/PDB) |
 | `step9_validation_plan.py` | Priority tiers + stop/go criteria + timeline (ContractEnforcer validates) |
 | `eval_extraction.py` | Evaluate extraction accuracy vs gold standard |
 | `screen_drugs.py` | Filter/screen drugs by configurable criteria |
@@ -605,10 +623,11 @@ ARCHS4 RNA-seq 替代签名管线，在 dsmeta (GEO microarray) 失败时自动�
 
 | Location | Tests | Scope |
 |----------|-------|-------|
-| `kg_explain/tests/` | 335 | KG construction, ranking, evaluation, governance |
-| `LLM+RAG证据工程/tests/` | 501 | Evidence extraction, scoring, gating, contracts, monitoring |
+| `kg_explain/tests/` | 353 | KG construction, ranking, evaluation, governance |
+| `LLM+RAG证据工程/tests/` | 522 | Evidence extraction, scoring, gating, contracts, monitoring |
+| `sigreverse/tests/` | 302 | Signature reversal, drug scoring, fusion |
 | `tests/integration/` | 12 | Cross-project schema compatibility, end-to-end data flow |
-| **Total** | **848+** | **All passing** |
+| **Total** | **1189+** | **All passing** |
 
 Run all tests:
 ```bash
@@ -707,7 +726,7 @@ python scripts/step6_evidence_extraction.py \
 python scripts/step7_score_and_gate.py \
   --input output/step6_repurpose_cross --out output/step7_repurpose_cross --strict_contract 1
 
-python scripts/step8_candidate_pack.py \
+python scripts/step8_fusion_rank.py \
   --step7_dir output/step7_repurpose_cross --outdir output/step8_repurpose_cross \
   --target_disease atherosclerosis --topk 5 \
   --include_explore 1 --strict_contract 1
@@ -732,7 +751,7 @@ python scripts/step6_evidence_extraction.py \
 python scripts/step7_score_and_gate.py \
   --input output/step6_origin_reassess --out output/step7_origin_reassess --strict_contract 1
 
-python scripts/step8_candidate_pack.py \
+python scripts/step8_fusion_rank.py \
   --step7_dir output/step7_origin_reassess --outdir output/step8_origin_reassess \
   --target_disease atherosclerosis --topk 10 --include_explore 1
 
@@ -751,7 +770,7 @@ python scripts/step9_validation_plan.py \
 | `LLM+RAG/output/step7_repurpose_cross/` | Direction A: GO/MAYBE/NO-GO decisions |
 | `LLM+RAG/output/step7_origin_reassess/` | Direction B: GO/MAYBE/NO-GO decisions |
 | `LLM+RAG/output/step8_*/step8_shortlist_topK.csv` | Final shortlist (含靶点/UniProt/PDB/AlphaFold + docking就绪字段) |
-| `LLM+RAG/output/step8_*/step8_candidate_pack_from_step7.xlsx` | Excel 候选报告 (每药 Sheet 含靶点结构表) |
+| `LLM+RAG/output/step8_*/step8_fusion_rank_report.xlsx` | Excel 候选报告 (每药 Sheet 含靶点结构表) |
 | `LLM+RAG/output/step9_*/step9_validation_plan.csv` | Prioritized validation plan |
 
 ### Bridge CSV 靶点列 (2026-02-16 新增)
@@ -783,7 +802,7 @@ Bridge 文件新增两列，用于分子对接准备:
 ### 跑完一轮后检查清单
 
 **第一优先 — 看结论:**
-1. 打开 `step8_candidate_pack_from_step7.xlsx` → Shortlist sheet → 确认候选药数量和 gate 分布
+1. 打开 `step8_fusion_rank_report.xlsx` → Shortlist sheet → 确认候选药数量和 gate 分布
 2. 看每个药的 Sheet → 检查靶点结构表 (Structure Source 列)
    - `PDB+AlphaFold` → 可直接做分子对接，选实验 PDB
    - `AlphaFold_only` → 对接结果需谨慎解读
@@ -821,20 +840,22 @@ Templates: `LLM+RAG证据工程/docs/quality/`
 
 ---
 
-## V5 Scoring Formula
+## V5 Scoring Formula (2026-02-26 updated)
 
 ```
 final_score = mechanism_score
               * exp(-w1 * safety_penalty - w2 * trial_penalty)
-              * (1 + w3 * log1p(n_phenotype))
+              * (1 + w3 * avg_pheno_score * log1p(n_phenotype))
 ```
 
-| Component | Source | Weight |
-|-----------|--------|--------|
-| `mechanism_score` | V3 path aggregation (Drug-Target-Pathway-Disease) | base |
-| `safety_penalty` | FAERS AE signals (PRR filtered, serious AE 2x weighted) | w1=0.3 |
-| `trial_penalty` | Failed trials (safety stop 0.1, efficacy stop 0.05 per trial) | w2=0.2 |
-| `phenotype_boost` | Disease phenotype count (log1p, max 10) | w3=0.1 |
+| Component | Source | Formula |
+|-----------|--------|---------|
+| `mechanism_score` | V3 path aggregation (Drug-Target-Pathway-Disease) | base score |
+| `safety_penalty` | FAERS AE signals, PRR-based + tanh saturation | `tanh(log1p(PRR)/5 * confidence * serious_weight)` |
+| `trial_penalty` | Failed trials, log-saturating | `0.1 * log1p(safety_stops) + 0.05 * log1p(eff_stops)` |
+| `phenotype_boost` | Disease phenotype overlap | `w3 * avg_pheno_score * log1p(n_pheno)` |
+
+Weights: `w1=0.3` (safety), `w2=0.2` (trial), `w3=0.1` (phenotype).
 
 After scoring, Bootstrap CI is computed per pair (1000x resampling of evidence path scores).
 

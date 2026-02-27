@@ -510,7 +510,7 @@ class TestPubMedRetrieval:
 # - step5_drug_normalize_and_aggregate_v3.py
 # - step7_build_from_step6.py
 # - step7_build_from_step6_v2.py
-# - step8_candidate_pack_from_step7.py
+# - step8_fusion_rank.py
 
 def canonicalize_name(x: str) -> str:
     s = normalize_basic(x)

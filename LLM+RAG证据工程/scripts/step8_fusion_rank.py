@@ -9,7 +9,7 @@ Reads:
 
 Writes:
   - <outdir>/step8_shortlist_topK.csv
-  - <outdir>/step8_candidate_pack_from_step7.xlsx
+  - <outdir>/step8_fusion_rank_report.xlsx
   - <outdir>/step8_one_pagers_topK.md
   - <outdir>/step8_manifest.json
 """
@@ -499,6 +499,99 @@ def _handle_contract_issues(issues: List[str], strict_contract: bool, context: s
     print(f"[WARN] {message}")
 
 
+def _sensitivity_analysis(
+    df: pd.DataFrame,
+    route_label: str,
+    topk: int,
+    n_iter: int,
+    seed: int,
+) -> pd.DataFrame:
+    """Monte Carlo sensitivity analysis: perturb rank_key weights ±15-30% and
+    measure ranking stability.
+
+    Returns a DataFrame with per-drug statistics: mean_rank, rank_std, 95% CI,
+    and top-K stability (probability of appearing in top-K under perturbation).
+    """
+    import numpy as np
+    from scipy.stats import rankdata
+
+    rng = np.random.default_rng(seed)
+    n_drugs = len(df)
+    if n_drugs < 2:
+        return pd.DataFrame()
+
+    # Pre-compute raw signal vectors (N_drugs,)
+    log1p_pmid = np.log1p(df["unique_supporting_pmids_count"].fillna(0).values.astype(float))
+    topic = df["topic_match_ratio_filled"].values.astype(float)
+    llm = df["total_score_0_100"].fillna(0).values.astype(float)
+    novelty = df["novelty_score"].fillna(0).values.astype(float)
+    unc = df["uncertainty_score"].fillna(0).values.astype(float)
+    harm = df["harm_or_neutral_sentence_count"].fillna(0).values.astype(float)
+    neg_t = df["neg_trials_n"].fillna(0).values.astype(float)
+    bl = df["safety_blacklist_hit"].values.astype(float)
+
+    # Rank-normalize mechanism/reversal once (invariant to weight changes)
+    mech_vals = df["mechanism_score"].fillna(0).values.astype(float)
+    rev_vals = df["reversal_score"].fillna(0).values.astype(float)
+    mech_rank = rankdata(mech_vals) / n_drugs          # higher = better
+    rev_rank = rankdata(-rev_vals) / n_drugs            # more negative = better
+
+    novelty_boost = 1.3 if route_label == "cross" else 1.0
+
+    # Generate (n_iter,) perturbation arrays per weight: N(nominal, nominal*σ)
+    W = {
+        "pmid_scale": rng.normal(10.0, 10.0 * 0.15, n_iter).clip(min=1.0),
+        "pmid_cap":   rng.normal(30.0, 30.0 * 0.15, n_iter).clip(min=5.0),
+        "topic":      rng.normal(5.0,  5.0  * 0.20, n_iter).clip(min=0.0),
+        "llm":        rng.normal(0.35, 0.35 * 0.20, n_iter).clip(min=0.05),
+        "novelty":    rng.normal(15.0, 15.0 * 0.20, n_iter).clip(min=1.0),
+        "mechanism":  rng.normal(15.0, 15.0 * 0.15, n_iter).clip(min=0.0),
+        "reversal":   rng.normal(15.0, 15.0 * 0.15, n_iter).clip(min=0.0),
+        "unc":        rng.normal(4.0,  4.0  * 0.20, n_iter).clip(min=0.0),
+        "harm":       rng.normal(0.5,  0.5  * 0.30, n_iter).clip(min=0.0),
+        "neg":        rng.normal(1.0,  1.0  * 0.30, n_iter).clip(min=0.0),
+        "bl":         rng.normal(8.0,  8.0  * 0.15, n_iter).clip(min=0.0),
+    }
+
+    # Monte Carlo: vectorised per iteration
+    rank_matrix = np.zeros((n_drugs, n_iter), dtype=np.int32)
+    for i in range(n_iter):
+        pmid_s = np.minimum(W["pmid_cap"][i], log1p_pmid * W["pmid_scale"][i])
+        rk = (
+            pmid_s
+            + topic * W["topic"][i]
+            + llm * W["llm"][i]
+            + novelty * W["novelty"][i] * novelty_boost
+            + mech_rank * W["mechanism"][i]
+            + rev_rank * W["reversal"][i]
+            - unc * W["unc"][i]
+            - harm * W["harm"][i]
+            - neg_t * W["neg"][i]
+            - bl * W["bl"][i]
+        )
+        rank_matrix[:, i] = rankdata(-rk).astype(np.int32)
+
+    # Aggregate statistics
+    baseline_rank = rankdata(-df["rank_key"].values).astype(int)
+    mean_rank = rank_matrix.mean(axis=1)
+    std_rank = rank_matrix.std(axis=1)
+    ci_lower = np.percentile(rank_matrix, 2.5, axis=1)
+    ci_upper = np.percentile(rank_matrix, 97.5, axis=1)
+    top_k_stability = (rank_matrix <= topk).sum(axis=1) / n_iter
+
+    return pd.DataFrame({
+        "canonical_name": df["canonical_name"].values,
+        "drug_id": df["drug_id"].values,
+        "baseline_rank": baseline_rank,
+        "mean_rank": np.round(mean_rank, 1),
+        "rank_std": np.round(std_rank, 2),
+        "rank_95ci_lower": np.round(ci_lower, 1),
+        "rank_95ci_upper": np.round(ci_upper, 1),
+        "top_k_stability": np.round(top_k_stability, 3),
+        "n_perturbations": n_iter,
+    }).sort_values("baseline_rank")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--step7_dir", default="output/step7")
@@ -550,6 +643,18 @@ def main():
         default=1,
         help="1=fail on contract mismatch, 0=warn only",
     )
+    ap.add_argument(
+        "--sensitivity_n",
+        type=int,
+        default=0,
+        help="Monte Carlo perturbations for sensitivity analysis (0=off, 1000=recommended)",
+    )
+    ap.add_argument(
+        "--sensitivity_seed",
+        type=int,
+        default=42,
+        help="Random seed for MC perturbations (reproducibility)",
+    )
     args = ap.parse_args()
 
     strict_contract = bool(args.strict_contract)
@@ -583,9 +688,11 @@ def main():
         else:
             neg["_canon"] = ""
 
-    # Load bridge CSV for target info (drug → target/UniProt/mechanism)
+    # Load bridge CSV for target info + upstream scores (mechanism, reversal)
     bridge_target_map: Dict[str, str] = {}  # drug_id → targets summary
     bridge_target_details: Dict[str, str] = {}  # drug_id → target_details JSON
+    bridge_mechanism_score: Dict[str, float] = {}  # drug_id → KG mechanism score
+    bridge_reversal_score: Dict[str, float] = {}  # drug_id → SigReverse reversal score
     bridge_path = Path(args.bridge).resolve() if args.bridge else None
     if not bridge_path or not bridge_path.exists():
         # Auto-detect: look for bridge CSVs in common locations
@@ -601,15 +708,31 @@ def main():
     if bridge_path and bridge_path.exists():
         try:
             bridge_df_raw = pd.read_csv(bridge_path, dtype=str).fillna("")
-            if "targets" in bridge_df_raw.columns and "drug_id" in bridge_df_raw.columns:
+            if "drug_id" in bridge_df_raw.columns:
                 for _, br in bridge_df_raw.iterrows():
                     did = str(br.get("drug_id", "")).strip()
                     if did:
                         bridge_target_map[did] = str(br.get("targets", ""))
                         bridge_target_details[did] = str(br.get("target_details", ""))
-                print(f"[INFO] Loaded target info for {len(bridge_target_map)} drugs from {bridge_path.name}")
+                        # Upstream scores (may be NaN/empty if not available)
+                        _mech = br.get("max_mechanism_score", "")
+                        if _mech not in ("", "nan", None):
+                            try:
+                                bridge_mechanism_score[did] = float(_mech)
+                            except (ValueError, TypeError):
+                                pass
+                        _rev = br.get("reversal_score", "")
+                        if _rev not in ("", "nan", None):
+                            try:
+                                bridge_reversal_score[did] = float(_rev)
+                            except (ValueError, TypeError):
+                                pass
+                print(f"[INFO] Loaded bridge: {len(bridge_target_map)} targets, "
+                      f"{len(bridge_mechanism_score)} mechanism scores, "
+                      f"{len(bridge_reversal_score)} reversal scores "
+                      f"from {bridge_path.name}")
         except Exception as e:
-            print(f"[WARN] Failed to load bridge CSV for target info: {e}")
+            print(f"[WARN] Failed to load bridge CSV: {e}")
 
     rows = []
     dossier_lookup: Dict[Tuple[str, str], Dict[str, Any]] = {}
@@ -661,6 +784,8 @@ def main():
             "dossier_md": dossier_md,
             "targets": bridge_target_map.get(drug_id, ""),
             "target_details": bridge_target_details.get(drug_id, ""),
+            "mechanism_score": bridge_mechanism_score.get(drug_id, 0.0),
+            "reversal_score": bridge_reversal_score.get(drug_id, 0.0),
         })
 
     df = pd.DataFrame(rows)
@@ -686,16 +811,53 @@ def main():
     route_label = (args.route or "").strip().lower()
     novelty_w = NOVELTY_W * CROSS_NOVELTY_BOOST if route_label == "cross" else NOVELTY_W
 
+    # v3 ranking: LLM score scaled to 0.35 (was 1.0 = dominant).
+    # Rationale: LLM total_score_0_100 range is 0-100, dwarfing all other
+    # signals (max ~55 combined). At scale=1.0 it accounted for ~65% of rank_key,
+    # biasing toward well-studied drugs that LLM can narrate convincingly.
+    # Scaling to 0.35 brings its max contribution to ~35 (comparable to
+    # pmid_score cap of 30 and novelty max of ~20), making the ranking
+    # more balanced across evidence types.
+    LLM_SCORE_SCALE = 0.35
+
+    # ★ Upstream computational scores: rank-normalised to [0,1] then weighted.
+    # Using percentile rank avoids scale mismatch (mechanism ~0-6, reversal ~-10..0,
+    # literature signals ~0-55).  Consistent with FusionRanker's approach.
+    MECHANISM_W = 15.0   # KG mechanism score contribution (max 15 points)
+    REVERSAL_W  = 15.0   # SigReverse reversal score contribution (max 15 points)
+
+    mech_vals = df["mechanism_score"].fillna(0).astype(float)
+    mech_rank = mech_vals.rank(pct=True, ascending=True)    # higher = better
+
+    rev_vals = df["reversal_score"].fillna(0).astype(float)
+    rev_rank = rev_vals.rank(pct=True, ascending=False)      # more negative = better reversal
+
     df["rank_key"] = (
         pmid_score
         + df["topic_match_ratio_filled"] * 5.0
-        + df["total_score_0_100"].fillna(0).astype(float)
+        + df["total_score_0_100"].fillna(0).astype(float) * LLM_SCORE_SCALE
         + df["novelty_score"].fillna(0).astype(float) * novelty_w
+        + mech_rank * MECHANISM_W      # ★ KG mechanism score (rank-normalised)
+        + rev_rank * REVERSAL_W        # ★ SigReverse reversal score (rank-normalised)
         - df["uncertainty_score"].fillna(0).astype(float) * 4.0
         - df["harm_or_neutral_sentence_count"].fillna(0).astype(float) * 0.5
         - df["neg_trials_n"].fillna(0).astype(float) * 1.0
         - df["safety_blacklist_hit"].astype(int) * 8.0
     )
+
+    # ===== Sensitivity Analysis (Monte Carlo weight perturbation) =====
+    sa_df = None
+    if args.sensitivity_n > 0:
+        print(f"[SA] Running {args.sensitivity_n} Monte Carlo perturbations (seed={args.sensitivity_seed}) ...")
+        sa_df = _sensitivity_analysis(df, route_label, int(args.topk),
+                                       args.sensitivity_n, args.sensitivity_seed)
+        if not sa_df.empty:
+            top_lines = sa_df.head(int(args.topk))
+            sa_summary = ", ".join(
+                f"{r['canonical_name']}={r['top_k_stability']:.0%}"
+                for _, r in top_lines.iterrows()
+            )
+            print(f"[SA] Top-{args.topk} stability: {sa_summary}")
 
     sorted_all = df.sort_values(["rank_key", "canonical_name"], ascending=[False, True]).copy()
     if args.prefer_go == 1 and (df["gate"] == "GO").any():
@@ -704,19 +866,24 @@ def main():
             (sorted_all["gate"] == "MAYBE") & (sorted_all["decision_channel"] == "explore")
         ].copy()
 
-        reserve = 0
-        if args.include_explore == 1 and not explore_pool.empty:
-            reserve = max(0, min(int(args.min_explore_slots), int(args.topk)))
-
-        go_take = max(0, int(args.topk) - reserve)
+        # v3: Keep ALL explore (MAYBE) candidates, not just 1 slot.
+        # Rationale: for drug repurposing the explore track contains the most
+        # novel candidates — limiting to 1 slot discards potentially valuable
+        # discoveries. We now include all explore candidates alongside GO drugs,
+        # with topk as a soft cap on GO drugs only.
+        n_explore = len(explore_pool) if args.include_explore == 1 else 0
+        go_take = max(0, int(args.topk))
         shortlist_parts = [go_pool.head(go_take)]
-        if reserve > 0:
-            shortlist_parts.append(explore_pool.head(reserve))
+        if n_explore > 0:
+            shortlist_parts.append(explore_pool)  # ALL explore candidates
+            print(f"[INFO] [step8] Retaining ALL {n_explore} explore candidates "
+                  f"(was limited to {int(args.min_explore_slots)})")
         shortlist = (
             pd.concat(shortlist_parts, ignore_index=True)
             .drop_duplicates(subset=["drug_id"], keep="first")
             .copy()
         )
+        # If we still have fewer than topk (unlikely now), fill from full pool
         if len(shortlist) < args.topk:
             fill = sorted_all[~sorted_all["drug_id"].isin(shortlist["drug_id"])].head(args.topk - len(shortlist))
             shortlist = pd.concat([shortlist, fill], ignore_index=True)
@@ -795,7 +962,13 @@ def main():
     shortlist_csv = outdir / f"step8_shortlist_top{args.topk}.csv"
     shortlist.to_csv(shortlist_csv, index=False, encoding="utf-8-sig")
 
-    xlsx_path = outdir / "step8_candidate_pack_from_step7.xlsx"
+    sa_csv = None
+    if sa_df is not None and not sa_df.empty:
+        sa_csv = outdir / "step8_sensitivity_analysis.csv"
+        sa_df.to_csv(sa_csv, index=False, encoding="utf-8-sig")
+        print(f"[INFO] Sensitivity analysis → {sa_csv.name}  ({len(sa_df)} drugs, {sa_df['n_perturbations'].iloc[0]} perturbations)")
+
+    xlsx_path = outdir / "step8_fusion_rank_report.xlsx"
     md_path = outdir / f"step8_one_pagers_top{args.topk}.md"
 
     used_sheets = set()
@@ -805,6 +978,7 @@ def main():
         # summary
         cols = [
             "canonical_name","drug_id","gate","decision_channel","endpoint_type","total_score_0_100","rank_key",
+            "mechanism_score","reversal_score",
             "novelty_score","uncertainty_score",
             "unique_supporting_pmids_count","supporting_sentence_count",
             "unique_harm_pmids_count","harm_or_neutral_sentence_count",
@@ -857,6 +1031,8 @@ def main():
                 "harm_or_neutral_sentence_count": r.get("harm_or_neutral_sentence_count",""),
                 "neg_trials_n": r.get("neg_trials_n",""),
                 "safety_blacklist_hit": r.get("safety_blacklist_hit",""),
+                "mechanism_score": round(float(r.get("mechanism_score", 0.0) or 0.0), 4),
+                "reversal_score": round(float(r.get("reversal_score", 0.0) or 0.0), 4),
                 "targets": r.get("targets",""),
                 "dossier_md": r.get("dossier_md",""),
             }])
@@ -971,6 +1147,10 @@ def main():
                 ""
             ]
 
+        # Sensitivity Analysis sheet (inside ExcelWriter context)
+        if sa_df is not None and not sa_df.empty:
+            sa_df.to_excel(writer, sheet_name="Sensitivity", index=False)
+
     with open(md_path, "w", encoding="utf-8") as f:
         f.write("\n".join(md_lines))
 
@@ -985,9 +1165,11 @@ def main():
         if p and Path(p).exists()
     )
     output_files = [shortlist_csv, xlsx_path, md_path]
+    if sa_csv is not None:
+        output_files.append(sa_csv)
 
     manifest = build_manifest(
-        pipeline="step8_candidate_pack",
+        pipeline="step8_fusion_rank",
         repo_root=Path(__file__).resolve().parent.parent,
         input_files=input_files,
         output_files=output_files,
@@ -1014,6 +1196,8 @@ def main():
                 "block_on_no_pdb": int(args.docking_block_on_no_pdb),
             },
             "strict_contract": strict_contract,
+            "sensitivity_n": int(args.sensitivity_n),
+            "sensitivity_seed": int(args.sensitivity_seed),
         },
         summary={
             "candidates_total": int(len(df)),
@@ -1038,6 +1222,8 @@ def main():
     print(" -", shortlist_csv.name)
     print(" -", xlsx_path.name)
     print(" -", md_path.name)
+    if sa_csv is not None:
+        print(" -", sa_csv.name)
     print(" -", manifest_path.name)
 
 if __name__ == "__main__":

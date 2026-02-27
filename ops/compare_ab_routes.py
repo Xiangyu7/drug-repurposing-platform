@@ -144,9 +144,17 @@ def compare_routes(bridge_a_path: str, bridge_b_path: str) -> pd.DataFrame:
 
     df = pd.DataFrame(rows)
 
-    # Sort: A+B first (highest confidence), then by max score
+    # Sort: A+B get a bonus, but NOT a 1000x multiplier that drowns out scores.
+    # v2: bonus = 2.0 (additive, not multiplicative 1000x).
+    # Rationale: ×1000 made A+B drugs ALWAYS rank above A-only drugs regardless
+    # of mechanism score, which defeated the purpose of scoring. A moderate
+    # additive bonus rewards convergent evidence without silencing scoring.
     if len(df) > 0:
-        df["_sort_key"] = df["n_evidence_lines"] * 1000 + df[["score_a", "score_b"]].max(axis=1).fillna(0)
+        BOTH_ROUTES_BONUS = 2.0
+        df["_sort_key"] = (
+            df["n_evidence_lines"] * BOTH_ROUTES_BONUS
+            + df[["score_a", "score_b"]].max(axis=1).fillna(0)
+        )
         df = df.sort_values("_sort_key", ascending=False).drop(columns=["_sort_key"]).reset_index(drop=True)
 
     return df

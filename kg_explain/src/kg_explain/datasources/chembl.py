@@ -225,6 +225,136 @@ def fetch_drug_targets(
     return out
 
 
+def _chembl_bioactivities(
+    cache: HTTPCache,
+    molecule_chembl_id: str,
+    target_chembl_id: str,
+    limit: int = 20,
+) -> list[dict]:
+    """Fetch bioactivity data (IC50, Ki, Kd, EC50) for a drug-target pair.
+
+    v3: Enables affinity-weighted mechanism scoring — a strong binder (Kd=1nM)
+    should score higher than a weak binder (Kd=10μM).
+
+    Returns:
+        List of activity dicts with: type, value, units, pchembl_value
+    """
+    url = f"{CHEMBL_API}/activity.json"
+    params = {
+        "molecule_chembl_id": molecule_chembl_id,
+        "target_chembl_id": target_chembl_id,
+        "limit": limit,
+        # Only fetch binding/functional assays with numeric results
+        "standard_type__in": "IC50,Ki,Kd,EC50",
+        "pchembl_value__isnull": "false",
+    }
+    try:
+        js = cached_get_json(cache, url, params=params)
+    except Exception as e:
+        logger.debug("ChEMBL bioactivity query failed for %s→%s: %s",
+                      molecule_chembl_id, target_chembl_id, e)
+        return []
+
+    activities = []
+    for act in (js.get("activities") or []):
+        pchembl = act.get("pchembl_value")
+        if pchembl is None:
+            continue
+        activities.append({
+            "type": act.get("standard_type", ""),
+            "value": act.get("standard_value"),
+            "units": act.get("standard_units", ""),
+            "pchembl_value": float(pchembl),
+            "assay_type": act.get("assay_type", ""),
+        })
+    return activities
+
+
+def fetch_drug_target_affinities(
+    data_dir: Path,
+    cache: HTTPCache,
+) -> Path:
+    """Fetch bioactivity (IC50/Ki/Kd) for all drug-target pairs.
+
+    Creates edge_drug_target_affinity.csv with pchembl_value for each pair.
+    pChEMBL = -log10(IC50/Ki/Kd in M), higher = stronger binding.
+    Typical range: 4 (weak, ~100μM) to 10 (strong, ~0.1nM).
+
+    Returns:
+        Path to output CSV
+    """
+    dt = read_csv(data_dir / "edge_drug_target.csv", dtype=str)
+    if dt.empty:
+        logger.warning("edge_drug_target.csv empty, skipping affinity fetch")
+        out = data_dir / "edge_drug_target_affinity.csv"
+        pd.DataFrame(columns=["drug_normalized", "molecule_chembl_id",
+                                "target_chembl_id", "pchembl_value",
+                                "affinity_bucket"]).to_csv(out, index=False)
+        return out
+
+    # Unique (molecule, target) pairs
+    pairs = (
+        dt[["molecule_chembl_id", "target_chembl_id", "drug_normalized"]]
+        .dropna(subset=["molecule_chembl_id", "target_chembl_id"])
+        .drop_duplicates(subset=["molecule_chembl_id", "target_chembl_id"])
+    )
+
+    def _fetch_affinity(row_tuple):
+        _, row = row_tuple
+        mol = str(row["molecule_chembl_id"])
+        tid = str(row["target_chembl_id"])
+        drug = str(row["drug_normalized"])
+        activities = _chembl_bioactivities(cache, mol, tid)
+        if not activities:
+            return None
+        # Take best (highest) pchembl_value across assay types
+        best = max(activities, key=lambda a: a["pchembl_value"])
+        return {
+            "drug_normalized": drug,
+            "molecule_chembl_id": mol,
+            "target_chembl_id": tid,
+            "pchembl_value": round(best["pchembl_value"], 2),
+            "best_assay_type": best["type"],
+        }
+
+    results = concurrent_map(
+        _fetch_affinity,
+        list(pairs.iterrows()),
+        max_workers=cache.max_workers,
+        desc="ChEMBL Bioactivity",
+    )
+
+    rows = [r for r in results if r is not None]
+    aff_df = pd.DataFrame(rows) if rows else pd.DataFrame(
+        columns=["drug_normalized", "molecule_chembl_id",
+                 "target_chembl_id", "pchembl_value", "best_assay_type"]
+    )
+
+    # Assign affinity buckets for downstream scoring
+    # pChEMBL: ≥8 (strong, <10nM), 6-8 (moderate, 10nM-1μM),
+    #          4-6 (weak, 1-100μM), <4 (very weak)
+    def _bucket(pchembl):
+        if pchembl >= 8.0:
+            return "strong"
+        elif pchembl >= 6.0:
+            return "moderate"
+        elif pchembl >= 4.0:
+            return "weak"
+        return "very_weak"
+
+    if not aff_df.empty:
+        aff_df["affinity_bucket"] = aff_df["pchembl_value"].apply(_bucket)
+
+    n_strong = (aff_df["affinity_bucket"] == "strong").sum() if not aff_df.empty else 0
+    n_mod = (aff_df["affinity_bucket"] == "moderate").sum() if not aff_df.empty else 0
+    logger.info("Drug-target affinities: %d pairs with data (%d strong, %d moderate)",
+                len(aff_df), n_strong, n_mod)
+
+    out = data_dir / "edge_drug_target_affinity.csv"
+    aff_df.to_csv(out, index=False)
+    return out
+
+
 def _chembl_target(cache: HTTPCache, target_chembl_id: str) -> dict:
     """获取靶点详情"""
     url = f"{CHEMBL_API}/target/{target_chembl_id}.json"
@@ -346,12 +476,20 @@ def target_to_ensembl(data_dir: Path, cache: HTTPCache | None = None) -> Path:
                 rows.append({"target_chembl_id": r["target_chembl_id"], "ensembl_gene_id": gid})
 
     # ---- Strategy 2: UniProt → Ensembl via UniProt REST API ----
-    if not rows and cache is not None and not xref.empty:
+    # v2 FIX: Apply Strategy 2 as COMPLEMENT, not fallback-on-total-failure.
+    # Old code: "if not rows" → only triggered when Strategy 1 returned NOTHING.
+    # New code: find targets that Strategy 1 missed and apply Strategy 2 for those.
+    mapped_targets = {r["target_chembl_id"] for r in rows}
+    all_targets = set(xref["target_chembl_id"].dropna().unique()) if not xref.empty else set()
+    unmapped_targets = all_targets - mapped_targets
+    if unmapped_targets and cache is not None and not xref.empty:
         pairs = (
-            xref[["target_chembl_id", "uniprot_accession"]]
+            xref[xref["target_chembl_id"].isin(unmapped_targets)][["target_chembl_id", "uniprot_accession"]]
             .dropna()
             .drop_duplicates()
         )
+        logger.info("Strategy 2: querying UniProt for %d unmapped targets (out of %d total)",
+                    len(pairs), len(all_targets))
         pair_list = [(str(r["target_chembl_id"]), str(r["uniprot_accession"])) for _, r in pairs.iterrows()]
 
         def _fetch_ensembl(pair):

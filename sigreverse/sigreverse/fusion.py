@@ -424,9 +424,20 @@ class FusionRanker:
         # Compute fusion scores
         results = []
         for drug in sorted(all_drugs):
-            sig_norm = normalized.get("SigReverse", {}).get(drug, 0.5)
-            kg_norm = normalized.get("KG_Explain", {}).get(drug, 0.5)
-            safety_norm = normalized.get("FAERS_Safety", {}).get(drug, 0.5)
+            # v3: Stratified missing data imputation.
+            # Different missing reasons warrant different imputation values:
+            # - SigReverse missing: drug not in LINCS → unknown (0.6), not "bad"
+            # - KG missing: drug not in ChEMBL → unmapped, not "no mechanism" (0.6)
+            # - Safety missing: no FAERS reports → likely safe (0.25)
+            # The key insight: "absence of evidence ≠ evidence of absence" for
+            # mechanism/signature, but it IS informative for safety (no reports = good).
+            _MISSING_SIG = 0.6    # Not in LINCS → uncertain, slightly pessimistic
+            _MISSING_KG = 0.6     # Not in ChEMBL → uncertain, slightly pessimistic
+            _MISSING_SAFETY = 0.25  # No FAERS signal → assume safe
+
+            sig_norm = normalized.get("SigReverse", {}).get(drug, _MISSING_SIG)
+            kg_norm = normalized.get("KG_Explain", {}).get(drug, _MISSING_KG)
+            safety_norm = normalized.get("FAERS_Safety", {}).get(drug, _MISSING_SAFETY)
 
             # Dose-response bonus
             dr_bonus = 0.0
@@ -450,14 +461,33 @@ class FusionRanker:
                 # Higher lit score → bigger boost (negative = better)
                 lit_boost = -min(self.literature_data[drug], 1.0) * 0.2
 
-            # Weighted sum
+            # Weighted sum with synergy interaction term.
+            # v3: Drugs with BOTH strong signature AND strong KG evidence are
+            # more reliable candidates than those with only one signal.
+            # The synergy term rewards multi-evidence concordance:
+            #   synergy = w_syn * (1 - sig_norm) * (1 - kg_norm)
+            # When both sig and kg are good (low normed values → 0 = best):
+            #   synergy bonus is large (up to w_syn).
+            # When only one is good: synergy bonus is small.
             # Note: dr_bonus and lit_boost are already scaled offsets (e.g. -0.2),
             # so we add them directly rather than multiplying by a tiny weight.
             w = self.weights
+            w_synergy = w.get("synergy", 0.15)
+
+            # Synergy bonus: both signature and KG agree the drug is good
+            # (remember: lower normed score = better candidate)
+            sig_good = max(0.0, 1.0 - sig_norm)   # 0 → 1.0 (best), 1.0 → 0.0 (worst)
+            kg_good = max(0.0, 1.0 - kg_norm)
+            has_sig_data = drug in raw_scores.get("SigReverse", {})
+            has_kg_data = drug in raw_scores.get("KG_Explain", {})
+            # Only apply synergy when BOTH sources have real data (not imputed)
+            synergy_bonus = -w_synergy * sig_good * kg_good if (has_sig_data and has_kg_data) else 0.0
+
             fusion = (
                 w.get("signature", 0) * sig_norm
                 + w.get("kg", 0) * kg_norm
                 + w.get("safety", 0) * safety_norm
+                + synergy_bonus
                 + dr_bonus
                 + lit_boost
             )

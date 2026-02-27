@@ -90,6 +90,8 @@ STEP8_SHORTLIST_REQUIRED_COLUMNS = {
     "docking_target_selection_score",
     "docking_risk_flags",
     "docking_policy_version",
+    "mechanism_score",
+    "reversal_score",
 }
 
 STEP9_PLAN_REQUIRED_COLUMNS = {

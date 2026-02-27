@@ -44,9 +44,12 @@ class GatingConfig:
     - maybe_threshold: Score for MAYBE decision
     """
     # Hard gates
-    min_benefit_papers: int = 2
+    # v2: relaxed from 2→1 to avoid killing novel candidates with sparse literature.
+    # A single benefit paper is sufficient evidence to warrant further investigation;
+    # the scoring system already penalizes low-evidence drugs continuously.
+    min_benefit_papers: int = 1
     max_harm_ratio: float = 0.5  # If harm > 50% of classified, reject
-    min_total_pmids: int = 3
+    min_total_pmids: int = 2  # relaxed from 3→2
     # Blacklist as soft gate (v2): blacklisted drugs get a scoring penalty but are
     # NOT hard-rejected.  This preserves recall for repurposing — a drug with known
     # systemic risk (e.g. prednisone) may still be a strong candidate for a
@@ -58,12 +61,14 @@ class GatingConfig:
     maybe_threshold: float = 40.0
 
     # Explore track (recall-first lane for repurposing discovery)
+    # v2: lowered thresholds to be more permissive — the purpose of explore
+    # track is to preserve novel candidates that hard gates would kill.
     enable_explore_track: bool = True
     explore_min_total_pmids: int = 1
-    explore_min_benefit: int = 1
-    explore_min_novelty_score: float = 0.45
-    explore_max_harm_ratio: float = 0.60
-    explore_maybe_floor: float = 25.0
+    explore_min_benefit: int = 0   # relaxed: 0 benefit OK for explore (mechanism-only candidates)
+    explore_min_novelty_score: float = 0.30  # relaxed from 0.45
+    explore_max_harm_ratio: float = 0.70     # relaxed from 0.60
+    explore_maybe_floor: float = 15.0        # relaxed from 25.0
 
 
 @dataclass

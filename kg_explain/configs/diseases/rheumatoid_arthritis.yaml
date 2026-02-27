@@ -1,0 +1,54 @@
+# ============================================
+# 疾病配置: 类风湿关节炎 (Rheumatoid Arthritis)
+# ============================================
+#
+# 本项目聚焦于类风湿关节炎及相关自身免疫性疾病:
+#   - 类风湿关节炎 (Rheumatoid Arthritis)
+#   - 幼年特发性关节炎 (Juvenile Idiopathic Arthritis)
+#   - 血清阳性类风湿关节炎 (Seropositive RA)
+#
+# 数据来源: ClinicalTrials.gov 失败/终止的临床试验
+# ============================================
+
+disease:
+  name: "Rheumatoid Arthritis"
+  name_cn: "类风湿关节炎"
+
+  description: |
+    类风湿关节炎是一种慢性系统性自身免疫性疾病，主要表现为
+    对称性多关节滑膜炎，可导致关节破坏和功能障碍。本项目分析
+    在该疾病领域失败的临床试验药物，通过构建
+    Drug→Target→Pathway→Disease 知识图谱，识别可能的
+    药物重定位机会。
+
+  # CT.gov 搜索条件
+  condition: "rheumatoid arthritis"
+
+  # 相关ICD-10编码 (参考)
+  icd10_codes:
+    - "M05"    # Rheumatoid arthritis with rheumatoid factor
+    - "M06"    # Other rheumatoid arthritis
+    - "M08"    # Juvenile arthritis
+
+  # 相关MeSH术语
+  mesh_terms:
+    - "Arthritis, Rheumatoid"
+    - "Autoimmune Diseases"
+    - "Joint Diseases"
+    - "Rheumatic Diseases"
+    - "Synovitis"
+
+# 药物筛选
+drug_filter:
+  description: |
+    从CT.gov失败试验中提取的药物干预措施
+
+  include_types:
+    - DRUG
+    - BIOLOGICAL
+
+  exclude_types:
+    - DEVICE
+    - PROCEDURE
+    - BEHAVIORAL
+    - DIETARY_SUPPLEMENT

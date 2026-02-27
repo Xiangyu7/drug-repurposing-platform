@@ -113,36 +113,73 @@ def average_precision(ranked: list[str], positives: set[str]) -> float:
     return sum_prec / len(positives)
 
 
-def _dcg_at_k(ranked: list[str], positives: set[str], k: int) -> float:
-    """Discounted Cumulative Gain at K (binary relevance)."""
+def _dcg_at_k(
+    ranked: list[str],
+    relevance: dict[str, float] | set[str],
+    k: int,
+) -> float:
+    """Discounted Cumulative Gain at K.
+
+    v3: Supports graded relevance (dict) and binary relevance (set).
+
+    Args:
+        ranked: Ranked drug list
+        relevance: Either a set (binary, gain=1.0) or dict (graded, drug→gain)
+        k: Cutoff position
+    """
     dcg = 0.0
     for i, d in enumerate(ranked[:k]):
-        if d in positives:
-            dcg += 1.0 / math.log2(i + 2)  # i+2 因为 log2(1) = 0
+        if isinstance(relevance, dict):
+            gain = relevance.get(d, 0.0)
+        else:
+            gain = 1.0 if d in relevance else 0.0
+        if gain > 0:
+            dcg += gain / math.log2(i + 2)  # i+2 因为 log2(1) = 0
     return dcg
 
 
-def ndcg_at_k(ranked: list[str], positives: set[str], k: int) -> float:
+def ndcg_at_k(
+    ranked: list[str],
+    positives: set[str] | dict[str, float],
+    k: int,
+) -> float:
     """
     NDCG@K: Normalized Discounted Cumulative Gain at K.
 
-    Ideal DCG = 所有正例排在最前面
+    v3: Supports graded relevance.  Pass a dict mapping drug → relevance grade
+    for graded evaluation, or a set for binary (backward-compatible).
+
+    Recommended graded relevance scale:
+        phase_4_approved: 3.0
+        phase_3_trial:    2.0
+        phase_2_trial:    1.5
+        phase_1_or_lit:   1.0
 
     Args:
         ranked: 排序后的药物 ID 列表.
-        positives: 已知正例集合.
+        positives: 已知正例集合 (set for binary) 或 {drug: relevance_grade} (dict for graded).
         k: 截断位置.
 
     Returns:
         NDCG 值 [0, 1], 无正例时返回 0.0.
     """
-    positives = _validate_inputs(ranked, positives, k)
-    if not ranked or not positives:
-        return 0.0
-    dcg = _dcg_at_k(ranked, positives, k)
-    # Ideal: min(n_positive, k) 个正例排在最前
-    n_ideal = min(len(positives), k)
-    idcg = sum(1.0 / math.log2(i + 2) for i in range(n_ideal))
+    # Validate: support both set and dict
+    if isinstance(positives, dict):
+        if not ranked or not positives:
+            return 0.0
+        relevance = positives
+        # For ideal DCG: sort gains descending, take top-k
+        ideal_gains = sorted(relevance.values(), reverse=True)[:k]
+    else:
+        positives = _validate_inputs(ranked, positives, k)
+        if not ranked or not positives:
+            return 0.0
+        relevance = positives
+        n_ideal = min(len(positives), k)
+        ideal_gains = [1.0] * n_ideal
+
+    dcg = _dcg_at_k(ranked, relevance, k)
+    idcg = sum(g / math.log2(i + 2) for i, g in enumerate(ideal_gains))
     return dcg / idcg if idcg > 0 else 0.0
 
 

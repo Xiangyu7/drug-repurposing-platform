@@ -93,17 +93,141 @@ def audit_pair_overlap(train_df: pd.DataFrame, test_df: pd.DataFrame) -> Dict[st
     }
 
 
+def audit_target_overlap(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    edge_drug_target: Optional[pd.DataFrame] = None,
+) -> Dict[str, Any]:
+    """Check transductive leakage via shared drug targets.
+
+    v3: A test drug sharing targets with train drugs can leak pathway/mechanism
+    information.  This is transductive leakage — the KG structure itself creates
+    information flow from train to test.
+
+    Args:
+        train_df: Training set (must have drug_normalized)
+        test_df: Test set (must have drug_normalized)
+        edge_drug_target: Drug-target edge DataFrame (drug_normalized, target_chembl_id)
+
+    Returns:
+        Dict with overlap statistics and flagged test drugs
+    """
+    if edge_drug_target is None or edge_drug_target.empty:
+        return {
+            "available": False,
+            "note": "edge_drug_target not provided, skipping target overlap audit",
+        }
+
+    dt = edge_drug_target.copy()
+    dt["drug_normalized"] = dt["drug_normalized"].astype(str).str.lower().str.strip()
+    dt["target_chembl_id"] = dt["target_chembl_id"].astype(str).str.strip()
+
+    train_drugs = set(train_df["drug_normalized"].dropna().astype(str).str.lower().str.strip())
+    test_drugs = set(test_df["drug_normalized"].dropna().astype(str).str.lower().str.strip())
+
+    # Targets used by train drugs
+    train_targets = set(
+        dt[dt["drug_normalized"].isin(train_drugs)]["target_chembl_id"].dropna()
+    )
+    # Targets used by test drugs
+    test_targets = set(
+        dt[dt["drug_normalized"].isin(test_drugs)]["target_chembl_id"].dropna()
+    )
+
+    shared_targets = train_targets & test_targets
+    target_overlap_ratio = len(shared_targets) / len(test_targets) if test_targets else 0.0
+
+    # Flag test drugs whose ALL targets appear in train (high leakage risk)
+    flagged_test_drugs = []
+    for drug in test_drugs:
+        drug_targets = set(dt[dt["drug_normalized"] == drug]["target_chembl_id"].dropna())
+        if drug_targets and drug_targets.issubset(train_targets):
+            flagged_test_drugs.append(drug)
+
+    return {
+        "available": True,
+        "train_targets": len(train_targets),
+        "test_targets": len(test_targets),
+        "shared_targets": len(shared_targets),
+        "target_overlap_ratio": round(target_overlap_ratio, 4),
+        "flagged_test_drugs": sorted(flagged_test_drugs),
+        "flagged_count": len(flagged_test_drugs),
+        "flagged_ratio": round(
+            len(flagged_test_drugs) / len(test_drugs), 4
+        ) if test_drugs else 0.0,
+    }
+
+
+def audit_pathway_overlap(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    edge_drug_target: Optional[pd.DataFrame] = None,
+    edge_target_pathway: Optional[pd.DataFrame] = None,
+) -> Dict[str, Any]:
+    """Check transductive leakage via shared pathways.
+
+    Even stricter than target overlap: test drugs whose mechanism pathways
+    are entirely covered by train drug pathways receive pathway-disease
+    scores derived from training data.
+
+    Args:
+        train_df, test_df: Train/test DataFrames
+        edge_drug_target: drug_normalized → target_chembl_id
+        edge_target_pathway: target_chembl_id → reactome_stid
+    """
+    if (edge_drug_target is None or edge_drug_target.empty
+            or edge_target_pathway is None or edge_target_pathway.empty):
+        return {
+            "available": False,
+            "note": "edge data not provided, skipping pathway overlap audit",
+        }
+
+    dt = edge_drug_target.copy()
+    dt["drug_normalized"] = dt["drug_normalized"].astype(str).str.lower().str.strip()
+    tp = edge_target_pathway.copy()
+
+    # Drug → pathways (via targets)
+    drug_pathways = dt.merge(tp, on="target_chembl_id", how="inner")
+
+    train_drugs = set(train_df["drug_normalized"].dropna().astype(str).str.lower().str.strip())
+    test_drugs = set(test_df["drug_normalized"].dropna().astype(str).str.lower().str.strip())
+
+    train_pathways = set(
+        drug_pathways[drug_pathways["drug_normalized"].isin(train_drugs)]["reactome_stid"].dropna()
+    )
+    test_pathways = set(
+        drug_pathways[drug_pathways["drug_normalized"].isin(test_drugs)]["reactome_stid"].dropna()
+    )
+
+    shared = train_pathways & test_pathways
+    overlap_ratio = len(shared) / len(test_pathways) if test_pathways else 0.0
+
+    return {
+        "available": True,
+        "train_pathways": len(train_pathways),
+        "test_pathways": len(test_pathways),
+        "shared_pathways": len(shared),
+        "pathway_overlap_ratio": round(overlap_ratio, 4),
+    }
+
+
 def generate_leakage_report(
     train_df: pd.DataFrame,
     test_df: pd.DataFrame,
     split_name: str = "temporal",
+    edge_drug_target: Optional[pd.DataFrame] = None,
+    edge_target_pathway: Optional[pd.DataFrame] = None,
 ) -> Dict[str, Any]:
     """Generate a comprehensive leakage audit report.
+
+    v3: Added transductive leakage audits (target and pathway overlap).
 
     Args:
         train_df: Training set (must have drug_normalized, diseaseId)
         test_df: Test set (must have drug_normalized, diseaseId)
         split_name: Name of the split (for report metadata)
+        edge_drug_target: Optional drug-target DataFrame for transductive audit
+        edge_target_pathway: Optional target-pathway DataFrame for transductive audit
 
     Returns:
         Structured report dict with passed/failed status and all overlaps.
@@ -111,6 +235,10 @@ def generate_leakage_report(
     drug_audit = audit_drug_overlap(train_df, test_df)
     disease_audit = audit_disease_overlap(train_df, test_df)
     pair_audit = audit_pair_overlap(train_df, test_df)
+    target_audit = audit_target_overlap(train_df, test_df, edge_drug_target)
+    pathway_audit = audit_pathway_overlap(
+        train_df, test_df, edge_drug_target, edge_target_pathway,
+    )
 
     # Passed = no exact pair leakage (drug/disease overlap is expected and OK)
     passed = pair_audit["clean"]
@@ -133,6 +261,18 @@ def generate_leakage_report(
         recommendations.append(
             "INFO: High disease overlap. Consider cross-disease holdout validation."
         )
+    # v3: Transductive leakage warnings
+    if target_audit.get("available") and target_audit.get("flagged_ratio", 0) > 0.5:
+        recommendations.append(
+            f"WARNING: {target_audit['flagged_ratio']:.0%} of test drugs share ALL targets "
+            "with training drugs (transductive leakage). Report seen-target vs unseen-target "
+            "performance separately."
+        )
+    if pathway_audit.get("available") and pathway_audit.get("pathway_overlap_ratio", 0) > 0.9:
+        recommendations.append(
+            f"WARNING: {pathway_audit['pathway_overlap_ratio']:.0%} pathway overlap between "
+            "train and test. KG pathway-disease scores may leak training information."
+        )
     if not recommendations:
         recommendations.append("No leakage issues detected. Split is clean.")
 
@@ -142,16 +282,19 @@ def generate_leakage_report(
         "drug_overlap": drug_audit,
         "disease_overlap": disease_audit,
         "pair_overlap": pair_audit,
+        "target_overlap": target_audit,
+        "pathway_overlap": pathway_audit,
         "seen_drug_test_fraction": round(seen_drug_test_fraction, 4),
         "recommendations": recommendations,
     }
 
     logger.info(
-        "Leakage audit [%s]: %s (pair_overlap=%d, drug_overlap=%.0f%%)",
+        "Leakage audit [%s]: %s (pair_overlap=%d, drug_overlap=%.0f%%, target_flagged=%d)",
         split_name,
         "PASSED" if passed else "FAILED",
         pair_audit["overlap_count"],
         seen_drug_test_fraction * 100,
+        target_audit.get("flagged_count", 0),
     )
 
     return report
