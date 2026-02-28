@@ -143,11 +143,11 @@ TOPN_STAGE1_MIN_CROSS=""
 TOPN_STAGE1_MAX_CROSS=""
 SHORTLIST_MIN_GO_ORIGIN=3
 SHORTLIST_MIN_GO_CROSS=2
-# v2: TOPK raised for better recall; evidence funnel widened.
-# TOPK_CROSS was 5 — too narrow for drug discovery. 15 retains more candidates.
-# STEP6_MAX_EVIDENCE_DOCS was 12 — increased to 20 to give novel drugs more
-# chances to accumulate benefit evidence from PubMed.
-TOPK_CROSS="${TOPK_CROSS:-15}"
+# v3: TOPK_CROSS raised from 15→25.  Cross route (signature-driven) pools
+# 100-200 candidates; 15 was too narrow and missed validated single-target
+# drugs (e.g. tocilizumab, leflunomide) whose mechanism_score is lower than
+# multi-target drugs due to the diversity bonus in the scoring formula.
+TOPK_CROSS="${TOPK_CROSS:-25}"
 TOPK_ORIGIN="${TOPK_ORIGIN:-10}"
 STEP6_PUBMED_RETMAX=150
 STEP6_PUBMED_PARSE_MAX=80
@@ -182,19 +182,19 @@ TOPN_POLICY_PY="${ROOT_DIR}/ops/internal/topn_policy.py"
 apply_topn_profile_defaults() {
   case "${TOPN_PROFILE}" in
     stable)
-      TOPN_CAP_ORIGIN=24;  TOPN_CAP_CROSS=20
+      TOPN_CAP_ORIGIN=24;  TOPN_CAP_CROSS=32
       TOPN_STAGE1_MIN_ORIGIN=14; TOPN_STAGE1_MAX_ORIGIN=18
-      TOPN_STAGE1_MIN_CROSS=14;  TOPN_STAGE1_MAX_CROSS=18
+      TOPN_STAGE1_MIN_CROSS=22;  TOPN_STAGE1_MAX_CROSS=28
       ;;
     balanced)
-      TOPN_CAP_ORIGIN=30;  TOPN_CAP_CROSS=24
+      TOPN_CAP_ORIGIN=30;  TOPN_CAP_CROSS=36
       TOPN_STAGE1_MIN_ORIGIN=18; TOPN_STAGE1_MAX_ORIGIN=24
-      TOPN_STAGE1_MIN_CROSS=16;  TOPN_STAGE1_MAX_CROSS=22
+      TOPN_STAGE1_MIN_CROSS=26;  TOPN_STAGE1_MAX_CROSS=32
       ;;
     recall)
-      TOPN_CAP_ORIGIN=40;  TOPN_CAP_CROSS=32
+      TOPN_CAP_ORIGIN=40;  TOPN_CAP_CROSS=48
       TOPN_STAGE1_MIN_ORIGIN=20; TOPN_STAGE1_MAX_ORIGIN=32
-      TOPN_STAGE1_MIN_CROSS=18;  TOPN_STAGE1_MAX_CROSS=28
+      TOPN_STAGE1_MIN_CROSS=30;  TOPN_STAGE1_MAX_CROSS=40
       ;;
     *)
       printf '[WARN] Unknown TOPN_PROFILE=%s, fallback to stable\n' "${TOPN_PROFILE}" >&2
