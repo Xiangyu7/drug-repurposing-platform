@@ -90,29 +90,41 @@ def chembl_map(
         if not q:
             return canon, None, None
 
-        # Strategy 1: exact pref_name match (most reliable)
-        try:
-            exact = _chembl_molecule_by_pref_name(cache, q)
-            if exact and exact.get("molecule_chembl_id"):
-                return canon, exact["molecule_chembl_id"], exact.get("pref_name")
-        except Exception:
-            pass
+        # Build candidate query strings: original + parenthetical variants
+        # Handles RxNorm patterns like "idec-c2b8 (rituximab)" → also try "rituximab"
+        candidates = [q]
+        if "(" in q and ")" in q:
+            inner = q[q.index("(") + 1 : q.rindex(")")].strip()
+            outer = q[: q.index("(")].strip()
+            if inner and inner.lower() not in [c.lower() for c in candidates]:
+                candidates.append(inner)
+            if outer and outer.lower() not in [c.lower() for c in candidates]:
+                candidates.append(outer)
 
-        # Strategy 2: fuzzy search, but validate pref_name similarity
-        try:
-            hits = _chembl_molecule_search(cache, q, max_hits=max_hits)
-            q_lower = q.lower().strip()
-            # prefer hit whose pref_name matches query
-            for h in hits:
-                pn = (h.get("pref_name") or "").lower().strip()
-                if pn == q_lower and h.get("molecule_chembl_id"):
-                    return canon, h["molecule_chembl_id"], h.get("pref_name")
-            # fallback: accept first hit that has a chembl_id
-            for h in hits:
-                if h.get("molecule_chembl_id"):
-                    return canon, h["molecule_chembl_id"], h.get("pref_name")
-        except Exception as e:
-            logger.warning("ChEMBL 分子搜索失败, query=%s: %s", q, e)
+        for query in candidates:
+            # Strategy 1: exact pref_name match (most reliable)
+            try:
+                exact = _chembl_molecule_by_pref_name(cache, query)
+                if exact and exact.get("molecule_chembl_id"):
+                    return canon, exact["molecule_chembl_id"], exact.get("pref_name")
+            except Exception:
+                pass
+
+            # Strategy 2: fuzzy search, but validate pref_name similarity
+            try:
+                hits = _chembl_molecule_search(cache, query, max_hits=max_hits)
+                q_lower = query.lower().strip()
+                # prefer hit whose pref_name matches query
+                for h in hits:
+                    pn = (h.get("pref_name") or "").lower().strip()
+                    if pn == q_lower and h.get("molecule_chembl_id"):
+                        return canon, h["molecule_chembl_id"], h.get("pref_name")
+                # fallback: accept first hit that has a chembl_id
+                for h in hits:
+                    if h.get("molecule_chembl_id"):
+                        return canon, h["molecule_chembl_id"], h.get("pref_name")
+            except Exception as e:
+                logger.warning("ChEMBL 分子搜索失败, query=%s: %s", query, e)
         return canon, None, None
 
     results = concurrent_map(
