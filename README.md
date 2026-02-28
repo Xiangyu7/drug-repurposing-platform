@@ -2,7 +2,7 @@
 
 Explainable AI platform for systematic drug repurposing via knowledge graph construction, literature evidence extraction, and multi-dimensional scoring.
 
-**Target disease**: Atherosclerosis (extensible to any disease via config)
+**Target disease**: Any disease via config (validated on Atherosclerosis and Rheumatoid Arthritis)
 
 ---
 
@@ -21,9 +21,11 @@ Explainable AI platform for systematic drug repurposing via knowledge graph cons
 +------------------------------------------------------------------+
 |                         kg_explain                                |
 |  CT.gov -> RxNorm -> ChEMBL -> Targets -> Pathways -> Diseases   |
-|  + FAERS safety + Phenotype enrichment + Bootstrap CI            |
+|  + SigReverse LINCS 候选药注入 (novelty 补偿)                     |
+|  + FAERS/SIDER safety + Phenotype enrichment + Bootstrap CI      |
 |  + 靶点结构标注 (PDB/AlphaFold/UniProt)                          |
-|  Output: drug_disease_rank.csv                                |
+|  Output路径: output/<disease>/<drug_source>/                      |
+|  Output: drug_disease_rank.csv                                   |
 |          + bridge_repurpose_cross.csv  (Direction A: cross-disease)|
 +------------------------------------------------------------------+
                                |
@@ -68,6 +70,8 @@ Step 3  Canonical merge    Deduplicate, split combos (aspirin+ticagrelor -> 2 ro
    |
 Step 4  ChEMBL API         Drug -> Target (mechanism of action, pref_name__iexact first)
    |                       Salt forms -> parent molecule via molecule_hierarchy
+   |
+Step 4b SigReverse inject  LINCS reversal drugs -> ChEMBL mapping -> append to drug pool (novelty)
    |
 Step 5  Ensembl + UniProt  Gene ID cross-references (Ensembl -> UniProt -> ChEMBL)
    |
@@ -117,12 +121,15 @@ Step 9' Validation Plan    Priority tiers (P1/P2/P2E/P3) + stop/go criteria + ti
 ```
 dsmeta/archs4 -> sigreverse -> kg_explain(signature) -> LLM+RAG Step6-9
   签名源优先级: dsmeta (GEO microarray) > archs4 (ARCHS4 RNA-seq) > OT-only (仅OpenTargets基因)
+  SigReverse LINCS 候选药自动注入 KG 药物池（novelty 补偿）
+  输出路径: data/<disease>/signature/  output/<disease>/signature/
   科学问题: 其他疾病的药物能否重新定位到目标疾病？
 ```
 
 ### Direction B: Origin Disease Reassessment（原疾病重评估，稳健型）
 ```
 screen_drugs(CT.gov) -> kg_explain(ctgov) -> generate_disease_bridge.py -> LLM+RAG Step6-9
+  输出路径: data/<disease>/ctgov/  output/<disease>/ctgov/
   科学问题: 失败的临床试验药物是否真的无效？换终点/人群能否翻盘？
 ```
 
@@ -216,6 +223,21 @@ After each KG pipeline run, runner checks:
 
 If any check fails, current disease is marked failed and skipped, then runner continues to next disease.
 
+### Drug source path isolation (2026-02-28)
+
+Cross and Origin routes now write to separate subdirectories to prevent mutual overwrite in dual mode:
+- Cross (signature): `kg_explain/data/<disease>/signature/`, `kg_explain/output/<disease>/signature/`
+- Origin (ctgov): `kg_explain/data/<disease>/ctgov/`, `kg_explain/output/<disease>/ctgov/`
+
+### SigReverse candidate injection (2026-02-28)
+
+LINCS reversal-matched drugs are automatically injected into the KG candidate pool:
+- `inject_sigreverse_drugs()` in `datasources/signature.py` reads `drug_reversal_rank.csv`
+- Maps drug names to ChEMBL IDs (exact → fuzzy), fetches mechanisms/targets, appends with dedup
+- CLI: `--sigreverse-rank <path>` argument
+- runner.sh auto-detects sigreverse CSV and passes it to kg_explain
+- Purpose: compensate ARCHS4's reduced novelty with mechanism-agnostic LINCS candidates
+
 ### Runtime directories
 
 - Working runs: `runtime/work/<disease_key>/<run_id>/`
@@ -238,6 +260,23 @@ TOPN_ORIGIN=auto
 TOPN_STAGE2_ENABLE=1
 RETENTION_DAYS=7
 RUN_MODE=dual             # dual | origin_only | cross_only
+STEP_TIMEOUT=3600          # default per-step timeout (seconds)
+```
+
+Module-level timeout overrides (all default to `STEP_TIMEOUT`):
+```bash
+TIMEOUT_CROSS_AUTO_DISCOVER_GEO=3600
+TIMEOUT_CROSS_GENERATE_DSMETA_CONFIG=3600
+TIMEOUT_CROSS_GENERATE_ARCHS4_CONFIG=3600
+TIMEOUT_CROSS_ARCHS4=3600
+TIMEOUT_CROSS_DSMETA=3600
+TIMEOUT_CROSS_SIGREVERSE=3600
+TIMEOUT_CROSS_KG_SIGNATURE=3600
+TIMEOUT_ORIGIN_KG_CTGOV=3600
+TIMEOUT_LLM_STEP6=3600
+TIMEOUT_LLM_STEP7=3600
+TIMEOUT_LLM_STEP8=3600
+TIMEOUT_LLM_STEP9=3600
 ```
 
 `topn` policy semantics:
@@ -363,8 +402,10 @@ bash ops/start.sh start --mode dual
 | `ops/check_status.sh` | Pipeline status dashboard — per-disease detail, failures, Ollama health, disk |
 | `ops/show_results.sh` | 查看/导出结果 |
 | `ops/compare_ab_routes.py` | Direction A+B 交叉验证: 输出 ab_comparison.csv |
+| `ops/merge_sig_to_bridge.py` | 将 SigReverse reversal_score 合并到 bridge CSV |
 | `ops/disease_list.txt` | 疾病列表模板 |
 | `ops/disease_list_test.txt` | 最小测试列表 (2 diseases) |
+| `ops/disease_list_ra_benchmark.txt` | 类风湿关节炎基准测试列表 |
 
 **底层脚本（ops/internal/）— 由 start.sh 内部调用**:
 
@@ -423,6 +464,7 @@ bash ops/check_status.sh --all
 | **Human Review** | `evaluation/human_review.py` | Kill rate, miss rate, IRR (Cohen's Kappa) computation |
 | **Stratified Sampling** | `evaluation/stratified_sampling.py` | Balanced review queue across score tiers and gate decisions |
 | **Monitoring Alerts** | `monitoring/alerts.py` | Configurable threshold rules with JSONL dispatch |
+| **SIDER Safety Data** | `datasources/sider.py` | Drug label side effects (complements FAERS voluntary reports with structured label data) |
 
 ---
 
@@ -449,7 +491,8 @@ bash ops/check_status.sh --all
 | `reactome.py` | Reactome API: protein -> pathway relationships |
 | `opentargets.py` | OpenTargets GraphQL: gene-disease associations, disease-phenotype links |
 | `faers.py` | FDA FAERS API: adverse event signals with PRR filtering |
-| `signature.py` | Gene signature driver for cross-disease drug discovery |
+| `sider.py` | SIDER drug label side effects: complements FAERS with structured label-based safety data |
+| `signature.py` | Gene signature driver for cross-disease drug discovery + SigReverse LINCS candidate injection |
 
 #### Builders (`builders/`)
 | File | Description |
@@ -569,12 +612,16 @@ bash ops/check_status.sh --all
 | File | Description |
 |------|-------------|
 | `run.py` | Pipeline orchestrator with step caching + manifest generation |
-| `scripts/02b_probe_to_gene.py` | Microarray probe -> gene ID mapping |
+| `scripts/02b_probe_to_gene.py` | Microarray probe -> gene ID mapping; Ensembl ID -> gene symbol via REST API (batch POST, 500/batch, rate-limit aware) |
 | `scripts/04_rank_aggregate.py` | Multi-dataset rank aggregation |
 | `scripts/05_fetch_genesets.py` | Biological gene set download |
-| `scripts/07_pathway_meta.py` | Pathway-level meta-analysis |
+| `scripts/07_pathway_meta.py` | Pathway-level meta-analysis (graceful skip if no GSEA files — does not affect gene signature) |
 | `scripts/08_make_signature_json.py` | Generate disease signature JSON |
 | `scripts/09_make_report.py` | Analysis report generation |
+
+> **2026-02-28 新增**: `02b_probe_to_gene.py` 现在支持 Ensembl ID 数据集的自动转换。检测到 Ensembl ID (ENSG*) 后，通过 Ensembl REST API 批量查询基因符号。表达矩阵按方差保留最优探针，DE 结果按 |t| 保留最优。之前这类数据集会被跳过。
+>
+> **2026-02-28 新增**: `07_pathway_meta.py` 在 GSEA 文件缺失时不再崩溃，而是跳过通路 meta 分析并创建空 pathways 目录。疾病基因签名 (gene_meta.tsv) 不受影响。
 
 ---
 
@@ -592,7 +639,7 @@ ARCHS4 RNA-seq 替代签名管线，在 dsmeta (GEO microarray) 失败时自动�
 | `scripts/04_assemble_signature.py` | Step4: OT 先验 × DE 结果 → top300 up + top300 down 签名 |
 | `scripts/generate_test_h5.py` | 生成测试用小型 H5 文件 (0.3MB，用于本地调试) |
 | `scripts/auto_generate_config.py` | 自动生成疾病配置 YAML |
-| `configs/*.yaml` | 17个心血管疾病配置文件 |
+| `configs/*.yaml` | 28个疾病配置文件 (心血管 + 类风湿关节炎等) |
 
 **数据依赖**: 需要 `data/archs4/human_gene_v2.4.h5` (43GB，从 ARCHS4 官网下载)。
 测试时可用 `generate_test_h5.py` 生成 0.3MB 替代文件。
@@ -763,10 +810,10 @@ python scripts/step9_validation_plan.py \
 ### Key Outputs
 | File | Content |
 |------|---------|
-| `kg_explain/output/drug_disease_rank.csv` | Ranked drug-disease pairs with CI columns |
-| `kg_explain/output/bridge_repurpose_cross.csv` | Direction A: cross-disease repurposing bridge (含靶点 + 结构来源) |
-| `kg_explain/output/bridge_origin_reassess.csv` | Direction B: origin disease reassessment bridge (含靶点 + 结构来源) |
-| `kg_explain/output/evidence_pack/*.json` | Per-pair evidence packs |
+| `kg_explain/output/<disease>/signature/drug_disease_rank.csv` | Direction A: Ranked drug-disease pairs with CI columns |
+| `kg_explain/output/<disease>/signature/bridge_repurpose_cross.csv` | Direction A: cross-disease repurposing bridge (含靶点 + 结构来源) |
+| `kg_explain/output/<disease>/ctgov/bridge_origin_reassess.csv` | Direction B: origin disease reassessment bridge (含靶点 + 结构来源) |
+| `kg_explain/output/<disease>/<drug_source>/evidence_pack/*.json` | Per-pair evidence packs |
 | `LLM+RAG/output/step7_repurpose_cross/` | Direction A: GO/MAYBE/NO-GO decisions |
 | `LLM+RAG/output/step7_origin_reassess/` | Direction B: GO/MAYBE/NO-GO decisions |
 | `LLM+RAG/output/step8_*/step8_shortlist_topK.csv` | Final shortlist (含靶点/UniProt/PDB/AlphaFold + docking就绪字段) |
@@ -878,6 +925,8 @@ After scoring, Bootstrap CI is computed per pair (1000x resampling of evidence p
 Main config: `kg_explain/configs/versions/v5.yaml`
 
 Config inheritance: `base.yaml` -> `diseases/atherosclerosis.yaml` -> `versions/v5.yaml`
+
+Disease configs: 28 diseases in `kg_explain/configs/diseases/` (cardiovascular + rheumatoid arthritis + rare diseases)
 
 Key parameters:
 - `safety_penalty_weight`: 0.3 (FAERS weight)

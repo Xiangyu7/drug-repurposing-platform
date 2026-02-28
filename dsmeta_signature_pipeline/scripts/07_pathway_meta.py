@@ -91,9 +91,13 @@ def main():
     gse_list = cfg["geo"]["gse_list"]
 
     gsea_dir = workdir / "gsea"
-    files = list(gsea_dir.glob("*.tsv"))
+    files = list(gsea_dir.glob("*.tsv")) if gsea_dir.exists() else []
     if not files:
-        raise SystemExit("No GSEA files found. Run scripts/06_gsea_fgsea.R first.")
+        print("[yellow]No GSEA files found — pathway meta-analysis skipped. "
+              "This does NOT affect the disease signature (gene_meta.tsv).[/yellow]")
+        pdir = outdir / "pathways"
+        pdir.mkdir(parents=True, exist_ok=True)
+        return
 
     # Load all GSEA results
     frames = []
@@ -112,7 +116,13 @@ def main():
     gsea = gsea[gsea["gse"].isin(gse_list)].copy()
 
     if gsea.empty:
-        raise SystemExit("No GSEA results match the GSE list in config.")
+        print("[yellow]No GSEA results match the GSE list in config — "
+              "pathway meta-analysis skipped. "
+              "This does NOT affect the disease signature (gene_meta.tsv).[/yellow]")
+        # Create empty pathways dir so downstream steps don't break
+        pdir = outdir / "pathways"
+        pdir.mkdir(parents=True, exist_ok=True)
+        return
 
     pdir = outdir / "pathways"
     pdir.mkdir(parents=True, exist_ok=True)

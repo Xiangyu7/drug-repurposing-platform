@@ -161,6 +161,19 @@ STEP_TIMEOUT="${STEP_TIMEOUT:-3600}" # 60 min per step default
 DSMETA_DISK_MIN_GB="${DSMETA_DISK_MIN_GB:-8}"  # min free GB before dsmeta (GEO downloads are large)
 DSMETA_CLEANUP="${DSMETA_CLEANUP:-1}"          # auto-clean dsmeta workdir after each disease
 SIG_PRIORITY="${SIG_PRIORITY:-dsmeta}"         # dsmeta | archs4 — which signature source to try first
+# Module-level timeout overrides (default: inherit STEP_TIMEOUT)
+TIMEOUT_CROSS_AUTO_DISCOVER_GEO="${TIMEOUT_CROSS_AUTO_DISCOVER_GEO:-${STEP_TIMEOUT}}"
+TIMEOUT_CROSS_GENERATE_DSMETA_CONFIG="${TIMEOUT_CROSS_GENERATE_DSMETA_CONFIG:-${STEP_TIMEOUT}}"
+TIMEOUT_CROSS_GENERATE_ARCHS4_CONFIG="${TIMEOUT_CROSS_GENERATE_ARCHS4_CONFIG:-${STEP_TIMEOUT}}"
+TIMEOUT_CROSS_ARCHS4="${TIMEOUT_CROSS_ARCHS4:-${STEP_TIMEOUT}}"
+TIMEOUT_CROSS_DSMETA="${TIMEOUT_CROSS_DSMETA:-${STEP_TIMEOUT}}"
+TIMEOUT_CROSS_SIGREVERSE="${TIMEOUT_CROSS_SIGREVERSE:-${STEP_TIMEOUT}}"
+TIMEOUT_CROSS_KG_SIGNATURE="${TIMEOUT_CROSS_KG_SIGNATURE:-${STEP_TIMEOUT}}"
+TIMEOUT_ORIGIN_KG_CTGOV="${TIMEOUT_ORIGIN_KG_CTGOV:-${STEP_TIMEOUT}}"
+TIMEOUT_LLM_STEP6="${TIMEOUT_LLM_STEP6:-${STEP_TIMEOUT}}"
+TIMEOUT_LLM_STEP7="${TIMEOUT_LLM_STEP7:-${STEP_TIMEOUT}}"
+TIMEOUT_LLM_STEP8="${TIMEOUT_LLM_STEP8:-${STEP_TIMEOUT}}"
+TIMEOUT_LLM_STEP9="${TIMEOUT_LLM_STEP9:-${STEP_TIMEOUT}}"
 LOCK_NAME="${LOCK_NAME:-${RUN_MODE}}"
 LOCK_FILE="${STATE_ROOT}/runner_${LOCK_NAME}.lock"
 
@@ -857,22 +870,22 @@ run_route_llm_stage() {
     return 0
   fi
 
-  if ! run_cmd "${route_title}: step6 (${stage})" --timeout 14400 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step6_evidence_extraction.py --rank_in "${bridge_csv}" --neg "${neg_csv}" --out "${step6_dir}" --target_disease "${disease_query}" --topn "${topn}" --pubmed_retmax "${STEP6_PUBMED_RETMAX}" --pubmed_parse_max "${STEP6_PUBMED_PARSE_MAX}" --max_rerank_docs "${STEP6_MAX_RERANK_DOCS}" --max_evidence_docs "${STEP6_MAX_EVIDENCE_DOCS}"; then
+  if ! run_cmd "${route_title}: step6 (${stage})" --timeout "${TIMEOUT_LLM_STEP6}" run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step6_evidence_extraction.py --rank_in "${bridge_csv}" --neg "${neg_csv}" --out "${step6_dir}" --target_disease "${disease_query}" --topn "${topn}" --pubmed_retmax "${STEP6_PUBMED_RETMAX}" --pubmed_parse_max "${STEP6_PUBMED_PARSE_MAX}" --max_rerank_docs "${STEP6_MAX_RERANK_DOCS}" --max_evidence_docs "${STEP6_MAX_EVIDENCE_DOCS}"; then
     write_topn_quality_skip_json "${quality_json}" "${route_key}" "${topk}" "${min_go}" "${stage}_step6_failed" "${stage}"
     return 1
   fi
 
-  if ! run_cmd "${route_title}: step7 (${stage})" --timeout 3600 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step7_score_and_gate.py --input "${step6_dir}" --out "${step7_dir}" --strict_contract "${STRICT_CONTRACT}"; then
+  if ! run_cmd "${route_title}: step7 (${stage})" --timeout "${TIMEOUT_LLM_STEP7}" run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step7_score_and_gate.py --input "${step6_dir}" --out "${step7_dir}" --strict_contract "${STRICT_CONTRACT}"; then
     write_topn_quality_skip_json "${quality_json}" "${route_key}" "${topk}" "${min_go}" "${stage}_step7_failed" "${stage}"
     return 1
   fi
 
-  if ! run_cmd "${route_title}: step8 (${stage})" --timeout 3600 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step8_fusion_rank.py --step7_dir "${step7_dir}" --neg "${neg_csv}" --bridge "${bridge_csv}" --outdir "${step8_dir}" --target_disease "${disease_query}" --topk "${topk}" --route "${route_key}" --include_explore 1 --strict_contract "${STRICT_CONTRACT}" --sensitivity_n 1000; then
+  if ! run_cmd "${route_title}: step8 (${stage})" --timeout "${TIMEOUT_LLM_STEP8}" run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step8_fusion_rank.py --step7_dir "${step7_dir}" --neg "${neg_csv}" --bridge "${bridge_csv}" --outdir "${step8_dir}" --target_disease "${disease_query}" --topk "${topk}" --route "${route_key}" --include_explore 1 --strict_contract "${STRICT_CONTRACT}" --sensitivity_n 1000; then
     write_topn_quality_skip_json "${quality_json}" "${route_key}" "${topk}" "${min_go}" "${stage}_step8_failed" "${stage}"
     return 1
   fi
 
-  if ! run_cmd "${route_title}: step9 (${stage})" --timeout 3600 run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step9_validation_plan.py --step8_dir "${step8_dir}" --step7_dir "${step7_dir}" --outdir "${step9_dir}" --target_disease "${disease_query}" --strict_contract "${STRICT_CONTRACT}"; then
+  if ! run_cmd "${route_title}: step9 (${stage})" --timeout "${TIMEOUT_LLM_STEP9}" run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step9_validation_plan.py --step8_dir "${step8_dir}" --step7_dir "${step7_dir}" --outdir "${step9_dir}" --target_disease "${disease_query}" --strict_contract "${STRICT_CONTRACT}"; then
     write_topn_quality_skip_json "${quality_json}" "${route_key}" "${topk}" "${min_go}" "${stage}_step9_failed" "${stage}"
     return 1
   fi
@@ -908,7 +921,8 @@ resolve_path_optional() {
 copy_kg_manifest() {
   local disease_key="$1"
   local dest="$2"
-  local src="${KG_DIR}/output/${disease_key}/pipeline_manifest.json"
+  local drug_source="${3:-ctgov}"
+  local src="${KG_DIR}/output/${disease_key}/${drug_source}/pipeline_manifest.json"
   local src_legacy="${KG_DIR}/output/pipeline_manifest.json"
   if [[ -f "${src}" ]]; then
     cp "${src}" "${dest}"
@@ -1054,8 +1068,9 @@ PY
 derive_matched_ids_from_dtpd() {
   local disease_query="$1"
   local disease_key="${2:-}"
+  local drug_source="${3:-ctgov}"
   local v3_path=""
-  local dtpd_path_new="${KG_DIR}/output/${disease_key}/dtpd_rank.csv"
+  local dtpd_path_new="${KG_DIR}/output/${disease_key}/${drug_source}/dtpd_rank.csv"
   local dtpd_path_legacy="${KG_DIR}/output/dtpd_rank.csv"
   if [[ -n "${disease_key}" && -f "${dtpd_path_new}" ]]; then
     v3_path="${dtpd_path_new}"
@@ -1151,7 +1166,7 @@ ensure_cross_signature_config() {
 
   if [[ -f "${discover_py}" ]]; then
     # Step 1: discover GEO datasets
-    if run_cmd "Cross: auto-discover GEO (${disease_key})" --timeout 300 \
+    if run_cmd "Cross: auto-discover GEO (${disease_key})" --timeout "${TIMEOUT_CROSS_AUTO_DISCOVER_GEO}" \
          python3 "${discover_py}" \
            --disease "${disease_query}" \
            --disease-key "${disease_key}" \
@@ -1169,7 +1184,7 @@ ensure_cross_signature_config() {
         # Step 2: generate dsmeta config from discovered GSEs
         if [[ -f "${generate_py}" ]]; then
           mkdir -p "${DSMETA_DIR}/configs"
-          if run_cmd "Cross: generate dsmeta config (${disease_key})" --timeout 60 \
+          if run_cmd "Cross: generate dsmeta config (${disease_key})" --timeout "${TIMEOUT_CROSS_GENERATE_DSMETA_CONFIG}" \
                python3 "${generate_py}" \
                  --geo-dir "${geo_out}" \
                  --config-dir "${DSMETA_DIR}/configs" \
@@ -1226,7 +1241,7 @@ ensure_cross_signature_config() {
     return 1
   fi
 
-  if run_cmd "Cross: generate ARCHS4 config (${disease_key})" --timeout 30 \
+  if run_cmd "Cross: generate ARCHS4 config (${disease_key})" --timeout "${TIMEOUT_CROSS_GENERATE_ARCHS4_CONFIG}" \
        python3 "${archs4_gen_py}" \
          --disease "${disease_key}" \
          --disease-name "${disease_query}" \
@@ -1568,13 +1583,13 @@ process_disease() {
   origin_route_start=$SECONDS
   next_step "${disease_key}" "Origin: KG ranking (CT.gov mode)"
 
-  if ! run_cmd "Origin: kg ctgov" --timeout 7200 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source ctgov; then
+  if ! run_cmd "Origin: kg ctgov" --timeout "${TIMEOUT_ORIGIN_KG_CTGOV}" run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source ctgov; then
     fail_disease "${disease_key}" "${run_id}" "origin_kg_ctgov" "kg ctgov pipeline failed" "${cross_status}" "${origin_status}"
     return 1
   fi
 
   # Always copy latest manifest from kg_explain output (Origin overwrites Cross manifest)
-  copy_kg_manifest "${disease_key}" "${kg_manifest}"
+  copy_kg_manifest "${disease_key}" "${kg_manifest}" "ctgov"
 
   if ! run_cmd "Origin: manifest gate" kg_manifest_gate "${kg_manifest}" "ctgov"; then
     fail_disease "${disease_key}" "${run_id}" "origin_manifest_gate" "kg ctgov manifest check failed" "${cross_status}" "${origin_status}"
@@ -1584,8 +1599,8 @@ process_disease() {
   local origin_manifest_path="${disease_work}/pipeline_manifest_origin_ctgov.json"
   cp "${kg_manifest}" "${origin_manifest_path}"
 
-  local kg_output_disease_dir="${KG_DIR}/output/${disease_key}"
-  local kg_data_disease_dir="${KG_DIR}/data/${disease_key}"
+  local kg_output_disease_dir="${KG_DIR}/output/${disease_key}/ctgov"
+  local kg_data_disease_dir="${KG_DIR}/data/${disease_key}/ctgov"
   local bridge_origin="${kg_output_disease_dir}/bridge_origin_reassess.csv"
   # NOTE: legacy global bridge path removed — disease-specific bridge is required
   #       to prevent cross-disease contamination (see P1 #2 fix)
@@ -1616,7 +1631,7 @@ process_disease() {
   # require_file below will fail the disease correctly.
 
   if [[ -z "${origin_ids_input}" ]]; then
-    origin_ids_effective="$(derive_matched_ids_from_dtpd "${disease_query}" "${disease_key}")"
+    origin_ids_effective="$(derive_matched_ids_from_dtpd "${disease_query}" "${disease_key}" "ctgov")"
   fi
 
   if ! require_file "${bridge_origin}" "origin bridge"; then
@@ -1756,17 +1771,16 @@ process_disease() {
     return 1
   fi
 
-  # Delete large temporary path file only after origin bridge is archived.
-  local evidence_paths_tmp_new="${KG_DIR}/output/${disease_key}/dtpd_paths.jsonl"
+  # Delete large temporary path files only after origin bridge is archived.
+  local evidence_paths_ctgov="${KG_DIR}/output/${disease_key}/ctgov/dtpd_paths.jsonl"
+  local evidence_paths_sig="${KG_DIR}/output/${disease_key}/signature/dtpd_paths.jsonl"
   local evidence_paths_tmp_legacy="${KG_DIR}/output/dtpd_paths.jsonl"
-  if [[ -f "${evidence_paths_tmp_new}" ]]; then
-    rm -f "${evidence_paths_tmp_new}"
-    log "[CLEAN] Deleted temporary file: ${evidence_paths_tmp_new}"
-  fi
-  if [[ -f "${evidence_paths_tmp_legacy}" ]]; then
-    rm -f "${evidence_paths_tmp_legacy}"
-    log "[CLEAN] Deleted temporary file: ${evidence_paths_tmp_legacy}"
-  fi
+  for _ep in "${evidence_paths_ctgov}" "${evidence_paths_sig}" "${evidence_paths_tmp_legacy}"; do
+    if [[ -f "${_ep}" ]]; then
+      rm -f "${_ep}"
+      log "[CLEAN] Deleted temporary file: ${_ep}"
+    fi
+  done
 
   record_step_timing "archive"
   mark_step_done "archive"
@@ -1812,7 +1826,7 @@ run_cross_route() {
       a4_status="skip"; a4_detail="无配置"; return 1
     fi
     log "[INFO] Cross: trying ARCHS4 signature..."
-    if run_cmd "Cross: archs4 (${disease_key})" --timeout 3600 run_in_dir "${ARCHS4_DIR}" "${ARCHS4_PY}" run.py --config "${archs4_cfg}"; then
+    if run_cmd "Cross: archs4 (${disease_key})" --timeout "${TIMEOUT_CROSS_ARCHS4}" run_in_dir "${ARCHS4_DIR}" "${ARCHS4_PY}" run.py --config "${archs4_cfg}"; then
       local archs4_sig_check="${ARCHS4_DIR}/outputs/${disease_key}/signature/sigreverse_input.json"
       if [[ -f "${archs4_sig_check}" ]] && python3 -c "
 import json, sys
@@ -1850,7 +1864,7 @@ if len(obj.get('up',[])) == 0 and len(obj.get('down',[])) == 0:
     if ! check_disk_space "${DSMETA_DISK_MIN_GB:-8}"; then
       ds_status="fail"; ds_detail="磁盘不足 (需 ≥${DSMETA_DISK_MIN_GB:-8}GB)"; return 1
     fi
-    if run_cmd "Cross: dsmeta (${disease_key})" --timeout 3600 run_in_dir "${DSMETA_DIR}" "${DSMETA_PY}" run.py --config "${dsmeta_cfg}"; then
+    if run_cmd "Cross: dsmeta (${disease_key})" --timeout "${TIMEOUT_CROSS_DSMETA}" run_in_dir "${DSMETA_DIR}" "${DSMETA_PY}" run.py --config "${dsmeta_cfg}"; then
       ds_status="ok"
       signature_built=1; signature_built_by="dsmeta"
       cleanup_dsmeta_workdir "${disease_key}"
@@ -1951,7 +1965,7 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
 
   sig_out_dir="${disease_work}/sigreverse_output"
   mkdir -p "${sig_out_dir}"
-  if ! run_cmd "Cross: sigreverse" run_in_dir "${SIG_DIR}" "${SIG_PY}" scripts/run.py --config configs/default.yaml --in "${CROSS_SIGREVERSE_INPUT}" --out "${sig_out_dir}"; then
+  if ! run_cmd "Cross: sigreverse" --timeout "${TIMEOUT_CROSS_SIGREVERSE}" run_in_dir "${SIG_DIR}" "${SIG_PY}" scripts/run.py --config configs/default.yaml --in "${CROSS_SIGREVERSE_INPUT}" --out "${sig_out_dir}"; then
     log "[ERROR] Cross: sigreverse failed"
     return 1
   fi
@@ -1965,13 +1979,18 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
 
   next_step "${disease_key}" "Cross: KG ranking (signature mode)"
 
-  if ! run_cmd "Cross: kg signature" --timeout 3600 run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source signature --signature-path "${CROSS_SIGNATURE_META}" --max-drugs "${KG_MAX_DRUGS_SIGNATURE:-200}"; then
+  local _sigreverse_rank_arg=""
+  local _sigreverse_rank_csv="${sig_out_dir}/drug_reversal_rank.csv"
+  if [[ -f "${_sigreverse_rank_csv}" ]]; then
+    _sigreverse_rank_arg="--sigreverse-rank ${_sigreverse_rank_csv}"
+  fi
+  if ! run_cmd "Cross: kg signature" --timeout "${TIMEOUT_CROSS_KG_SIGNATURE}" run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source signature --signature-path "${CROSS_SIGNATURE_META}" --max-drugs "${KG_MAX_DRUGS_SIGNATURE:-200}" ${_sigreverse_rank_arg}; then
     log "[ERROR] Cross: kg signature pipeline failed"
     return 1
   fi
 
   # Always copy latest manifest from kg_explain output
-  copy_kg_manifest "${disease_key}" "${kg_manifest}"
+  copy_kg_manifest "${disease_key}" "${kg_manifest}" "signature"
 
   if ! run_cmd "Cross: manifest gate" kg_manifest_gate "${kg_manifest}" "signature"; then
     log "[ERROR] Cross: kg signature manifest check failed"
@@ -1981,7 +2000,7 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
   cross_manifest_path="${disease_work}/pipeline_manifest_cross_signature.json"
   cp "${kg_manifest}" "${cross_manifest_path}"
 
-  bridge_cross="${KG_DIR}/output/${disease_key}/bridge_repurpose_cross.csv"
+  bridge_cross="${KG_DIR}/output/${disease_key}/signature/bridge_repurpose_cross.csv"
   # Legacy bridge fallback removed: disease-specific bridge is mandatory
   # to prevent cross-disease contamination (see P1 #2 fix)
   if ! require_file "${bridge_cross}" "cross bridge"; then
@@ -2177,6 +2196,7 @@ log "  topn: origin=${TOPN_ORIGIN}[${TOPN_STAGE1_MIN_ORIGIN}-${TOPN_STAGE1_MAX_O
 log "  topk: origin=${TOPK_ORIGIN} cross=${TOPK_CROSS} | min_go: origin=${SHORTLIST_MIN_GO_ORIGIN} cross=${SHORTLIST_MIN_GO_CROSS}"
 log "  step6: retmax=${STEP6_PUBMED_RETMAX} parse=${STEP6_PUBMED_PARSE_MAX} rerank=${STEP6_MAX_RERANK_DOCS} evidence=${STEP6_MAX_EVIDENCE_DOCS}"
 log "  limits: timeout=${STEP_TIMEOUT}s disk_min=${DISK_MIN_GB}GB cleanup=${DSMETA_CLEANUP} contract=${STRICT_CONTRACT}"
+log "  module_timeouts: dsmeta=${TIMEOUT_CROSS_DSMETA}s sigreverse=${TIMEOUT_CROSS_SIGREVERSE}s kg=${TIMEOUT_CROSS_KG_SIGNATURE}s llm(step6/7/8/9)=${TIMEOUT_LLM_STEP6}/${TIMEOUT_LLM_STEP7}/${TIMEOUT_LLM_STEP8}/${TIMEOUT_LLM_STEP9}s"
 
 ok_count=0
 fail_count=0

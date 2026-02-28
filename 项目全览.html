@@ -62,7 +62,7 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
 <body>
 
 <h1>Drug Repurposing Platform</h1>
-<p class="subtitle">药物重定位平台 &middot; 项目全览手册<br>支持多疾病 &middot; 双签名源 (dsmeta / ARCHS4)</p>
+<p class="subtitle">药物重定位平台 &middot; 项目全览手册<br>支持多疾病 (28 种) &middot; 双签名源 (dsmeta / ARCHS4) &middot; 更新于 2026-02-28</p>
 
 <!-- 目录 -->
 <div class="toc">
@@ -166,10 +166,10 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
   </div>
 
   <div class="step">
-    <span class="step-num">3</span><span class="step-title">probe_to_gene &mdash; 探针映射到基因 (关键!)</span>
-    <span class="tag tag-py">Python</span>
-    <p class="step-desc">不同芯片平台用不同探针 ID，必须统一映射到 HGNC 基因符号。否则跨平台重叠率 0%，映射后 → 74.6%。</p>
-    <p class="io"><span class="tag tag-in">IN</span> de.tsv (探针 ID) <span class="tag tag-out">OUT</span> de.tsv (基因符号)</p>
+    <span class="step-num">3</span><span class="step-title">probe_to_gene &mdash; 探针/Ensembl 映射到基因 (关键!)</span>
+    <span class="tag tag-py">Python</span> <span class="tag tag-api">Ensembl REST API</span>
+    <p class="step-desc">不同芯片平台用不同探针 ID，必须统一映射到 HGNC 基因符号。否则跨平台重叠率 0%，映射后 → 74.6%。<br><b>🆕 2026-02-28</b>：新增 Ensembl ID (ENSG*) 自动识别和转换。通过 Ensembl REST API 批量 POST (/lookup/id, 500 ID/批)，转换为基因符号。表达矩阵按方差保留最优探针，DE 结果按 |t| 保留最优。之前 Ensembl ID 数据集会被直接跳过。</p>
+    <p class="io"><span class="tag tag-in">IN</span> de.tsv (探针/Ensembl ID) <span class="tag tag-out">OUT</span> de.tsv (基因符号)</p>
   </div>
 
   <div class="step">
@@ -201,7 +201,7 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
   <div class="step">
     <span class="step-num">8</span><span class="step-title">pathway_meta &mdash; 通路层 Meta 分析</span>
     <span class="tag tag-py">Python</span>
-    <p class="step-desc">用带符号 Stouffer Z 方法合并各 GSE 的通路富集结果。</p>
+    <p class="step-desc">用带符号 Stouffer Z 方法合并各 GSE 的通路富集结果。<br><b>🆕 2026-02-28</b>：GSEA 文件缺失时优雅跳过（不崩溃），疾病基因签名不受影响。</p>
   </div>
 
   <div class="step">
@@ -531,8 +531,8 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
 
   <div class="step">
     <span class="step-num">10</span><span class="step-title">V5 额外数据</span>
-    <span class="tag tag-api">FAERS + OpenTargets + ChEMBL</span>
-    <p class="step-desc">FAERS 不良反应 + 疾病表型关联 + 药物已知适应症</p>
+    <span class="tag tag-api">FAERS + SIDER + OpenTargets + ChEMBL</span>
+    <p class="step-desc">FAERS 不良反应 + <b>🆕 SIDER 药物标签副作用</b>（补充 FAERS 自愿报告数据）+ 疾病表型关联 + 药物已知适应症</p>
   </div>
 
   <div class="divider"></div>
@@ -545,7 +545,7 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
     <table style="margin:8px 0;font-size:0.92em;">
       <tr><th>子项</th><th>来源</th><th>公式</th></tr>
       <tr><td><b>mechanism_score</b></td><td>V3 路径聚合 (Drug→Target→Pathway→Disease)</td><td>base score</td></tr>
-      <tr><td><b>safety_penalty</b></td><td>FAERS 不良反应信号，PRR 过滤</td><td><code>tanh(log1p(PRR)/5 &times; confidence &times; serious_weight)</code></td></tr>
+      <tr><td><b>safety_penalty</b></td><td>FAERS 不良反应 + SIDER 标签副作用，PRR 过滤</td><td><code>tanh(log1p(PRR)/5 &times; confidence &times; serious_weight)</code></td></tr>
       <tr><td><b>trial_penalty</b></td><td>失败试验，对数饱和</td><td><code>0.1 &times; log1p(safety_stops) + 0.05 &times; log1p(eff_stops)</code></td></tr>
       <tr><td><b>phenotype_boost</b></td><td>疾病表型重叠</td><td><code>avg_pheno_score &times; log1p(n_phenotype)</code></td></tr>
     </table>
@@ -594,7 +594,8 @@ td { padding: 8px 6px; border-bottom: 1px solid #e5e5ea; }
                     │
                     ▼
           Step10: V5 额外数据
-          ├── edge_drug_ae_faers.csv    (FAERS)
+          ├── edge_drug_ae_faers.csv    (FAERS 自愿报告)
+          ├── sider_side_effects.csv    (SIDER 标签副作用)
           ├── edge_disease_phenotype.csv (表型)
           └── drug_known_indications.csv (适应症)
                     │
@@ -1081,6 +1082,43 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
     <span class="tag tag-r">Bash</span>
   </div>
 
+  <h3>⑥ merge_sig_to_bridge.py — SigReverse 分数合并 (2026-02-28 新增)</h3>
+  <div class="step">
+    <span class="step-title">功能：将 SigReverse 的 reversal_score 合并到 bridge CSV 中</span>
+    <div class="step-desc">
+      bridge CSV 默认只包含 kg_explain 的机制分数。此脚本通过药物名（大小写不敏感）匹配，将 SigReverse 的 <code>final_reversal_score</code> 列合并到 bridge CSV 中。
+      runner.sh 在 Cross 路线中自动调用。
+    </div>
+    <div class="io">
+      <b>用法：</b><code>python ops/merge_sig_to_bridge.py --bridge path/to/bridge.csv --sig-rank path/to/drug_reversal_rank.csv</code><br>
+      <b>行为：</b>in-place 更新 bridge CSV，无匹配的药物保持 NaN。如果 sig 文件不存在则跳过。
+    </div>
+    <span class="tag tag-py">Python</span>
+    <span class="tag tag-out">bridge CSV + reversal_score 列</span>
+  </div>
+
+  <h3>模块级超时控制 (2026-02-28 新增)</h3>
+  <div class="step">
+    <span class="step-title">功能：为 runner.sh 每个步骤单独设置超时时间</span>
+    <div class="step-desc">
+      之前所有步骤共享 <code>STEP_TIMEOUT</code> (默认 3600s)。现在新增 13 个模块级变量（默认继承 STEP_TIMEOUT），可单独调整慢步骤的超时。
+    </div>
+    <table style="font-size:11px;">
+      <tr><th>变量</th><th>控制的步骤</th></tr>
+      <tr><td><code>TIMEOUT_CROSS_DSMETA</code></td><td>dsmeta 签名管线</td></tr>
+      <tr><td><code>TIMEOUT_CROSS_ARCHS4</code></td><td>ARCHS4 签名管线</td></tr>
+      <tr><td><code>TIMEOUT_CROSS_SIGREVERSE</code></td><td>SigReverse 反转查询</td></tr>
+      <tr><td><code>TIMEOUT_CROSS_KG_SIGNATURE</code></td><td>KG 签名模式排名</td></tr>
+      <tr><td><code>TIMEOUT_ORIGIN_KG_CTGOV</code></td><td>KG CT.gov 模式排名</td></tr>
+      <tr><td><code>TIMEOUT_LLM_STEP6/7/8/9</code></td><td>LLM+RAG 各步骤</td></tr>
+      <tr><td><code>TIMEOUT_CROSS_AUTO_DISCOVER_GEO</code></td><td>GEO 自动发现</td></tr>
+      <tr><td><code>TIMEOUT_CROSS_GENERATE_*_CONFIG</code></td><td>dsmeta/ARCHS4 配置生成</td></tr>
+    </table>
+    <div class="io">
+      <b>用法：</b><code>TIMEOUT_LLM_STEP6=14400 bash ops/start.sh run atherosclerosis</code>
+    </div>
+  </div>
+
   <h3>启动决策树</h3>
   <div class="highlight">
     <b>第一次跑？</b> → <code>bash ops/start.sh setup</code> 装环境 → <code>bash ops/start.sh start</code> 启动<br>
@@ -1089,6 +1127,7 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
     <b>只跑 Cross (ARCHS4)?</b> → <code>SIG_PRIORITY=archs4 bash ops/start.sh run myocarditis --mode cross_only</code><br>
     <b>想加新疾病？</b> → 在 disease list 加一行（填好 disease_key、disease_query、EFO ID）→ <code>bash ops/start.sh start</code>（全自动：GEO→dsmeta→ARCHS4 fallback）<br>
     <b>想精细控制 GSE 选择？</b> → <code>auto_discover_geo.py</code> → AI 审核 → 编辑 YAML → <code>generate_dsmeta_configs.py</code><br>
+    <b>某步骤超时？</b> → 设置 <code>TIMEOUT_LLM_STEP6=14400</code> 等模块级超时变量<br>
     <b>跑出问题了？</b> → <code>bash ops/check_status.sh --failures</code>（看哪个疾病的哪个阶段失败）
   </div>
 
@@ -1098,6 +1137,7 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
     <tr><td><code>disease_list_day1_origin.txt</code></td><td>15 个心血管疾病 (有 EFO ID)</td><td>Direction B (origin_only)</td></tr>
     <tr><td><code>disease_list_day1_dual.txt</code></td><td>7 个疾病 (atherosclerosis + 6 auto-discovered, AI 审核后 ≥2 GSE)</td><td>Direction A + B (dual)</td></tr>
     <tr><td><code>disease_list.txt</code></td><td>模板/空</td><td>自定义</td></tr>
+    <tr><td><code>disease_list_ra_benchmark.txt</code></td><td>RA 基准测试</td><td>类风湿关节炎验证</td></tr>
   </table>
 
   <div class="highlight-green">
@@ -1471,7 +1511,9 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
     <tr><td>Reactome</td><td>生物通路</td><td>kg_explain</td></tr>
     <tr><td>OpenTargets</td><td>基因-疾病关联</td><td>kg_explain</td></tr>
     <tr><td>RxNorm</td><td>药物名标准化</td><td>kg_explain</td></tr>
-    <tr><td>FAERS</td><td>不良反应</td><td>kg_explain</td></tr>
+    <tr><td>FAERS</td><td>不良反应 (自愿报告)</td><td>kg_explain</td></tr>
+    <tr><td>SIDER</td><td>药物标签副作用 (结构化标签数据)</td><td>kg_explain</td></tr>
+    <tr><td>Ensembl REST</td><td>Ensembl ID → 基因符号批量转换</td><td>dsmeta</td></tr>
     <tr><td>PubMed (NCBI)</td><td>文献摘要</td><td>LLM+RAG</td></tr>
     <tr><td>Ollama (本地)</td><td>LLM 结构化提取</td><td>LLM+RAG</td></tr>
   </table>
@@ -1484,8 +1526,8 @@ geo_curation/<disease>/   审核后的 YAML      dsmeta/configs/<disease>.yaml  
 </div>
 
 <div class="card-full" style="text-align:center; color:#86868b; font-size:12px; margin-top:24px;">
-  Drug Repurposing Platform &middot; 项目全览 v5<br>
-  更新于 2026-02-26 &middot; 新增：综合打分架构 + Cross 路线全自动化 + V5 打分公式更新 (PRR-based tanh + log-saturating trial)
+  Drug Repurposing Platform &middot; 项目全览 v6<br>
+  更新于 2026-02-28 &middot; 新增：Ensembl ID 自动转换 + SIDER 安全数据源 + 模块级超时控制 + merge_sig_to_bridge + 28 种疾病配置 + 优雅跳过缺失 GSEA
 </div>
 
 </body>

@@ -1,6 +1,6 @@
 # Drug Repurposing Platform - 用户使用手册（最新版）
 
-更新时间：2026-02-26
+更新时间：2026-02-28（含 drug_source 路径隔离 + SigReverse 注入 + Cross 质量分析）
 适用目录：`/Users/xinyueke/Desktop/Drug Repurposing`
 
 ---
@@ -16,6 +16,16 @@
 5. `LLM+RAG证据工程`：PubMed + LLM 抽取证据，输出 GO/MAYBE/NO-GO + 候选包（含分子对接就绪评估）+ 验证计划
 6. `ops/` 运维工具链：一键启动（`start.sh`）+ 状态查看 + A/B交叉验证。底层脚本统一收入 `ops/internal/`
 
+> **2026-02-28 新增（最新）**:
+> - **drug_source 路径隔离**：Cross（signature）和 Origin（ctgov）现在写入独立子目录 `data/<disease>/signature/` 和 `data/<disease>/ctgov/`，dual 模式下不再互相覆盖
+> - **SigReverse 候选药注入**：LINCS 反转匹配的药物现在自动注入 KG 候选药池（`--sigreverse-rank` 参数），提供机制无关的 novelty 补偿
+> - dsmeta `probe_to_gene` 支持 Ensembl ID 数据集（REST API 批量转换）
+> - `pathway_meta` 在 GSEA 文件缺失时优雅跳过
+> - runner.sh 新增 13 个模块级超时变量
+> - 新增 `ops/merge_sig_to_bridge.py` 合并 SigReverse reversal_score
+> - kg_explain 新增 SIDER 数据源（药物标签副作用，补充 FAERS）
+> - 疾病配置扩展到 28 个
+>
 > **2026-02-26 新增**: runner.sh Cross 路线全自动化 — 新疾病无需手动创建签名 config，`ensure_cross_signature_config()` 自动搜 GEO → dsmeta config → ARCHS4 config fallback。V5 排名公式更新：safety_penalty 改为 PRR-based + tanh 饱和，trial_penalty 改为 log-saturating，phenotype_boost 加入 avg_pheno_score。全量测试 1189+ 通过。
 >
 > **2026-02-21 新增**: ARCHS4 备选签名管线（RNA-seq）; Step8 新增 `alphafold_structure_id` 列（即使有PDB也展示AF ID）; A+B 路线交叉验证（`compare_ab_routes.py`）; 空签名自动回退机制。
@@ -30,11 +40,14 @@
 ```
 dsmeta/archs4 -> sigreverse -> kg_explain(signature) -> LLM+RAG Step6-9
 签名源优先级: dsmeta > archs4 > OT-only (自动回退)
+SigReverse 候选药自动注入 KG 药物池（novelty 补偿）
+输出路径: data/<disease>/signature/  output/<disease>/signature/
 ```
 
 ### Direction B（原疾病重评估，稳健型）
 ```
 screen_drugs(CT.gov) -> kg_explain(ctgov) -> LLM+RAG Step6-9
+输出路径: data/<disease>/ctgov/  output/<disease>/ctgov/
 ```
 
 ### Dual Mode（A+B 并行，推荐生产模式）
@@ -183,6 +196,9 @@ python ops/internal/generate_dsmeta_configs.py --geo-dir ops/internal/geo_curati
 | `ops/internal/disease_list_day1_dual.txt` | 7 | Direction A + B (dual) |
 | `ops/disease_list.txt` | 全量列表 | 自定义 |
 | `ops/disease_list_test.txt` | 2 | 测试用 |
+| `ops/disease_list_ra_benchmark.txt` | RA 基准测试 | 类风湿关节炎验证 |
+
+kg_explain 疾病配置：28 个 (`kg_explain/configs/diseases/`)，覆盖心血管疾病 + 类风湿关节炎 + 罕见病（川崎病、血管炎、Takotsubo 等）。
 
 `ops/internal/disease_list_day1_dual.txt` 当前包含（2026-02-16 AI 审核后）：
 
@@ -350,12 +366,15 @@ python -m src.kg_explain.cli pipeline \
   --disease atherosclerosis \
   --version v5 \
   --drug-source signature \
-  --signature-path ../dsmeta_signature_pipeline/outputs/signature/disease_signature_meta.json
+  --signature-path ../dsmeta_signature_pipeline/outputs/signature/disease_signature_meta.json \
+  --sigreverse-rank ../sigreverse/data/output_atherosclerosis/drug_reversal_rank.csv
 ```
 
-产物：
-- `output/drug_disease_rank.csv`
-- `output/bridge_repurpose_cross.csv`
+> `--sigreverse-rank` 可选但推荐：将 LINCS 反转匹配的药物注入 KG 候选药池，提供机制无关的 novelty。runner.sh 在 dual 模式下会自动传入。
+
+产物（注意路径隔离）：
+- `output/atherosclerosis/signature/drug_disease_rank.csv`
+- `output/atherosclerosis/signature/bridge_repurpose_cross.csv`
 
 ### Step 4: LLM+RAG 证据工程（Step6-9）
 
@@ -581,7 +600,38 @@ python scripts/build_reject_audit_queue.py \
   2) 将最终标注并入 `gold_standard_v1.csv`
   3) 运行 `eval_extraction.py` 形成量化评估闭环
 
-### Q4. 管线跑着跑着出错了，怎么看是哪个疾病出问题？
+### Q4. 某个步骤总是超时怎么办？
+
+runner.sh 新增了 13 个模块级超时变量（默认都继承 `STEP_TIMEOUT=3600` 即 60 分钟）。如果某个步骤需要更长时间，可以单独调整：
+
+```bash
+# 例：Step6 PubMed+LLM 很慢，给 4 小时
+TIMEOUT_LLM_STEP6=14400 bash ops/start.sh run atherosclerosis
+
+# 例：dsmeta GEO 下载大数据集需要更久
+TIMEOUT_CROSS_DSMETA=7200 bash ops/start.sh run heart_failure --mode dual
+```
+
+可用变量一览：`TIMEOUT_CROSS_AUTO_DISCOVER_GEO`, `TIMEOUT_CROSS_GENERATE_DSMETA_CONFIG`, `TIMEOUT_CROSS_GENERATE_ARCHS4_CONFIG`, `TIMEOUT_CROSS_ARCHS4`, `TIMEOUT_CROSS_DSMETA`, `TIMEOUT_CROSS_SIGREVERSE`, `TIMEOUT_CROSS_KG_SIGNATURE`, `TIMEOUT_ORIGIN_KG_CTGOV`, `TIMEOUT_LLM_STEP6`, `TIMEOUT_LLM_STEP7`, `TIMEOUT_LLM_STEP8`, `TIMEOUT_LLM_STEP9`.
+
+### Q5. Cross 路线的药物太少/靶点不相关怎么办？
+
+这通常是 **dsmeta 签名质量问题**——dsmeta 纯数据驱动，有些疾病的差异表达基因是下游响应基因而非可药靶点。两个解决方案：
+
+1. **切换到 ARCHS4**：OpenTargets 先验确保 druggable targets 进入签名
+   ```bash
+   SIG_PRIORITY=archs4 bash ops/start.sh run rheumatoid_arthritis --mode dual
+   ```
+
+2. **SigReverse 注入**（已自动启用）：LINCS 反转匹配的药物会自动注入 KG 候选药池，提供签名之外的 novelty。runner.sh 会自动检测 `drug_reversal_rank.csv` 并通过 `--sigreverse-rank` 传给 kg_explain。
+
+> **实战数据**：RA 用 dsmeta 只有 3 个靶点（80S Ribosome 占主导，与 RA 无关），stroke 用 dsmeta 有 32 个靶点（质量好）。ARCHS4 + SigReverse 注入可以显著改善弱疾病的 Cross 质量。
+
+### Q6. dsmeta 跑到某个 GSE 时说"Ensembl IDs detected, skipping"？
+
+这个问题已修复（2026-02-28）。`02b_probe_to_gene.py` 现在会自动检测 Ensembl ID (ENSG*) 并通过 Ensembl REST API 批量转换为 HGNC 基因符号，而非跳过。表达矩阵按方差保留最优探针，DE 结果按 |t| 保留最优。
+
+### Q7. 管线跑着跑着出错了，怎么看是哪个疾病出问题？
 
 使用诊断工具 `ops/check_status.sh`：
 
@@ -702,8 +752,9 @@ AlphaFold 结构 ID **不是** 通过相似性匹配找到的，而是:
 │             ↓ (如dsmeta失败自动回退archs4, 再回退OT-only)        │
 │  Step 2: sigreverse     →  LINCS反向匹配药物排名                 │
 │  Step 3: kg_explain     →  Drug-Target-Pathway-Disease 机制链路  │
+│             ↓               + SigReverse LINCS 候选药注入        │
 │             ↓               + 靶点PDB/AlphaFold/UniProt 标注     │
-│          bridge_repurpose_cross.csv                              │
+│          output/<disease>/signature/bridge_repurpose_cross.csv   │
 │             ↓                                                    │
 │  Step 6: PubMed RAG     →  文献证据抽取 (per-drug dossier)       │
 │  Step 7: 5维评分        →  GO / MAYBE / NO-GO 决策               │
@@ -726,18 +777,43 @@ AlphaFold 结构 ID **不是** 通过相似性匹配找到的，而是:
 
 ---
 
-## 11. 关联文档
+## 11. 签名源选择：dsmeta vs ARCHS4
+
+| 特性 | dsmeta (GEO microarray) | ARCHS4 (RNA-seq) |
+|------|------------------------|-------------------|
+| 数据来源 | 你筛选的 GSE 数据集 | ARCHS4 全库 RNA-seq |
+| 先验知识 | 无（纯数据驱动） | OpenTargets 先验加权 |
+| 靶点相关性 | 不稳定（依赖疾病） | 稳定（OT 确保 druggable targets） |
+| Novelty | 高（可能发现意外靶点） | 较低（偏向已知药物靶点） |
+| 适用场景 | GSE 充足且质量好的疾病 | 所有疾病（推荐默认） |
+
+### 实测 Cross 质量对比（dsmeta，2026-02-28）
+
+| 疾病 | 药物数 | 靶点数 | MoA 数 | 质量 |
+|------|--------|--------|--------|------|
+| stroke | 36 | 32 | 33 | 优秀 |
+| atherosclerosis | 84 | 11 | 14 | 合格 |
+| heart_failure | 37 | 4 | ~5 | 差 |
+| rheumatoid_arthritis | 20 | 3 | ~4 | 很差 |
+
+> **建议**：远端用 ARCHS4 作为默认签名源（`SIG_PRIORITY=archs4`），配合 SigReverse 注入补偿 novelty 损失。弱疾病（如 RA）的靶点数预计从 3-4 提升到 15+。
+
+---
+
+## 12. 关联文档
 
 - 全项目统一入口：`README.md`
 - 环境安装指南：`HOW_TO_RUN.md`（Prerequisites、云服务器搭建、硬件推荐）
 - 运维唯一入口：`ops/start.sh`
 - 状态查看：`ops/check_status.sh`、`ops/show_results.sh`
 - A+B 交叉验证：`ops/compare_ab_routes.py`
+- SigReverse 分数合并：`ops/merge_sig_to_bridge.py`
+- SigReverse 候选药注入：自动（runner.sh 检测 `drug_reversal_rank.csv` 并传 `--sigreverse-rank`）
 - 底层脚本（无需直接调用）：`ops/internal/`
 
 ### 子项目文档
-- `kg_explain/README.md` — 知识图谱 + V5 排名
+- `kg_explain/README.md` — 知识图谱 + V5 排名 + SigReverse 注入
 - `LLM+RAG证据工程/README.md` — PubMed RAG + 证据打分
 - `dsmeta_signature_pipeline/README.md` — GEO microarray 签名
-- `archs4_signature_pipeline/` — RNA-seq 备选签名
+- `archs4_signature_pipeline/` — RNA-seq 备选签名（推荐默认）
 - `sigreverse/README.md` — LINCS 反向匹配

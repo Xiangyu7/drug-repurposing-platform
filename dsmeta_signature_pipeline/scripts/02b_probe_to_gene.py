@@ -40,6 +40,8 @@ import shutil
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
+import time
+
 import numpy as np
 import pandas as pd
 import requests
@@ -455,6 +457,132 @@ def is_ensembl_ids(feature_ids: pd.Series) -> bool:
     return fraction > 0.5
 
 
+def ensembl_to_symbol_batch(ensembl_ids: list, batch_size: int = 500) -> Dict[str, str]:
+    """Convert Ensembl gene IDs to HGNC gene symbols via Ensembl REST API.
+
+    Uses POST /lookup/id endpoint for batch queries.
+    Returns dict: {ensembl_id: gene_symbol}.
+    """
+    # Strip version suffixes (ENSG00000141510.18 → ENSG00000141510)
+    clean_ids = [eid.split(".")[0] for eid in ensembl_ids]
+    unique_ids = sorted(set(clean_ids))
+
+    mapping = {}
+    url = "https://rest.ensembl.org/lookup/id"
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+
+    for start in range(0, len(unique_ids), batch_size):
+        batch = unique_ids[start:start + batch_size]
+        batch_num = start // batch_size + 1
+        total_batches = (len(unique_ids) + batch_size - 1) // batch_size
+        logger.info(f"  Ensembl→Symbol batch {batch_num}/{total_batches}: {len(batch)} IDs")
+
+        for attempt in range(3):
+            try:
+                resp = requests.post(
+                    url, headers=headers,
+                    json={"ids": batch},
+                    timeout=120,
+                )
+                if resp.status_code == 429:
+                    retry_after = float(resp.headers.get("Retry-After", 2))
+                    logger.warning(f"  Rate limited, waiting {retry_after}s ...")
+                    time.sleep(retry_after)
+                    continue
+                resp.raise_for_status()
+                data = resp.json()
+                for eid, info in data.items():
+                    if isinstance(info, dict) and "display_name" in info:
+                        symbol = info["display_name"]
+                        if symbol and re.match(r"^[A-Z][A-Z0-9\-]{1,15}$", symbol):
+                            mapping[eid] = symbol
+                break
+            except requests.exceptions.RequestException as e:
+                logger.warning(f"  Ensembl API error (attempt {attempt+1}): {e}")
+                if attempt < 2:
+                    time.sleep(3 * (attempt + 1))
+
+        # Be polite to the REST API
+        if start + batch_size < len(unique_ids):
+            time.sleep(0.5)
+
+    logger.info(f"  Ensembl→Symbol: {len(mapping)}/{len(unique_ids)} IDs mapped")
+    return mapping
+
+
+def apply_ensembl_mapping(
+    expr_path: str, de_path: Optional[str], mapping: Dict[str, str]
+) -> dict:
+    """Apply Ensembl→Symbol mapping to expr.tsv and de.tsv in-place.
+
+    For multiple Ensembl IDs mapping to the same gene symbol:
+      - expr: keep highest variance
+      - de: keep max |t|
+    Returns stats dict.
+    """
+    stats = {}
+
+    # --- Expression matrix ---
+    expr = pd.read_csv(expr_path, sep="\t")
+    original_features = len(expr)
+    expr["_clean_id"] = expr["feature_id"].astype(str).str.split(".").str[0]
+    expr["_symbol"] = expr["_clean_id"].map(mapping)
+    mapped_expr = expr.dropna(subset=["_symbol"])
+
+    if len(mapped_expr) > 0:
+        sample_cols = [c for c in expr.columns if c not in ("feature_id", "_clean_id", "_symbol")]
+        mapped_expr = mapped_expr.copy()
+        mapped_expr["_var"] = mapped_expr[sample_cols].var(axis=1)
+        mapped_expr = mapped_expr.sort_values("_var", ascending=False)
+        mapped_expr = mapped_expr.drop_duplicates(subset=["_symbol"], keep="first")
+        mapped_expr["feature_id"] = mapped_expr["_symbol"]
+        result = mapped_expr[["feature_id"] + sample_cols].sort_values("feature_id").reset_index(drop=True)
+
+        # Backup and write
+        backup = expr_path + ".ensembl_backup"
+        if not os.path.exists(backup):
+            shutil.copy2(expr_path, backup)
+        result.to_csv(expr_path, sep="\t", index=False)
+        stats["expr_original"] = original_features
+        stats["expr_mapped"] = len(result)
+    else:
+        stats["expr_original"] = original_features
+        stats["expr_mapped"] = 0
+        logger.warning(f"  ZERO Ensembl IDs mapped in expression matrix!")
+
+    # --- DE results ---
+    if de_path and os.path.exists(de_path):
+        de = pd.read_csv(de_path, sep="\t")
+        original_de = len(de)
+        de["_clean_id"] = de["feature_id"].astype(str).str.split(".").str[0]
+        de["_symbol"] = de["_clean_id"].map(mapping)
+        mapped_de = de.dropna(subset=["_symbol"])
+
+        if len(mapped_de) > 0:
+            mapped_de = mapped_de.copy()
+            if "t" in mapped_de.columns:
+                mapped_de["_abs_t"] = mapped_de["t"].abs()
+                mapped_de = mapped_de.sort_values("_abs_t", ascending=False)
+                mapped_de = mapped_de.drop_duplicates(subset=["_symbol"], keep="first")
+                mapped_de = mapped_de.drop(columns=["_abs_t"])
+            else:
+                mapped_de = mapped_de.drop_duplicates(subset=["_symbol"], keep="first")
+
+            mapped_de["feature_id"] = mapped_de["_symbol"]
+            de_cols = [c for c in de.columns if c not in ("_clean_id", "_symbol")]
+            result_de = mapped_de[de_cols].sort_values("feature_id").reset_index(drop=True)
+
+            backup_de = de_path + ".ensembl_backup"
+            if not os.path.exists(backup_de):
+                shutil.copy2(de_path, backup_de)
+            result_de.to_csv(de_path, sep="\t", index=False)
+            stats["de_original"] = original_de
+            stats["de_mapped"] = len(result_de)
+        else:
+            stats["de_original"] = original_de
+            stats["de_mapped"] = 0
+
+    return stats
 
 
 def main():
@@ -510,8 +638,21 @@ def main():
 
         # Check Ensembl IDs FIRST (they also match the gene symbol regex)
         if is_ensembl_ids(expr_df["feature_id"]):
-            logger.info(f"  {gse}: Ensembl IDs detected, skipping (not convertible in cross-platform meta).")
-            all_stats[gse] = {"status": "skipped_ensembl_ids"}
+            logger.info(f"  {gse}: Ensembl IDs detected → converting to gene symbols via Ensembl REST API")
+            # Read all feature IDs for batch conversion
+            all_features = pd.read_csv(expr_path, sep="\t", usecols=["feature_id"])["feature_id"].astype(str).tolist()
+            ensg_mapping = ensembl_to_symbol_batch(all_features)
+            if len(ensg_mapping) == 0:
+                logger.warning(f"  {gse}: Ensembl→Symbol conversion failed (0 mapped). Skipping.")
+                all_stats[gse] = {"status": "ensembl_conversion_failed"}
+                continue
+            de_file = str(de_path) if de_path.exists() else None
+            ensg_stats = apply_ensembl_mapping(str(expr_path), de_file, ensg_mapping)
+            logger.info(f"  {gse}: Ensembl→Symbol: expr {ensg_stats.get('expr_original',0)} → "
+                       f"{ensg_stats.get('expr_mapped',0)} genes"
+                       + (f", DE {ensg_stats.get('de_original',0)} → {ensg_stats.get('de_mapped',0)} genes"
+                          if 'de_mapped' in ensg_stats else ""))
+            all_stats[gse] = {**ensg_stats, "status": "ensembl_converted"}
             continue
 
         elif skip_if_symbols and is_already_gene_symbols(expr_df["feature_id"]):

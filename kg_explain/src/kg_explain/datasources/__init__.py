@@ -21,7 +21,7 @@ from .reactome import fetch_target_pathways
 from .opentargets import fetch_gene_diseases, fetch_disease_phenotypes
 from .faers import fetch_drug_ae
 from .sider import load_sider_safety, merge_faers_sider
-from .signature import fetch_drugs_from_signature, fetch_known_indications
+from .signature import fetch_drugs_from_signature, fetch_known_indications, inject_sigreverse_drugs
 
 __all__ = [
     "fetch_failed_trials",
@@ -40,4 +40,5 @@ __all__ = [
     "merge_faers_sider",
     "fetch_drugs_from_signature",
     "fetch_known_indications",
+    "inject_sigreverse_drugs",
 ]

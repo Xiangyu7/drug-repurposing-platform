@@ -109,6 +109,8 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
                             help="疾病基因签名文件路径 (signature模式必需, disease_signature_meta.json)")
     p_pipeline.add_argument("--max-drugs", type=int, default=0,
                             help="signature模式: 最多保留前N个药物进入KG (0=不限, 推荐200)")
+    p_pipeline.add_argument("--sigreverse-rank", default=None,
+                            help="SigReverse drug_reversal_rank.csv 路径, 注入 LINCS 反转候选药到 KG 药物池")
 
     # rank: 仅运行排序
     p_rank = subparsers.add_parser("rank", help="运行排序算法")
@@ -175,6 +177,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
     cfg = _load_pipeline_config(
         disease=getattr(args, "disease", "atherosclerosis"),
         version=getattr(args, "version", "v5"),
+        drug_source=getattr(args, "drug_source", "ctgov"),
     )
     logger.info("配置加载完成: mode=%s, data_dir=%s", cfg.mode, cfg.data_dir)
 
@@ -202,7 +205,7 @@ KG Explain v0.7.0 - 药物重定位知识图谱可解释路径系统
         run_graph_cmd(args, cfg)
 
 
-def _load_pipeline_config(disease: str, version: str) -> Config:
+def _load_pipeline_config(disease: str, version: str, drug_source: str = "ctgov") -> Config:
     """
     从 YAML 加载配置.
 
@@ -230,8 +233,8 @@ def _load_pipeline_config(disease: str, version: str) -> Config:
     paths = cfg.raw.setdefault("paths", {})
     base_data = paths.get("data_dir", "./data")
     base_output = paths.get("output_dir", "./output")
-    paths["data_dir"] = str(Path(base_data) / disease)
-    paths["output_dir"] = str(Path(base_output) / disease)
+    paths["data_dir"] = str(Path(base_data) / disease / drug_source)
+    paths["output_dir"] = str(Path(base_output) / disease / drug_source)
 
     return cfg
 
@@ -387,6 +390,19 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
                         logger.info("药物数 %d ≤ effective_cap %d, 无需截断", _n_before, _effective_cap)
 
             logger.info("⏭ 跳过 Step 2-5 (signature 模式已直接生成药物映射和靶点数据)")
+
+            # ── SigReverse 候选药注入 ──
+            # SigReverse 通过 LINCS L1000 转录组反转找到候选药,
+            # 与 signature.py 的靶点反查互补, 引入高 novelty 药物.
+            sigreverse_rank = getattr(args, "sigreverse_rank", None)
+            if sigreverse_rank:
+                _, t = _timed_step("[1b] SigReverse 候选药注入",
+                    datasources.inject_sigreverse_drugs,
+                    data_dir, cache,
+                    sigreverse_rank_path=sigreverse_rank,
+                    max_drugs=50,
+                )
+                step_timings.append(t)
 
         else:
             # ══════════════════════════════════════════

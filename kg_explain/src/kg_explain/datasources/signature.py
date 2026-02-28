@@ -518,3 +518,206 @@ def fetch_drugs_from_signature(
     logger.info("=" * 50)
 
     return sig_out
+
+
+# ──────────────────────────────────────────────
+#  SigReverse 候选药注入
+# ──────────────────────────────────────────────
+
+def inject_sigreverse_drugs(
+    data_dir: Path,
+    cache: HTTPCache,
+    sigreverse_rank_path: str,
+    max_drugs: int = 50,
+    min_phase: int = 0,
+) -> int:
+    """
+    将 SigReverse 的 top 候选药注入 KG 药物池.
+
+    SigReverse 通过 LINCS L1000 转录组反转找到候选药, 与 signature.py
+    的靶点反查逻辑完全互补 (机制无关 vs 靶点驱动), 能引入高 novelty 药物.
+
+    流程:
+      drug_reversal_rank.csv → drug name → ChEMBL pref_name 精确/模糊匹配
+      → molecule_chembl_id → /mechanism.json → target_chembl_id
+      → 追加到 drug_chembl_map.csv + edge_drug_target.csv (去重)
+
+    Args:
+        data_dir: KG 数据目录 (含已有的 drug_chembl_map.csv 等)
+        cache: HTTP 缓存
+        sigreverse_rank_path: SigReverse drug_reversal_rank.csv 路径
+        max_drugs: 最多注入多少个 SigReverse 药物
+        min_phase: 最低临床阶段 (0=全部, 2=Phase2+, 4=已批准)
+
+    Returns:
+        实际新增的药物数量
+    """
+    from .chembl import (
+        _chembl_molecule_by_pref_name,
+        _chembl_molecule_search,
+        _chembl_mechanisms,
+        _chembl_parent_molecule,
+    )
+
+    sig_rank_path = Path(sigreverse_rank_path)
+    if not sig_rank_path.exists():
+        logger.warning("SigReverse rank 文件不存在: %s, 跳过注入", sig_rank_path)
+        return 0
+
+    sig_df = pd.read_csv(sig_rank_path)
+    if sig_df.empty or "drug" not in sig_df.columns:
+        logger.warning("SigReverse rank 为空或缺少 drug 列, 跳过注入")
+        return 0
+
+    # 按 final_reversal_score 降序取 top N
+    score_col = "final_reversal_score"
+    if score_col in sig_df.columns:
+        sig_df = sig_df.sort_values(score_col, ascending=True).head(max_drugs)
+    else:
+        sig_df = sig_df.head(max_drugs)
+
+    drug_names = sig_df["drug"].dropna().unique().tolist()
+    logger.info("SigReverse 注入: 读取 %d 个候选药 (top %d)", len(drug_names), max_drugs)
+
+    # ── 加载已有药物, 用于去重 ──
+    chembl_map_path = data_dir / "drug_chembl_map.csv"
+    dt_path = data_dir / "edge_drug_target.csv"
+
+    existing_chembl = pd.read_csv(chembl_map_path, dtype=str) if chembl_map_path.exists() else pd.DataFrame()
+    existing_dt = pd.read_csv(dt_path, dtype=str) if dt_path.exists() else pd.DataFrame()
+
+    existing_ids = set()
+    if not existing_chembl.empty and "chembl_id" in existing_chembl.columns:
+        existing_ids = set(existing_chembl["chembl_id"].dropna().tolist())
+    existing_names = set()
+    if not existing_chembl.empty and "canonical_name" in existing_chembl.columns:
+        existing_names = set(existing_chembl["canonical_name"].dropna().str.lower().tolist())
+
+    # ── Step 1: Drug name → ChEMBL ID ──
+    def _resolve_chembl(drug_name: str):
+        name_lower = drug_name.strip().lower()
+        if name_lower in existing_names:
+            return None  # 已存在, 跳过
+
+        # Strategy 1: exact pref_name match
+        try:
+            exact = _chembl_molecule_by_pref_name(cache, drug_name)
+            if exact and exact.get("molecule_chembl_id"):
+                return {
+                    "molecule_chembl_id": exact["molecule_chembl_id"],
+                    "pref_name": exact.get("pref_name", drug_name),
+                    "max_phase": exact.get("max_phase", 0),
+                    "query": drug_name,
+                }
+        except Exception:
+            pass
+
+        # Strategy 2: fuzzy search
+        try:
+            hits = _chembl_molecule_search(cache, drug_name, max_hits=3)
+            q_lower = drug_name.lower().strip()
+            for h in hits:
+                pn = (h.get("pref_name") or "").lower().strip()
+                if pn == q_lower and h.get("molecule_chembl_id"):
+                    return {
+                        "molecule_chembl_id": h["molecule_chembl_id"],
+                        "pref_name": h.get("pref_name", drug_name),
+                        "max_phase": h.get("max_phase", 0),
+                        "query": drug_name,
+                    }
+        except Exception:
+            pass
+
+        return None
+
+    from ..utils import concurrent_map as _cmap
+    resolve_results = _cmap(
+        _resolve_chembl, drug_names,
+        max_workers=cache.max_workers, desc="SigReverse→ChEMBL",
+    )
+
+    resolved = [r for r in resolve_results if r is not None]
+    # 过滤 min_phase 和已存在 ID
+    resolved = [
+        r for r in resolved
+        if r["molecule_chembl_id"] not in existing_ids
+        and (min_phase == 0 or int(r.get("max_phase") or 0) >= min_phase)
+    ]
+
+    if not resolved:
+        logger.info("SigReverse 注入: 没有新药物可注入 (全部已存在或未映射到 ChEMBL)")
+        return 0
+
+    logger.info("SigReverse 注入: %d 个新药物映射到 ChEMBL", len(resolved))
+
+    # ── Step 2: ChEMBL ID → mechanisms/targets ──
+    def _fetch_mech(item):
+        mol_id = item["molecule_chembl_id"]
+        try:
+            mechs = _chembl_mechanisms(cache, mol_id)
+            if not mechs:
+                parent = _chembl_parent_molecule(cache, mol_id)
+                if parent:
+                    mechs = _chembl_mechanisms(cache, parent)
+            return item, mechs
+        except Exception:
+            return item, []
+
+    mech_results = _cmap(
+        _fetch_mech, resolved,
+        max_workers=cache.max_workers, desc="SigReverse ChEMBL→Target",
+    )
+
+    # ── Step 3: 构建新行, 追加到 CSV ──
+    new_chembl_rows = []
+    new_dt_rows = []
+    drugs_with_targets = 0
+
+    for result in mech_results:
+        if result is None:
+            continue
+        item, mechs = result
+        mol_id = item["molecule_chembl_id"]
+        pref_name = item["pref_name"]
+        canonical = pref_name.lower() if pref_name else item["query"].lower()
+
+        new_chembl_rows.append({
+            "drug_raw": canonical,
+            "canonical_name": canonical,
+            "chembl_id": mol_id,
+            "chembl_pref_name": pref_name,
+            "rxnorm_term": "",
+        })
+
+        if mechs:
+            drugs_with_targets += 1
+        for m in mechs:
+            tid = m.get("target_chembl_id")
+            if tid:
+                new_dt_rows.append({
+                    "drug_normalized": canonical,
+                    "drug_raw": canonical,
+                    "molecule_chembl_id": mol_id,
+                    "target_chembl_id": tid,
+                    "mechanism_of_action": m.get("mechanism_of_action", ""),
+                })
+
+    # 追加并去重
+    if new_chembl_rows:
+        new_chembl_df = pd.DataFrame(new_chembl_rows)
+        combined = pd.concat([existing_chembl, new_chembl_df], ignore_index=True)
+        combined = combined.drop_duplicates(subset=["chembl_id"], keep="first")
+        combined.to_csv(chembl_map_path, index=False)
+
+    if new_dt_rows:
+        new_dt_df = pd.DataFrame(new_dt_rows)
+        combined_dt = pd.concat([existing_dt, new_dt_df], ignore_index=True)
+        combined_dt = combined_dt.drop_duplicates(
+            subset=["drug_normalized", "molecule_chembl_id", "target_chembl_id"], keep="first"
+        )
+        combined_dt.to_csv(dt_path, index=False)
+
+    n_new = len(new_chembl_rows)
+    logger.info("SigReverse 注入完成: +%d 新药物 (%d 有靶点), +%d 药物-靶点边",
+                n_new, drugs_with_targets, len(new_dt_rows))
+    return n_new
