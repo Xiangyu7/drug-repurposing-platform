@@ -252,8 +252,9 @@ def main():
         de_df["feature_id_upper"] = de_df["feature_id"].astype(str).str.upper()
 
         # Merge OT score (left join — keep ALL DE genes)
-        ot_lookup = ot_df.drop_duplicates(subset=["gene_symbol"]).set_index(
-            ot_df["gene_symbol"].str.upper()
+        ot_dedup = ot_df.drop_duplicates(subset=["gene_symbol"])
+        ot_lookup = ot_dedup.set_index(
+            ot_dedup["gene_symbol"].str.upper()
         )["ot_score"]
         de_df["ot_score"] = de_df["feature_id_upper"].map(ot_lookup)
 
