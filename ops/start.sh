@@ -381,18 +381,41 @@ run_single_disease() {
     trap '[[ -n "${tmp_list:-}" ]] && rm -f "${tmp_list}"' EXIT INT TERM
     local disease_query="${SINGLE_DISEASE//_/ }"
 
-    # Check if we have origin IDs
+    # Check if --list was provided and contains this disease
     local origin_ids=""
-    local origin_list="${OPS_DIR}/internal/disease_list_day1_origin.txt"
-    if [[ -f "${origin_list}" ]]; then
-        origin_ids=$(grep "^${SINGLE_DISEASE}|" "${origin_list}" | cut -d'|' -f3 || true)
+    local inject=""
+    if [[ -n "${DISEASE_LIST:-}" ]]; then
+        # Resolve --list path
+        local resolved_list="${DISEASE_LIST}"
+        if [[ ! -f "${resolved_list}" ]]; then
+            for candidate in "${ROOT_DIR}/${resolved_list}" "${OPS_DIR}/${resolved_list}" "${OPS_DIR}/internal/${resolved_list}"; do
+                if [[ -f "${candidate}" ]]; then resolved_list="${candidate}"; break; fi
+            done
+        fi
+        if [[ -f "${resolved_list}" ]]; then
+            local list_line
+            list_line=$(grep "^${SINGLE_DISEASE}|" "${resolved_list}" 2>/dev/null | head -1 || true)
+            if [[ -n "${list_line}" ]]; then
+                disease_query="$(echo "${list_line}" | cut -d'|' -f2 | sed 's/^ *//;s/ *$//')"
+                origin_ids="$(echo "${list_line}" | cut -d'|' -f3 | sed 's/^ *//;s/ *$//')"
+                inject="$(echo "${list_line}" | cut -d'|' -f4 | sed 's/^ *//;s/ *$//')"
+                [[ -z "${disease_query}" ]] && disease_query="${SINGLE_DISEASE//_/ }"
+            fi
+        fi
     fi
 
-    # Check if we have inject yaml
-    local inject=""
-    local inject_path="${ROOT_DIR}/kg_explain/configs/inject_${SINGLE_DISEASE}.yaml"
-    if [[ -f "${inject_path}" ]]; then
-        inject="${inject_path}"
+    # Fallback: check origin list and inject yaml if not found above
+    if [[ -z "${origin_ids}" ]]; then
+        local origin_list="${OPS_DIR}/internal/disease_list_day1_origin.txt"
+        if [[ -f "${origin_list}" ]]; then
+            origin_ids=$(grep "^${SINGLE_DISEASE}|" "${origin_list}" | cut -d'|' -f3 || true)
+        fi
+    fi
+    if [[ -z "${inject}" ]]; then
+        local inject_path="${ROOT_DIR}/kg_explain/configs/inject_${SINGLE_DISEASE}.yaml"
+        if [[ -f "${inject_path}" ]]; then
+            inject="${inject_path}"
+        fi
     fi
 
     echo "${SINGLE_DISEASE}|${disease_query}|${origin_ids}|${inject}" > "${tmp_list}"
