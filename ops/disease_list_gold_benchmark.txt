@@ -13,6 +13,7 @@
 # 4. Inflammatory Bowel Disease (autoimmune/GI)
 #    Ground truth: infliximab, vedolizumab, ustekinumab, tofacitinib, azathioprine
 #
+rheumatoid_arthritis|rheumatoid arthritis|EFO_0000685|
 multiple_sclerosis|multiple sclerosis|MONDO_0005301|
 type_2_diabetes|type 2 diabetes|EFO_0001360|
 inflammatory_bowel_disease|inflammatory bowel disease|EFO_0003767|
