@@ -1,0 +1,50 @@
+# ============================================
+# 疾病配置: 2型糖尿病 (Type 2 Diabetes Mellitus)
+# ============================================
+#
+# 本项目聚焦于2型糖尿病及相关代谢疾病:
+#   - 2型糖尿病 (Type 2 Diabetes Mellitus)
+#   - 胰岛素抵抗 (Insulin Resistance)
+#   - 糖尿病并发症 (Diabetic Complications)
+#
+# 数据来源: ClinicalTrials.gov 失败/终止的临床试验
+# ============================================
+
+disease:
+  name: "Type 2 Diabetes Mellitus"
+  name_cn: "2型糖尿病"
+
+  description: |
+    2型糖尿病是以胰岛素抵抗和胰岛β细胞功能障碍为特征的
+    慢性代谢性疾病。本项目分析在该疾病领域失败的临床试验
+    药物，通过构建 Drug→Target→Pathway→Disease 知识图谱，
+    识别可能的药物重定位机会。
+
+  # CT.gov 搜索条件
+  condition: "type 2 diabetes"
+
+  # 相关ICD-10编码 (参考)
+  icd10_codes:
+    - "E11"    # Type 2 diabetes mellitus
+
+  # 相关MeSH术语
+  mesh_terms:
+    - "Diabetes Mellitus, Type 2"
+    - "Insulin Resistance"
+    - "Metabolic Syndrome"
+    - "Hyperglycemia"
+
+# 药物筛选
+drug_filter:
+  description: |
+    从CT.gov失败试验中提取的药物干预措施
+
+  include_types:
+    - DRUG
+    - BIOLOGICAL
+
+  exclude_types:
+    - DEVICE
+    - PROCEDURE
+    - BEHAVIORAL
+    - DIETARY_SUPPLEMENT

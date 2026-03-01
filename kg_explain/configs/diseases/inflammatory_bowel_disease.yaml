@@ -1,0 +1,52 @@
+# ============================================
+# 疾病配置: 炎症性肠病 (Inflammatory Bowel Disease)
+# ============================================
+#
+# 本项目聚焦于炎症性肠病及其亚型:
+#   - 克罗恩病 (Crohn's Disease)
+#   - 溃疡性结肠炎 (Ulcerative Colitis)
+#   - 炎症性肠病 (IBD)
+#
+# 数据来源: ClinicalTrials.gov 失败/终止的临床试验
+# ============================================
+
+disease:
+  name: "Inflammatory Bowel Disease"
+  name_cn: "炎症性肠病"
+
+  description: |
+    炎症性肠病是一组以肠道慢性炎症为特征的疾病，主要包括
+    克罗恩病和溃疡性结肠炎。本项目分析在该疾病领域失败的
+    临床试验药物，通过构建 Drug→Target→Pathway→Disease
+    知识图谱，识别可能的药物重定位机会。
+
+  # CT.gov 搜索条件
+  condition: "inflammatory bowel disease"
+
+  # 相关ICD-10编码 (参考)
+  icd10_codes:
+    - "K50"    # Crohn's disease
+    - "K51"    # Ulcerative colitis
+    - "K52"    # Other and unspecified noninfective gastroenteritis and colitis
+
+  # 相关MeSH术语
+  mesh_terms:
+    - "Inflammatory Bowel Diseases"
+    - "Crohn Disease"
+    - "Colitis, Ulcerative"
+    - "Colitis"
+
+# 药物筛选
+drug_filter:
+  description: |
+    从CT.gov失败试验中提取的药物干预措施
+
+  include_types:
+    - DRUG
+    - BIOLOGICAL
+
+  exclude_types:
+    - DEVICE
+    - PROCEDURE
+    - BEHAVIORAL
+    - DIETARY_SUPPLEMENT

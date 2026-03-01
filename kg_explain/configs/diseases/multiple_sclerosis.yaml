@@ -1,0 +1,50 @@
+# ============================================
+# 疾病配置: 多发性硬化 (Multiple Sclerosis)
+# ============================================
+#
+# 本项目聚焦于多发性硬化及相关脱髓鞘疾病:
+#   - 多发性硬化 (Multiple Sclerosis)
+#   - 复发缓解型多发性硬化 (Relapsing-Remitting MS)
+#   - 进展型多发性硬化 (Progressive MS)
+#
+# 数据来源: ClinicalTrials.gov 失败/终止的临床试验
+# ============================================
+
+disease:
+  name: "Multiple Sclerosis"
+  name_cn: "多发性硬化"
+
+  description: |
+    多发性硬化是一种中枢神经系统慢性炎性脱髓鞘疾病，以反复
+    发作的神经功能障碍为特征。本项目分析在该疾病领域失败的
+    临床试验药物，通过构建 Drug→Target→Pathway→Disease
+    知识图谱，识别可能的药物重定位机会。
+
+  # CT.gov 搜索条件
+  condition: "multiple sclerosis"
+
+  # 相关ICD-10编码 (参考)
+  icd10_codes:
+    - "G35"    # Multiple sclerosis
+
+  # 相关MeSH术语
+  mesh_terms:
+    - "Multiple Sclerosis"
+    - "Multiple Sclerosis, Relapsing-Remitting"
+    - "Demyelinating Diseases"
+    - "Autoimmune Diseases of the Nervous System"
+
+# 药物筛选
+drug_filter:
+  description: |
+    从CT.gov失败试验中提取的药物干预措施
+
+  include_types:
+    - DRUG
+    - BIOLOGICAL
+
+  exclude_types:
+    - DEVICE
+    - PROCEDURE
+    - BEHAVIORAL
+    - DIETARY_SUPPLEMENT
