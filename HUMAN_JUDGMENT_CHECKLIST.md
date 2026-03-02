@@ -2,6 +2,8 @@
 
 > 本文件列出管道中**需要人工判断**的可配置参数。
 > 代码提供了默认值，但具体数值需要根据疾病和研究目标调整。
+>
+> 更新：2026-03-03
 
 ---
 
@@ -11,13 +13,14 @@
 
 | 参数 | 默认值 | 配置方式 | 判断依据 |
 |------|-------|---------|---------|
-| SIG_PRIORITY | `dsmeta` | 环境变量 | `dsmeta` = GEO meta 分析优先（适合有已知 GSE 的常见病）；`archs4` = ARCHS4 H5 搜索优先（适合罕见病、无 GSE 列表） |
+| SIG_PRIORITY | `archs4` | 环境变量 | `archs4` = ARCHS4 H5 搜索优先（默认，本地无网络依赖）；`dsmeta` = GEO meta 分析优先（适合有手动策展 GSE 的疾病） |
 
 ### 1.2 ARCHS4 配置
 
 | 参数 | 默认值 | 配置位置 | 判断依据 |
 |------|-------|---------|---------|
-| case_keywords | 疾病名 + 缩写 | `archs4_signature_pipeline/configs/<disease>.yaml` | 关键词太泛会混入无关样本；太窄会搜不到。换疾病必须重新定义 |
+| EXTRA_KEYWORDS | 按疾病定义 | `auto_generate_config.py` | **新疾病首先检查此处**。OpenTargets 给医学术语，GEO 用通俗缩写（如 "fatty liver" 而非 "nonalcoholic steatohepatitis"）。跑前用 `check-keywords` 验证 |
+| case_keywords | 自动生成 | `archs4_signature_pipeline/configs/<disease>.yaml` | 由 auto_generate_config.py 从 OpenTargets 同义词 + EXTRA_KEYWORDS 自动生成。通常不需手动编辑 |
 | control_keywords | normal, healthy, control | 同上 | 控制组关键词，通常不需要改 |
 | min_samples_per_group | 3 | 同上 | 每组最少样本数，< 3 统计意义不足 |
 | max_samples_per_group | 50 | 同上 | 防止单个大系列主导 meta 分析 |
@@ -45,6 +48,8 @@
 
 ## 2. kg_explain — 知识图谱
 
+### 2.1 图谱构建
+
 | 参数 | 默认值 | 配置位置 | 判断依据 |
 |------|-------|---------|---------|
 | Pathway-Disease 关联强度阈值 | config YAML | `config.yaml → pathway_score_threshold` | 过高漏掉弱但真实的通路；过低引入噪声 |
@@ -52,6 +57,15 @@
 | 严重不良事件关键词 | `serious_ae_keywords` | `config.yaml → serious_ae_keywords` | 哪些 AE 算"严重"，需临床药理学判断。**换疾病需重新定义** |
 | topk_paths_per_pair | config YAML | `config.yaml → topk_paths_per_pair` | 每对 drug-disease 保留多少条通路 |
 | Trial status 过滤 | TERMINATED, WITHDRAWN, SUSPENDED | `config.yaml → trial_statuses` | 哪些试验状态视为安全信号 |
+| KG_MAX_DRUGS_SIGNATURE | 200 | 环境变量 | Cross 路线药物上限。小签名时自动降到 80 |
+
+### 2.2 V5 排名权重
+
+| 参数 | 默认值 | 判断依据 |
+|------|-------|---------|
+| safety_penalty 权重 (w1) | 0.3 | 安全罚分在 final score 中的影响度 |
+| trial_penalty 权重 (w2) | 0.2 | 失败试验罚分的影响度 |
+| phenotype_boost 权重 (w3) | 0.1 | 表型重叠加成的影响度 |
 
 ---
 
@@ -66,8 +80,6 @@
 | Translatability | 20 | 研究活跃度 + benefit 证据，50/20/10/5 篇为断点 |
 | Safety Fit | 20 | harm_penalty_per_paper=1.0, 黑名单惩罚=6.0 |
 | Practicality | 10 | 仅基于 PMID 数量，50/20/10/5 为断点 |
-
-**需要确认**: 5 个维度的满分比例 (30/20/20/20/10) 是否反映你的优先级偏好？
 
 ### 3.2 GO/NO-GO 门控
 
@@ -127,10 +139,13 @@
 
 | 参数 | 位置 | 原因 |
 |------|------|------|
-| `case_keywords` | ARCHS4 config YAML | 疾病关键词不同 |
-| `gse_list` + `regex_rules` | dsmeta config YAML | GEO 数据集不同 |
+| `EXTRA_KEYWORDS` | `auto_generate_config.py` | GEO 友好术语因疾病而异。跑前 `check-keywords` 检查是否充分 |
 | `safety_blacklist_patterns` | LLM ScoringConfig | 高风险药物因疾病而异 |
 | `serious_ae_keywords` | KG config YAML | 严重 AE 定义因疾病而异 |
+
+以下参数**已自动化**，通常不需手动改：
+- `case_keywords` — 由 auto_generate_config.py 从 OpenTargets 同义词 + EXTRA_KEYWORDS 自动生成
+- `gse_list` + `regex_rules` — 由 runner.sh `ensure_cross_signature_config()` 自动搜索 GEO 生成
 
 其他参数（打分权重、门控阈值、检索参数等）通常不需要改，但如果疾病文献量差异很大（如罕见病 vs 常见病），可能需要调低文献数量断点。
 

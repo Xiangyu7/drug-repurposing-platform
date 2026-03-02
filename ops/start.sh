@@ -8,6 +8,7 @@ set -Eeuo pipefail
 # Usage:
 #   bash ops/start.sh setup                  # 安装环境
 #   bash ops/start.sh check                  # 检查环境
+#   bash ops/start.sh check-keywords         # 检查 ARCHS4 关键词配置
 #   bash ops/start.sh run <disease>          # 跑单个疾病
 #   bash ops/start.sh start                  # 启动批量管线（后台）
 #   bash ops/start.sh status                 # 查看运行状态
@@ -99,6 +100,7 @@ if [[ $# -gt 0 ]]; then
         # ── New subcommand style ──
         setup)    ACTION="setup"; shift ;;
         check)    ACTION="check"; shift ;;
+        check-keywords) ACTION="check-keywords"; shift ;;
         run)
             ACTION="single"; shift
             if [[ $# -gt 0 && "$1" != --* ]]; then
@@ -494,6 +496,14 @@ run_single_disease() {
 case "${ACTION}" in
     check)
         check_environment
+        ;;
+    check-keywords)
+        _check_script="${ROOT_DIR}/archs4_signature_pipeline/scripts/check_archs4_configs.py"
+        if [[ -n "${DISEASE_LIST:-}" ]]; then
+            python3 "${_check_script}" --disease-list "${DISEASE_LIST}"
+        else
+            python3 "${_check_script}"
+        fi
         ;;
     setup)
         setup_venvs

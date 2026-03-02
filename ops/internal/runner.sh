@@ -160,7 +160,7 @@ RUN_MODE="${RUN_MODE:-dual}" # dual | origin_only
 STEP_TIMEOUT="${STEP_TIMEOUT:-10800}" # 3h per step default
 DSMETA_DISK_MIN_GB="${DSMETA_DISK_MIN_GB:-8}"  # min free GB before dsmeta (GEO downloads are large)
 DSMETA_CLEANUP="${DSMETA_CLEANUP:-1}"          # auto-clean dsmeta workdir after each disease
-SIG_PRIORITY="${SIG_PRIORITY:-dsmeta}"         # dsmeta | archs4 — which signature source to try first
+SIG_PRIORITY="${SIG_PRIORITY:-archs4}"         # archs4 | dsmeta — which signature source to try first
 # Module-level timeout overrides (default: inherit STEP_TIMEOUT)
 TIMEOUT_CROSS_AUTO_DISCOVER_GEO="${TIMEOUT_CROSS_AUTO_DISCOVER_GEO:-${STEP_TIMEOUT}}"
 TIMEOUT_CROSS_GENERATE_DSMETA_CONFIG="${TIMEOUT_CROSS_GENERATE_DSMETA_CONFIG:-${STEP_TIMEOUT}}"
@@ -1554,7 +1554,7 @@ process_disease() {
       # Run cross route in a block; failure sets cross_status but doesn't return
       cross_route_start=$SECONDS
       if run_cross_route "${disease_key}" "${disease_query}" "${run_id}" \
-           "${disease_work}" "${dsmeta_cfg}" "${kg_output_dir}" "${kg_manifest}" "${neg_csv}"; then
+           "${disease_work}" "${dsmeta_cfg}" "${kg_output_dir}" "${kg_manifest}" "${neg_csv}" "${origin_ids_input}"; then
         cross_status="success"
         cross_route_elapsed=$((SECONDS - cross_route_start))
       else
@@ -1809,6 +1809,7 @@ run_cross_route() {
   local kg_output_dir="$6"
   local kg_manifest="$7"
   local neg_csv="$8"
+  local efo_ids="${9:-}"
 
   # --- Signature build: order determined by SIG_PRIORITY ---
   local archs4_cfg="${ARCHS4_DIR}/configs/${disease_key}.yaml"
@@ -1822,8 +1823,26 @@ run_cross_route() {
 
   # -- helper: try ARCHS4 --
   _try_archs4() {
+    # Auto-generate ARCHS4 config if it doesn't exist
     if [[ ! -f "${archs4_cfg}" ]]; then
-      a4_status="skip"; a4_detail="无配置"; return 1
+      local archs4_gen_py="${ARCHS4_DIR}/scripts/auto_generate_config.py"
+      if [[ -n "${efo_ids}" && -f "${archs4_gen_py}" ]]; then
+        log "[INFO] Cross: ARCHS4 config not found, auto-generating for ${disease_key}..."
+        if run_cmd "Cross: generate ARCHS4 config (${disease_key})" --timeout "${TIMEOUT_CROSS_GENERATE_ARCHS4_CONFIG:-120}" \
+             python3 "${archs4_gen_py}" \
+               --disease "${disease_key}" \
+               --disease-name "${disease_query}" \
+               --efo-id "${efo_ids}" \
+               --outdir "${ARCHS4_DIR}/configs"; then
+          if [[ -f "${archs4_cfg}" ]]; then
+            log "[INFO] Cross: auto-generated ARCHS4 config: ${archs4_cfg}"
+          fi
+        fi
+      fi
+      # Still no config after auto-generation attempt
+      if [[ ! -f "${archs4_cfg}" ]]; then
+        a4_status="skip"; a4_detail="无配置 (auto-generate failed)"; return 1
+      fi
     fi
     log "[INFO] Cross: trying ARCHS4 signature..."
     if run_cmd "Cross: archs4 (${disease_key})" --timeout "${TIMEOUT_CROSS_ARCHS4}" run_in_dir "${ARCHS4_DIR}" "${ARCHS4_PY}" run.py --config "${archs4_cfg}"; then

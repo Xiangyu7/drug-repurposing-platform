@@ -30,13 +30,29 @@ logging.basicConfig(
 # Extra keywords not found in ontology — only use terms >= 3 chars
 # that are unambiguous enough to avoid false matches in sample metadata.
 EXTRA_KEYWORDS = {
-    "nash": ["NASH", "MASH"],
-    "nafld": ["NAFLD", "MASLD"],
-    "als": ["ALS", "motor neuron disease"],
-    "ipf": ["IPF", "lung fibrosis"],
-    "glioblastoma": ["GBM"],
-    "triple_negative_breast_cancer": ["TNBC"],
-    "pancreatic_cancer": ["PDAC"],
+    # --- Metabolic / Liver ---
+    "nash": ["NASH", "MASH", "NAFLD", "fatty liver", "hepatic steatosis", "steatosis"],
+    "nafld": ["NAFLD", "MASLD", "NASH", "fatty liver", "hepatic steatosis", "steatosis"],
+    "metabolic_syndrome": ["MetS", "insulin resistance", "obesity", "hyperglycemia"],
+    # --- Autoimmune / Inflammatory ---
+    "lupus": ["SLE", "lupus nephritis", "lupus erythematosus"],
+    "psoriasis": ["psoriatic", "psoriasis vulgaris", "plaque psoriasis"],
+    "crohns_disease": ["Crohn", "Crohns", "ileitis", "inflammatory bowel"],
+    "ankylosing_spondylitis": ["ankylosing", "spondylitis", "axial spondyloarthritis"],
+    # --- Neurodegeneration ---
+    "alzheimers_disease": ["Alzheimer", "Alzheimers", "amyloid", "tauopathy", "dementia"],
+    "parkinsons_disease": ["Parkinson", "Parkinsons", "dopaminergic", "substantia nigra"],
+    "als": ["ALS", "motor neuron disease", "motor neuron degeneration", "spinal cord"],
+    "huntingtons_disease": ["Huntington", "Huntingtons", "huntingtin", "HTT", "polyglutamine"],
+    # --- Fibrosis ---
+    "ipf": ["IPF", "lung fibrosis", "pulmonary fibrosis", "interstitial lung disease"],
+    "liver_fibrosis": ["liver fibrosis", "hepatic fibrosis", "cirrhosis", "fibrotic liver"],
+    "renal_fibrosis": ["renal fibrosis", "kidney fibrosis", "nephrosclerosis", "CKD"],
+    # --- Oncology ---
+    "pancreatic_cancer": ["PDAC", "pancreatic adenocarcinoma", "pancreatic ductal", "pancreatic tumor"],
+    "glioblastoma": ["GBM", "glioma", "brain tumor", "astrocytoma"],
+    "triple_negative_breast_cancer": ["TNBC", "triple negative", "basal-like breast cancer"],
+    # --- Existing cardiovascular (unchanged) ---
     "pulmonary_arterial_hypertension": ["PAH"],
     "myocardial_infarction": ["AMI", "STEMI", "NSTEMI"],
     "venous_thromboembolism": ["VTE"],
