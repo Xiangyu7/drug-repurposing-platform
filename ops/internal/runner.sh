@@ -54,7 +54,7 @@ set -Eeuo pipefail
 #   TOPN_CROSS          — Direction A bridge topn: auto|int (默认 auto)
 #   TOPN_ORIGIN         — Direction B bridge topn: auto|int (默认 auto)
 #   TOPN_STAGE2_ENABLE  — 质量未达标时是否允许二阶段扩容 (默认 1)
-#   STEP_TIMEOUT        — 每步超时 (默认 1800s)
+#   STEP_TIMEOUT        — 每步超时 (默认 10800s / 3h)
 #   DISK_MIN_GB         — 最低可用磁盘空间GB (默认 5)
 #   DSMETA_CLEANUP      — dsmeta跑完后是否自动清理workdir (默认 1=清理, 0=保留)
 #   KG_MAX_DRUGS_SIGNATURE — signature模式KG最多处理的药物数 (默认 200, 0=不限)
@@ -157,7 +157,7 @@ STRICT_CONTRACT="${STRICT_CONTRACT:-1}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"
 RUN_MODE="${RUN_MODE:-dual}" # dual | origin_only
-STEP_TIMEOUT="${STEP_TIMEOUT:-3600}" # 60 min per step default
+STEP_TIMEOUT="${STEP_TIMEOUT:-10800}" # 3h per step default
 DSMETA_DISK_MIN_GB="${DSMETA_DISK_MIN_GB:-8}"  # min free GB before dsmeta (GEO downloads are large)
 DSMETA_CLEANUP="${DSMETA_CLEANUP:-1}"          # auto-clean dsmeta workdir after each disease
 SIG_PRIORITY="${SIG_PRIORITY:-dsmeta}"         # dsmeta | archs4 — which signature source to try first
