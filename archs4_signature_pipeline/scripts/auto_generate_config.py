@@ -2,17 +2,20 @@
 """
 auto_generate_config.py - Auto-generate ARCHS4 pipeline configs from disease list
 
-Reads disease_list.txt (or any disease list file) and generates per-disease
-YAML configs for the ARCHS4 signature pipeline.
+Automatically fetches disease synonyms from OpenTargets API so that
+ARCHS4 sample search uses the best possible keywords without manual
+configuration for each new disease.
 
 Usage:
   python scripts/auto_generate_config.py --disease-list ../../ops/internal/disease_list_day1_dual.txt
-  python scripts/auto_generate_config.py --disease-list ../../ops/internal/disease_list_b_only.txt
-  python scripts/auto_generate_config.py --disease atherosclerosis --efo-id EFO_0003914
+  python scripts/auto_generate_config.py --disease nash --disease-name "nonalcoholic steatohepatitis" --efo-id EFO_1001249
 """
 import argparse
 import logging
+import re
 from pathlib import Path
+from urllib.request import Request, urlopen
+import json
 
 import yaml
 
@@ -23,54 +26,114 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-# Disease-specific case keywords (beyond the disease name itself)
-DISEASE_KEYWORD_MAP = {
-    "atherosclerosis": ["atherosclerosis", "atherosclerotic", "plaque", "stenosis"],
-    "heart_failure": ["heart failure", "cardiac failure", "cardiomyopathy", "HFrEF", "HFpEF"],
-    "coronary_artery_disease": ["coronary artery disease", "coronary heart disease", "CAD", "CHD"],
-    "myocardial_infarction": ["myocardial infarction", "heart attack", "acute MI", "AMI", "STEMI", "NSTEMI"],
-    "atrial_fibrillation": ["atrial fibrillation", "AF", "AFib"],
-    "hypertension": ["hypertension", "high blood pressure", "essential hypertension"],
-    "stroke": ["stroke", "ischemic stroke", "cerebral infarction", "cerebrovascular"],
-    "deep_vein_thrombosis": ["deep vein thrombosis", "DVT", "venous thrombosis"],
-    "venous_thromboembolism": ["venous thromboembolism", "VTE", "pulmonary embolism", "DVT"],
-    "angina_pectoris": ["angina", "angina pectoris", "chest pain"],
-    "myocarditis": ["myocarditis", "cardiac inflammation"],
-    "pulmonary_embolism": ["pulmonary embolism", "PE", "pulmonary thromboembolism"],
-    "endocarditis": ["endocarditis", "infective endocarditis"],
-    "pulmonary_arterial_hypertension": ["pulmonary arterial hypertension", "PAH", "pulmonary hypertension"],
-    "cardiomyopathy": ["cardiomyopathy", "dilated cardiomyopathy", "hypertrophic cardiomyopathy", "DCM", "HCM"],
-    "abdominal_aortic_aneurysm": ["abdominal aortic aneurysm", "AAA", "aortic aneurysm"],
-    # ── Metabolic / Liver ──
-    "nash": ["NASH", "steatohepatitis", "fatty liver", "NAFLD", "steatosis", "MASH"],
-    "nafld": ["NAFLD", "fatty liver", "steatosis", "NASH", "MASLD", "hepatic steatosis"],
-    "metabolic_syndrome": ["metabolic syndrome", "insulin resistance", "obesity", "hyperglycemia"],
-    # ── Autoimmune / Inflammatory ──
-    "lupus": ["lupus", "SLE", "systemic lupus erythematosus", "lupus nephritis"],
-    "psoriasis": ["psoriasis", "psoriatic", "plaque psoriasis"],
-    "crohns_disease": ["Crohn", "Crohn's disease", "inflammatory bowel", "IBD", "ileitis"],
-    "ankylosing_spondylitis": ["ankylosing spondylitis", "axial spondyloarthritis", "spondylitis"],
-    # ── Neurodegeneration ──
-    "alzheimers_disease": ["Alzheimer", "Alzheimer's disease", "AD", "dementia", "amyloid", "tau"],
-    "parkinsons_disease": ["Parkinson", "Parkinson's disease", "PD", "dopaminergic", "substantia nigra"],
-    "als": ["ALS", "amyotrophic lateral sclerosis", "motor neuron disease", "MND"],
-    "huntingtons_disease": ["Huntington", "Huntington's disease", "HD", "huntingtin", "CAG repeat"],
-    # ── Fibrosis ──
-    "ipf": ["IPF", "idiopathic pulmonary fibrosis", "pulmonary fibrosis", "lung fibrosis"],
-    "liver_fibrosis": ["liver fibrosis", "hepatic fibrosis", "cirrhosis", "fibrotic liver"],
-    "renal_fibrosis": ["renal fibrosis", "kidney fibrosis", "nephrosclerosis", "tubulointerstitial fibrosis"],
-    # ── Oncology ──
-    "pancreatic_cancer": ["pancreatic cancer", "pancreatic adenocarcinoma", "PDAC", "pancreatic ductal"],
-    "glioblastoma": ["glioblastoma", "GBM", "glioblastoma multiforme", "high grade glioma"],
-    "triple_negative_breast_cancer": ["triple negative breast cancer", "TNBC", "basal-like breast cancer"],
+# Extra keywords not in ontology (abbreviations, colloquial terms)
+EXTRA_KEYWORDS = {
+    "nash": ["NASH", "MASH"],
+    "nafld": ["NAFLD", "MASLD"],
+    "als": ["ALS", "MND"],
+    "ipf": ["IPF"],
+    "parkinsons_disease": ["PD"],
+    "alzheimers_disease": ["AD"],
+    "huntingtons_disease": ["HD"],
+    "glioblastoma": ["GBM"],
+    "triple_negative_breast_cancer": ["TNBC"],
+    "pancreatic_cancer": ["PDAC"],
+    "pulmonary_arterial_hypertension": ["PAH"],
+    "coronary_artery_disease": ["CAD", "CHD"],
+    "myocardial_infarction": ["AMI", "STEMI", "NSTEMI"],
+    "atrial_fibrillation": ["AFib"],
+    "venous_thromboembolism": ["VTE"],
+    "deep_vein_thrombosis": ["DVT"],
+    "abdominal_aortic_aneurysm": ["AAA"],
+    "pulmonary_embolism": ["PE"],
+    "cardiomyopathy": ["DCM", "HCM"],
+    "heart_failure": ["HFrEF", "HFpEF"],
 }
 
 
+def fetch_opentargets_synonyms(efo_id: str, timeout: float = 10.0) -> list[str]:
+    """Fetch disease name + synonyms from OpenTargets GraphQL API."""
+    query = """
+    query DiseaseInfo($efoId: String!) {
+      disease(efoId: $efoId) {
+        name
+        synonyms { terms }
+      }
+    }
+    """
+    payload = json.dumps({"query": query, "variables": {"efoId": efo_id}}).encode()
+    req = Request(
+        "https://api.platform.opentargets.org/api/v4/graphql",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read())
+        disease = data.get("data", {}).get("disease")
+        if not disease:
+            return []
+        terms = []
+        if disease.get("name"):
+            terms.append(disease["name"])
+        for syn_group in disease.get("synonyms", []) or []:
+            for t in syn_group.get("terms", []) or []:
+                if t and t not in terms:
+                    terms.append(t)
+        return terms
+    except Exception as e:
+        logger.warning("OpenTargets synonym fetch failed for %s: %s", efo_id, e)
+        return []
+
+
+def _clean_keywords(raw_terms: list[str], disease_name: str, max_keywords: int = 12) -> list[str]:
+    """Deduplicate, filter overly long/generic terms, and limit count."""
+    seen = set()
+    keywords = []
+    # Always include the disease name first
+    for term in [disease_name] + raw_terms:
+        normalized = term.strip()
+        if not normalized:
+            continue
+        key = normalized.lower()
+        if key in seen:
+            continue
+        # Skip very long synonyms (> 60 chars) — they won't match sample metadata
+        if len(normalized) > 60:
+            continue
+        # Skip terms that are just IDs (e.g., "OMIM:123456")
+        if re.match(r'^[A-Z]+:\d+$', normalized):
+            continue
+        seen.add(key)
+        keywords.append(normalized)
+        if len(keywords) >= max_keywords:
+            break
+    return keywords
+
+
+def build_keywords(disease_key: str, disease_name: str, efo_id: str) -> list[str]:
+    """Build case keywords: OpenTargets synonyms + extra abbreviations."""
+    # 1. Fetch synonyms from OpenTargets
+    ot_terms = fetch_opentargets_synonyms(efo_id)
+    if ot_terms:
+        logger.info("OpenTargets synonyms for %s (%s): %d terms", disease_key, efo_id, len(ot_terms))
+    else:
+        logger.warning("No OpenTargets synonyms for %s, using disease name only", disease_key)
+        ot_terms = [disease_name]
+
+    # 2. Append extra abbreviations/colloquial terms
+    extras = EXTRA_KEYWORDS.get(disease_key, [])
+
+    # 3. Clean and deduplicate
+    return _clean_keywords(ot_terms + extras, disease_name)
+
+
 def generate_config(disease_key: str, disease_name: str, efo_id: str,
-                    h5_path: str = "data/archs4/human_gene_v2.4.h5") -> dict:
+                    h5_path: str = "data/archs4/human_gene_v2.4.h5",
+                    case_keywords: list[str] | None = None) -> dict:
     """Generate a config dict for a single disease."""
-    # Get disease-specific keywords or use disease name
-    case_keywords = DISEASE_KEYWORD_MAP.get(disease_key, [disease_name])
+    if case_keywords is None:
+        case_keywords = build_keywords(disease_key, disease_name, efo_id)
 
     config = {
         "project": {
@@ -173,7 +236,8 @@ def main():
         out_path = configs_dir / f"{d['key']}.yaml"
         with open(out_path, "w", encoding="utf-8") as f:
             yaml.dump(cfg, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-        logger.info("Generated: %s (%s, %s)", out_path, d["name"], d["efo_id"])
+        logger.info("Generated: %s (%s, %s) — %d keywords",
+                     out_path, d["name"], d["efo_id"], len(cfg["archs4"]["case_keywords"]))
 
     logger.info("Generated %d config files in %s", len(diseases), configs_dir)
 
