@@ -1,11 +1,12 @@
 # disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
 # Commercial Pipeline — 5 therapeutic areas, 17 diseases
+# All IDs verified against OpenTargets API (2026-03-02)
 #
 # ============================================================
 # Batch 1: Metabolic / Liver (highest commercial priority)
 # ============================================================
-nash|nonalcoholic steatohepatitis|MONDO_0004790|
-nafld|nonalcoholic fatty liver disease|EFO_0004555|
+nash|nonalcoholic steatohepatitis|EFO_1001249|
+nafld|nonalcoholic fatty liver disease|EFO_0003095|
 metabolic_syndrome|metabolic syndrome|EFO_0000195|
 #
 # ============================================================
@@ -13,7 +14,7 @@ metabolic_syndrome|metabolic syndrome|EFO_0000195|
 # ============================================================
 lupus|systemic lupus erythematosus|MONDO_0007915|
 psoriasis|psoriasis|EFO_0000676|
-crohns_disease|Crohn disease|MONDO_0005011|
+crohns_disease|Crohn disease|EFO_0000384|
 ankylosing_spondylitis|ankylosing spondylitis|EFO_0003898|
 #
 # ============================================================
@@ -27,13 +28,13 @@ huntingtons_disease|Huntington disease|MONDO_0007739|
 # ============================================================
 # Batch 4: Fibrosis (cross-organ narrative)
 # ============================================================
-ipf|idiopathic pulmonary fibrosis|MONDO_0008345|
-liver_fibrosis|liver fibrosis|EFO_0004264|
-renal_fibrosis|renal fibrosis|HP_0000790|
+ipf|idiopathic pulmonary fibrosis|EFO_0000768|
+liver_fibrosis|liver fibrosis|HP_0001395|
+renal_fibrosis|renal fibrosis|EFO_1001517|
 #
 # ============================================================
 # Batch 5: Oncology (supplement portfolio)
 # ============================================================
-pancreatic_cancer|pancreatic cancer|MONDO_0005192|
-glioblastoma|glioblastoma|MONDO_0006277|
+pancreatic_cancer|pancreatic cancer|EFO_0002618|
+glioblastoma|glioblastoma|EFO_0000519|
 triple_negative_breast_cancer|triple negative breast cancer|EFO_0005537|
