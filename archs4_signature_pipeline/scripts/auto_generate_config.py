@@ -27,26 +27,21 @@ logging.basicConfig(
 )
 
 # Extra keywords not in ontology (abbreviations, colloquial terms)
+# Extra keywords not found in ontology — only use terms >= 3 chars
+# that are unambiguous enough to avoid false matches in sample metadata.
 EXTRA_KEYWORDS = {
     "nash": ["NASH", "MASH"],
     "nafld": ["NAFLD", "MASLD"],
-    "als": ["ALS", "MND"],
-    "ipf": ["IPF"],
-    "parkinsons_disease": ["PD"],
-    "alzheimers_disease": ["AD"],
-    "huntingtons_disease": ["HD"],
+    "als": ["ALS", "motor neuron disease"],
+    "ipf": ["IPF", "lung fibrosis"],
     "glioblastoma": ["GBM"],
     "triple_negative_breast_cancer": ["TNBC"],
     "pancreatic_cancer": ["PDAC"],
     "pulmonary_arterial_hypertension": ["PAH"],
-    "coronary_artery_disease": ["CAD", "CHD"],
     "myocardial_infarction": ["AMI", "STEMI", "NSTEMI"],
-    "atrial_fibrillation": ["AFib"],
     "venous_thromboembolism": ["VTE"],
     "deep_vein_thrombosis": ["DVT"],
     "abdominal_aortic_aneurysm": ["AAA"],
-    "pulmonary_embolism": ["PE"],
-    "cardiomyopathy": ["DCM", "HCM"],
     "heart_failure": ["HFrEF", "HFpEF"],
 }
 
@@ -100,6 +95,9 @@ def _clean_keywords(raw_terms: list[str], disease_name: str, max_keywords: int =
             continue
         # Skip very long synonyms (> 60 chars) — they won't match sample metadata
         if len(normalized) > 60:
+            continue
+        # Skip very short terms (< 3 chars) — too ambiguous (AD, PE, etc.)
+        if len(normalized) < 3:
             continue
         # Skip terms that are just IDs (e.g., "OMIM:123456")
         if re.match(r'^[A-Z]+:\d+$', normalized):
