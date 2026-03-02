@@ -1,0 +1,39 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline — 5 therapeutic areas, 17 diseases
+#
+# ============================================================
+# Batch 1: Metabolic / Liver (highest commercial priority)
+# ============================================================
+nash|nonalcoholic steatohepatitis|MONDO_0004790|
+nafld|nonalcoholic fatty liver disease|EFO_0004555|
+metabolic_syndrome|metabolic syndrome|EFO_0000195|
+#
+# ============================================================
+# Batch 2: Autoimmune / Inflammatory (expand existing portfolio)
+# ============================================================
+lupus|systemic lupus erythematosus|MONDO_0007915|
+psoriasis|psoriasis|EFO_0000676|
+crohns_disease|Crohn disease|MONDO_0005011|
+ankylosing_spondylitis|ankylosing spondylitis|EFO_0003898|
+#
+# ============================================================
+# Batch 3: Neurodegeneration (high failure rate = rich Origin data)
+# ============================================================
+alzheimers_disease|Alzheimer disease|MONDO_0004975|
+parkinsons_disease|Parkinson disease|MONDO_0005180|
+als|amyotrophic lateral sclerosis|MONDO_0004976|
+huntingtons_disease|Huntington disease|MONDO_0007739|
+#
+# ============================================================
+# Batch 4: Fibrosis (cross-organ narrative)
+# ============================================================
+ipf|idiopathic pulmonary fibrosis|MONDO_0008345|
+liver_fibrosis|liver fibrosis|EFO_0004264|
+renal_fibrosis|renal fibrosis|HP_0000790|
+#
+# ============================================================
+# Batch 5: Oncology (supplement portfolio)
+# ============================================================
+pancreatic_cancer|pancreatic cancer|MONDO_0005192|
+glioblastoma|glioblastoma|MONDO_0006277|
+triple_negative_breast_cancer|triple negative breast cancer|EFO_0005537|
