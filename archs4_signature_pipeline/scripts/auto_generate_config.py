@@ -41,6 +41,28 @@ DISEASE_KEYWORD_MAP = {
     "pulmonary_arterial_hypertension": ["pulmonary arterial hypertension", "PAH", "pulmonary hypertension"],
     "cardiomyopathy": ["cardiomyopathy", "dilated cardiomyopathy", "hypertrophic cardiomyopathy", "DCM", "HCM"],
     "abdominal_aortic_aneurysm": ["abdominal aortic aneurysm", "AAA", "aortic aneurysm"],
+    # ── Metabolic / Liver ──
+    "nash": ["NASH", "steatohepatitis", "fatty liver", "NAFLD", "steatosis", "MASH"],
+    "nafld": ["NAFLD", "fatty liver", "steatosis", "NASH", "MASLD", "hepatic steatosis"],
+    "metabolic_syndrome": ["metabolic syndrome", "insulin resistance", "obesity", "hyperglycemia"],
+    # ── Autoimmune / Inflammatory ──
+    "lupus": ["lupus", "SLE", "systemic lupus erythematosus", "lupus nephritis"],
+    "psoriasis": ["psoriasis", "psoriatic", "plaque psoriasis"],
+    "crohns_disease": ["Crohn", "Crohn's disease", "inflammatory bowel", "IBD", "ileitis"],
+    "ankylosing_spondylitis": ["ankylosing spondylitis", "axial spondyloarthritis", "spondylitis"],
+    # ── Neurodegeneration ──
+    "alzheimers_disease": ["Alzheimer", "Alzheimer's disease", "AD", "dementia", "amyloid", "tau"],
+    "parkinsons_disease": ["Parkinson", "Parkinson's disease", "PD", "dopaminergic", "substantia nigra"],
+    "als": ["ALS", "amyotrophic lateral sclerosis", "motor neuron disease", "MND"],
+    "huntingtons_disease": ["Huntington", "Huntington's disease", "HD", "huntingtin", "CAG repeat"],
+    # ── Fibrosis ──
+    "ipf": ["IPF", "idiopathic pulmonary fibrosis", "pulmonary fibrosis", "lung fibrosis"],
+    "liver_fibrosis": ["liver fibrosis", "hepatic fibrosis", "cirrhosis", "fibrotic liver"],
+    "renal_fibrosis": ["renal fibrosis", "kidney fibrosis", "nephrosclerosis", "tubulointerstitial fibrosis"],
+    # ── Oncology ──
+    "pancreatic_cancer": ["pancreatic cancer", "pancreatic adenocarcinoma", "PDAC", "pancreatic ductal"],
+    "glioblastoma": ["glioblastoma", "GBM", "glioblastoma multiforme", "high grade glioma"],
+    "triple_negative_breast_cancer": ["triple negative breast cancer", "TNBC", "basal-like breast cancer"],
 }
 
 
