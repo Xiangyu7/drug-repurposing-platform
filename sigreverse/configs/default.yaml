@@ -1,5 +1,6 @@
 # SigReverse default config — v0.4.1
 
+# LDP3 backend — LINCS L1000 Phase 1, ~1,000 small molecule compounds
 ldp3:
   metadata_api: "https://maayanlab.cloud/sigcom-lincs/metadata-api/"
   data_api: "https://maayanlab.cloud/sigcom-lincs/data-api/api/v1/"

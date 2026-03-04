@@ -569,6 +569,20 @@ def inject_sigreverse_drugs(
         logger.warning("SigReverse rank 为空或缺少 drug 列, 跳过注入")
         return 0
 
+    # FDR 门控: 只注入统计显著的药物 (fdr_bh < 0.05)
+    fdr_col = "fdr_bh"
+    if fdr_col in sig_df.columns:
+        before = len(sig_df)
+        sig_df = sig_df[sig_df[fdr_col] < 0.05]
+        after = len(sig_df)
+        logger.info("SigReverse FDR 门控 (fdr_bh<0.05): %d → %d 药物", before, after)
+        if sig_df.empty:
+            logger.warning("SigReverse 无 FDR 显著药物 (全部 fdr_bh≥0.05), 跳过注入. "
+                           "签名基因数不足时属正常现象, 扩大 ARCHS4 max_series 后可改善.")
+            return 0
+    else:
+        logger.warning("SigReverse rank 缺少 fdr_bh 列, 跳过 FDR 过滤 (使用全部 top N)")
+
     # 按 final_reversal_score 降序取 top N
     score_col = "final_reversal_score"
     if score_col in sig_df.columns:
@@ -577,7 +591,7 @@ def inject_sigreverse_drugs(
         sig_df = sig_df.head(max_drugs)
 
     drug_names = sig_df["drug"].dropna().unique().tolist()
-    logger.info("SigReverse 注入: 读取 %d 个候选药 (top %d)", len(drug_names), max_drugs)
+    logger.info("SigReverse 注入: 读取 %d 个候选药 (top %d, FDR 显著)", len(drug_names), max_drugs)
 
     # ── 加载已有药物, 用于去重 ──
     chembl_map_path = data_dir / "drug_chembl_map.csv"

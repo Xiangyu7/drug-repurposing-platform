@@ -896,6 +896,32 @@ run_route_llm_stage() {
   return 0
 }
 
+# Seed stage2's step6 dossiers directory with hard links from stage1 so that
+# step6 skips already-processed drugs and only runs LLM on new candidates.
+seed_stage2_dossiers() {
+  local stage1_step6_dir="$1"
+  local stage2_step6_dir="$2"
+  local src_dir="${stage1_step6_dir}/dossiers"
+  local dst_dir="${stage2_step6_dir}/dossiers"
+  if [[ ! -d "${src_dir}" ]]; then
+    log "[INFO] seed_stage2_dossiers: stage1 dossiers not found at ${src_dir}, skipping"
+    return 0
+  fi
+  mkdir -p "${dst_dir}"
+  local count=0
+  for src_file in "${src_dir}"/*.json "${src_dir}"/*.md; do
+    [[ -f "${src_file}" ]] || continue
+    local fname
+    fname="$(basename "${src_file}")"
+    local dst_file="${dst_dir}/${fname}"
+    if [[ ! -e "${dst_file}" ]]; then
+      ln "${src_file}" "${dst_file}" 2>/dev/null || cp "${src_file}" "${dst_file}"
+      (( count++ )) || true
+    fi
+  done
+  log "[INFO] seed_stage2_dossiers: linked ${count} stage1 dossier files -> ${dst_dir}"
+}
+
 resolve_path_optional() {
   local input="$1"
   if [[ -z "${input}" ]]; then
@@ -1709,6 +1735,7 @@ process_disease() {
         local step8_origin_stage2="${disease_work}/llm/step8_origin_reassess_stage2"
         local step9_origin_stage2="${disease_work}/llm/step9_origin_reassess_stage2"
         log "[INFO] Origin stage2 expansion: topn ${origin_topn} -> ${origin_topn_stage2}"
+        seed_stage2_dossiers "${step6_origin}" "${step6_origin_stage2}"
         if run_route_llm_stage "Origin" "origin" "stage2" "${bridge_origin}" "${neg_csv}" "${step6_origin_stage2}" "${step7_origin_stage2}" "${step8_origin_stage2}" "${step9_origin_stage2}" "${disease_query}" "${origin_topn_stage2}" "${TOPK_ORIGIN}" "${SHORTLIST_MIN_GO_ORIGIN}" "${origin_quality_stage2}"; then
           origin_selected_stage="stage2"
           origin_selected_topn="${origin_topn_stage2}"
@@ -2035,6 +2062,7 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
         --bridge "${bridge_cross}" --sig-rank "${sig_rank_csv}" || true
   fi
 
+
   step6_cross="${disease_work}/llm/step6_repurpose_cross"
   step7_cross="${disease_work}/llm/step7_repurpose_cross"
   step8_cross="${disease_work}/llm/step8_repurpose_cross"
@@ -2097,6 +2125,7 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
         local step8_cross_stage2="${disease_work}/llm/step8_repurpose_cross_stage2"
         local step9_cross_stage2="${disease_work}/llm/step9_repurpose_cross_stage2"
         log "[INFO] Cross stage2 expansion: topn ${cross_topn} -> ${cross_topn_stage2}"
+        seed_stage2_dossiers "${step6_cross}" "${step6_cross_stage2}"
         if run_route_llm_stage "Cross" "cross" "stage2" "${bridge_cross}" "${neg_csv}" "${step6_cross_stage2}" "${step7_cross_stage2}" "${step8_cross_stage2}" "${step9_cross_stage2}" "${disease_query}" "${cross_topn_stage2}" "${TOPK_CROSS}" "${SHORTLIST_MIN_GO_CROSS}" "${cross_quality_stage2}"; then
           cross_selected_stage="stage2"
           cross_selected_topn="${cross_topn_stage2}"

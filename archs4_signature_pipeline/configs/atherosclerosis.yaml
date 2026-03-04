@@ -10,7 +10,7 @@ archs4:
   h5_path: data/archs4/human_gene_v2.4.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
-  max_series: 5
+  max_series: 20
   case_keywords:
   - atherosclerosis
   - atherosclerotic
@@ -28,7 +28,7 @@ de:
   min_samples: 3
 meta:
   model: DL
-  min_sign_concordance: 0.8
+  min_sign_concordance: 0.65
   flag_i2_above: 0.75
 signature:
   top_n: 300

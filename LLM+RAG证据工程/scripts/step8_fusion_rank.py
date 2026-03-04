@@ -532,9 +532,13 @@ def _sensitivity_analysis(
 
     # Rank-normalize mechanism/reversal once (invariant to weight changes)
     mech_vals = df["mechanism_score"].fillna(0).values.astype(float)
-    rev_vals = df["reversal_score"].fillna(0).values.astype(float)
+    rev_vals_raw = df["reversal_score"].values.astype(float)
     mech_rank = rankdata(mech_vals) / n_drugs          # higher = better
-    rev_rank = rankdata(-rev_vals) / n_drugs            # more negative = better
+    # NaN = untested drug → neutral rank (0), not penalised
+    _rev_finite = np.isfinite(rev_vals_raw)
+    rev_rank = np.zeros(n_drugs)
+    if _rev_finite.sum() > 0:
+        rev_rank[_rev_finite] = rankdata(-rev_vals_raw[_rev_finite]) / _rev_finite.sum()
 
     novelty_boost = 1.3 if route_label == "cross" else 1.0
 
@@ -785,7 +789,7 @@ def main():
             "targets": bridge_target_map.get(drug_id, ""),
             "target_details": bridge_target_details.get(drug_id, ""),
             "mechanism_score": bridge_mechanism_score.get(drug_id, 0.0),
-            "reversal_score": bridge_reversal_score.get(drug_id, 0.0),
+            "reversal_score": bridge_reversal_score.get(drug_id, None),  # None = not tested (neutral)
         })
 
     df = pd.DataFrame(rows)
@@ -829,8 +833,9 @@ def main():
     mech_vals = df["mechanism_score"].fillna(0).astype(float)
     mech_rank = mech_vals.rank(pct=True, ascending=True)    # higher = better
 
-    rev_vals = df["reversal_score"].fillna(0).astype(float)
-    rev_rank = rev_vals.rank(pct=True, ascending=False)      # more negative = better reversal
+    rev_vals = df["reversal_score"].astype(float)  # keep NaN = drug not in LINCS (untested)
+    # na_option="keep" → NaN drugs get NaN rank, fillna(0) → neutral contribution (no bonus, no penalty)
+    rev_rank = rev_vals.rank(pct=True, ascending=False, na_option="keep").fillna(0.0)
 
     df["rank_key"] = (
         pmid_score

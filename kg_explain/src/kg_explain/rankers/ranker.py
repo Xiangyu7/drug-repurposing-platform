@@ -609,6 +609,18 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
         "drug_normalized", as_index=False
     ).first()
 
+    # Flag drugs that have direct KG evidence for the target disease (informational only).
+    # No score penalty applied — cross-disease candidates are the goal of repurposing.
+    _target_cond = cfg.condition.lower().strip()
+    _target_disease_drugs: set[str] = set()
+    for _, _row in final_df.iterrows():
+        if _target_cond in safe_str(_row.get("diseaseName", "")).lower():
+            _target_disease_drugs.add(safe_str(_row.get("drug_normalized", "")))
+    logger.info(
+        "Drugs with target-disease KG evidence ('%s'): %d / %d total drugs",
+        _target_cond, len(_target_disease_drugs), len(drug_best),
+    )
+
     bridge_rows = []
     # Load chembl_pref_name mapping (better for PubMed queries)
     chembl_path = data_dir / "drug_chembl_map.csv"
@@ -627,12 +639,14 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
     for _, r in drug_best.iterrows():
         drug = safe_str(r.get("drug_normalized"))
         targets = drug_target_map.get(drug, [])
+        has_target_evidence = drug in _target_disease_drugs
         bridge_rows.append({
             "drug_id": _stable_drug_id(drug),
             "canonical_name": drug,
             "chembl_pref_name": chembl_map.get(drug, ""),
             "max_mechanism_score": round(float(r.get("mechanism_score", 0)), 4),
             "top_disease": safe_str(r.get("diseaseName")),
+            "top_disease_match": has_target_evidence,
             "final_score": round(float(r.get("final_score", 0)), 4),
             "n_trials": r.get("n_trials", ""),
             "trial_statuses": r.get("trial_statuses", ""),

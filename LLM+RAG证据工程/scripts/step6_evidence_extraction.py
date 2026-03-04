@@ -1341,7 +1341,21 @@ def process_one(
             "confidence": conf,
             "mode": ("llm" if llm_items_total > 0 else "rule"),
             "repurpose_rationale": "",
-            "proposed_mechanisms": sorted(set([k for k in tokenize(" ".join([d.get("title","") for d in top_docs[:4]])) if len(k) < 18]))[:12],
+            "proposed_mechanisms": (
+                # Extract mechanism-relevant sentences from supporting evidence (sorted by topic match score)
+                [
+                    s.get("claim", "").strip()
+                    for s in sorted(supporting, key=lambda x: x.get("topic_match_ratio", 0), reverse=True)
+                    if re.search(
+                        r"\b(inhibit|activat|pathway|signaling|mechanism|suppress|reduc|attenuate|"
+                        r"modulate|upregulat|downregulat|block|promot|induc|improv|alleviat|"
+                        r"protect|prevent|decreas|increas|regulat|mediat)\b",
+                        s.get("claim", ""), re.I
+                    ) and len(s.get("claim", "")) > 30
+                ][:6]
+                # Fall back to top supporting paper titles if no mechanism sentences found
+                or [d.get("title", "").strip() for d in top_docs[:6] if d.get("title", "").strip()][:6]
+            ),
             "key_risks": [],
             "supporting_evidence": supporting,
             "harm_or_neutral_evidence": harm_or_neutral[:20],

@@ -358,6 +358,7 @@ class GatingEngine:
             novelty += 0.10
         if total_pmids <= 3 and (benefit + harm + neutral + unknown) > 0:
             novelty += 0.05
+
         return max(0.0, min(1.0, novelty))
 
     def _compute_uncertainty_score(

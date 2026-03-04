@@ -740,7 +740,7 @@ def main():
     sig, up, down = load_result["sig"], load_result["up"], load_result["down"]
     size_check = load_result["size_check"]
 
-    # Step 2: Entity mapping
+    # Step 2-6: LDP3 pipeline
     ldp3_cfg = cfg["ldp3"]
     client = LDP3Client(
         metadata_api=ldp3_cfg["metadata_api"],
@@ -753,30 +753,42 @@ def main():
                                        step_entity_mapping, up, down, client, cache_dir, cache_enabled)
     step_timings.append(timing)
 
-    # Step 3: Enrichment
+    # Guard: fail early if entity mapping is too poor or up/down entities are empty
+    miss_ratio = entity_info.get("miss_ratio", 0.0)
+    max_miss = float(cfg.get("qc", {}).get("max_missing_gene_ratio", 0.30))
+    if not entity_info["up_entities"] or not entity_info["down_entities"]:
+        raise ValueError(
+            f"Entity mapping produced empty up ({len(entity_info['up_entities'])}) or "
+            f"down ({len(entity_info['down_entities'])}) entities "
+            f"(missing_ratio={miss_ratio:.3f}). "
+            f"The signature likely contains non-HGNC IDs (probe IDs, Entrez IDs, ENSEMBL). "
+            f"Ensure probe_to_gene conversion succeeded in the upstream dsmeta pipeline."
+        )
+    if miss_ratio > max_miss:
+        logger.warning(
+            f"[QC] High entity missing ratio: {miss_ratio:.3f} > {max_miss:.2f}. "
+            f"Results may be unreliable. Check that signature uses HGNC gene symbols."
+        )
+
     df_sig, timing = _timed_step(3, total_steps, "Run LDP3 ranktwosided enrichment",
                                   step_enrichment, entity_info["up_entities"], entity_info["down_entities"],
                                   client, ldp3_cfg, cache_dir, cache_enabled)
     step_timings.append(timing)
 
-    # Step 4: Metadata
     df_detail, timing = _timed_step(4, total_steps, "Fetch signature metadata",
                                      step_fetch_metadata, df_sig, client, cache_dir, cache_enabled)
     step_timings.append(timing)
 
-    # Step 5: Scoring
     scoring_cfg = cfg.get("scoring", {})
     df_detail, timing = _timed_step(5, total_steps, "Score signatures (WTCS-like + FDR filter)",
                                      step_signature_scoring, df_detail, scoring_cfg)
     step_timings.append(timing)
 
-    # Step 6: Drug aggregation
     robustness_cfg = cfg.get("robustness", {})
     df_drug, timing = _timed_step(6, total_steps, "Aggregate to drug-level with robustness weighting",
                                    step_drug_aggregation, df_detail, robustness_cfg)
     step_timings.append(timing)
 
-    # Step 7: Statistical significance
     stats_cfg = cfg.get("statistics", {})
     if args.no_stats:
         stats_cfg["enabled"] = False
@@ -784,7 +796,6 @@ def main():
                                    step_statistical_significance, df_detail, df_drug, stats_cfg, robustness_cfg)
     step_timings.append(timing)
 
-    # Step 8: CMap 4-stage pipeline (ES → WTCS → NCS → Tau)
     cmap_cfg = cfg.get("cmap_pipeline", {})
     if args.no_cmap:
         cmap_cfg["enabled"] = False
@@ -792,12 +803,10 @@ def main():
                                   step_cmap_pipeline, df_detail, cmap_cfg)
     step_timings.append(timing)
     if len(df_tau) > 0:
-        # Rename n_cell_lines to avoid collision with robustness column
         if "n_cell_lines" in df_tau.columns and "n_cell_lines" in df_drug.columns:
             df_tau = df_tau.rename(columns={"n_cell_lines": "tau_n_cell_lines"})
         df_drug = df_drug.merge(df_tau, on="drug", how="left")
 
-    # Step 9: Dose-response analysis
     dr_cfg = cfg.get("dose_response", {})
     if args.no_dr:
         dr_cfg["enabled"] = False
@@ -837,7 +846,8 @@ def main():
 
     elapsed = time.time() - t0
     logger.info(f"Pipeline completed in {elapsed:.1f}s")
-    logger.info(f"  API stats: {client.stats}")
+    if client is not None and hasattr(client, "stats"):
+        logger.info(f"  API stats: {client.stats}")
     logger.info(f"  Steps: {len(step_timings)} completed")
 
 
