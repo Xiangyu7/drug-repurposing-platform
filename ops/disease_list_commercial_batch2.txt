@@ -1,0 +1,43 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 2 — 5 therapeutic areas, 18 diseases
+# IDs need verification against OpenTargets API before running
+# Generated: 2026-03-05
+#
+# ============================================================
+# Batch 6: Respiratory (COPD/asthma = massive unmet need)
+# ============================================================
+copd|chronic obstructive pulmonary disease|EFO_0000341|
+asthma|asthma|EFO_0000270|
+bronchiectasis|bronchiectasis|MONDO_0004822|
+#
+# ============================================================
+# Batch 7: Psychiatry / CNS (highest trial failure rate = rich Origin data)
+# Cross-disease repurposing potential very high
+# ============================================================
+major_depression|major depressive disorder|EFO_0003900|
+schizophrenia|schizophrenia|EFO_0000692|
+bipolar_disorder|bipolar disorder|EFO_0000289|
+adhd|attention deficit hyperactivity disorder|EFO_0003888|
+#
+# ============================================================
+# Batch 8: Dermatology / Immune (biologic boom, JAK inhibitor crossover)
+# ============================================================
+atopic_dermatitis|atopic dermatitis|EFO_0000274|
+vitiligo|vitiligo|EFO_0002670|
+alopecia_areata|alopecia areata|EFO_0004540|
+#
+# ============================================================
+# Batch 9: Hematology / Rare (orphan drug premium, genetic basis strong)
+# ============================================================
+sickle_cell_disease|sickle cell disease|MONDO_0011382|
+myelofibrosis|myelofibrosis|EFO_0004582|
+duchenne_muscular_dystrophy|Duchenne muscular dystrophy|MONDO_0010679|
+#
+# ============================================================
+# Batch 10: Oncology — solid tumors (supplement glioblastoma/TNBC/pancreatic)
+# ============================================================
+colorectal_cancer|colorectal cancer|EFO_0005842|
+hepatocellular_carcinoma|hepatocellular carcinoma|EFO_0000182|
+ovarian_cancer|ovarian cancer|EFO_0001071|
+nsclc|non-small cell lung cancer|EFO_0003060|
+prostate_cancer|prostate cancer|EFO_0001663|
