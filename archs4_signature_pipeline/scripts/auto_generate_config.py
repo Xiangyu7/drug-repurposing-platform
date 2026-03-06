@@ -52,6 +52,22 @@ EXTRA_KEYWORDS = {
     "pancreatic_cancer": ["PDAC", "pancreatic adenocarcinoma", "pancreatic ductal", "pancreatic tumor"],
     "glioblastoma": ["GBM", "glioma", "brain tumor", "astrocytoma"],
     "triple_negative_breast_cancer": ["TNBC", "triple negative", "basal-like breast cancer"],
+    # --- Respiratory ---
+    "asthma": ["bronchial asthma", "eosinophilic asthma", "airway hyperresponsiveness",
+               "allergic asthma", "severe asthma"],
+    "bronchiectasis": ["non-cystic fibrosis bronchiectasis", "chronic suppurative lung disease",
+                       "bronchial dilatation"],
+    # --- Psychiatry / Neurology ---
+    "schizophrenia": ["schizophrenic", "psychosis", "antipsychotic",
+                      "first-episode psychosis"],
+    "bipolar_disorder": ["bipolar", "manic-depressive", "mania", "bipolar depression"],
+    # --- Dermatology ---
+    "vitiligo": ["depigmentation", "melanocyte", "leukoderma", "repigmentation"],
+    # --- Hematology / Oncology ---
+    "myelofibrosis": ["primary myelofibrosis", "bone marrow fibrosis",
+                      "myeloproliferative neoplasm", "post-polycythemia vera myelofibrosis"],
+    "colorectal_cancer": ["colorectal carcinoma", "colon cancer", "rectal cancer",
+                          "colorectal adenocarcinoma", "CRC"],
     # --- Existing cardiovascular (unchanged) ---
     "pulmonary_arterial_hypertension": ["PAH"],
     "myocardial_infarction": ["AMI", "STEMI", "NSTEMI"],

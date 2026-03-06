@@ -1482,6 +1482,15 @@ def process_one(
     )
 
     # 7) Build dossier JSON
+    qc_dict = {
+        "topic_match_ratio": round(float(tmr_all), 4),
+        "topic_mismatch": bool(mismatch),
+        "removed_evidence_count": int(removed),
+        "flagged_cross_drug_count": int(removed_cross_drug),
+        "supporting_evidence_after_qc": int(len(unique_support_pmids)),
+        "supporting_sentence_count_after_qc": int(len(supporting)),
+        "qc_reasons": sorted(set(qc_reasons)) if qc_reasons else []
+    }
     dossier = {
         "drug_id": drug_id,
         "canonical_name": canonical_name,
@@ -1498,15 +1507,7 @@ def process_one(
             "pmids_total": int(len(pmids)),
             "docs_total": int(len(all_docs)),
         },
-        "qc": {
-            "topic_match_ratio": round(float(tmr_all), 4),
-            "topic_mismatch": bool(mismatch),
-            "removed_evidence_count": int(removed),
-            "flagged_cross_drug_count": int(removed_cross_drug),
-            "supporting_evidence_after_qc": int(len(unique_support_pmids)),
-            "supporting_sentence_count_after_qc": int(len(supporting)),
-            "qc_reasons": sorted(set(qc_reasons)) if qc_reasons else []
-        },
+        "qc": qc_dict,
         "clinicaltrials_negative": trials,
         "pubmed_rag": {
             "top_abstracts": top_docs,
@@ -1541,7 +1542,8 @@ def process_one(
                 "unique_supporting_pmids": unique_support_pmids,
                 "harm_or_neutral_count": int(len(harm_or_neutral)),
                 "llm_items_total": int(llm_items_total)
-            }
+            },
+            "qc_summary": dict(qc_dict),
         }
     }
 

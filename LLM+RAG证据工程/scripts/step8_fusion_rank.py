@@ -1039,10 +1039,11 @@ def main():
             risks = llm.get("key_risks") or []
 
             se_lines = top_evidence_lines(se, n=10)
-            # Sort harm first so safety signals aren't pushed below the fold
-            hn_sorted = sorted(hn, key=lambda e: {"harm": 0, "neutral": 1}.get(
-                e.get("direction", "unknown"), 2))
-            hn_lines = top_evidence_lines(hn_sorted, n=10, include_direction=True)
+            # Split harm vs neutral — they carry different clinical meaning
+            harm_items = [e for e in hn if e.get("direction") == "harm"]
+            neutral_items = [e for e in hn if e.get("direction") != "harm"]
+            harm_lines = top_evidence_lines(harm_items, n=6)
+            neutral_lines = top_evidence_lines(neutral_items, n=6)
 
             # CT.gov neg trials detail
             trials_df = pd.DataFrame()
@@ -1110,8 +1111,9 @@ def main():
             start += max(4, min(24, len(risks)+3))
             pd.DataFrame({"Supporting evidence (top10)": se_lines}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
             start += max(14, len(se_lines)+4)
-            pd.DataFrame({"Harm/neutral evidence (top10)": hn_lines}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
-            start += max(14, len(hn_lines)+4)
+            all_hn_lines = harm_lines + neutral_lines
+            pd.DataFrame({"Harm evidence": harm_lines or ["(none)"], "Neutral evidence": neutral_lines or ["(none)"]}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
+            start += max(14, len(all_hn_lines)+4)
             if len(trials_df):
                 trials_df.to_excel(writer, sheet_name=sheet, index=False, startrow=start)
 
@@ -1150,7 +1152,7 @@ def main():
             md_lines += [
                 f"## {name}",
                 f"- Gate: **{r.get('gate','')}** ({r.get('decision_channel','exploit')}) | Score: {r.get('total_score_0_100','')} | Endpoint: {r.get('endpoint_type','')}",
-                f"- Unique supporting PMIDs: **{r.get('unique_supporting_pmids_count','')}** | Harm/neutral sentences: {r.get('harm_or_neutral_sentence_count','')}",
+                f"- Unique supporting PMIDs: **{r.get('unique_supporting_pmids_count','')}** | Harm: {len(harm_items)} | Neutral: {len(neutral_items)}",
                 f"- Topic match ratio: {r.get('topic_match_ratio','')} | Novelty: {r.get('novelty_score', 0.0)} | Uncertainty: {r.get('uncertainty_score', 0.0)}",
                 "",
                 "### Known targets (ChEMBL)",
@@ -1162,8 +1164,11 @@ def main():
                 "### Supporting evidence (top)",
                 *( [f"- {x}" for x in se_lines[:6]] if se_lines else ["- (none)"] ),
                 "",
-                "### Harm / neutral evidence (top)",
-                *( [f"- {x}" for x in hn_lines[:6]] if hn_lines else ["- (none)"] ),
+                "### Negative / risk evidence (harm only)",
+                *( [f"- {x}" for x in harm_lines[:6]] if harm_lines else ["- (none)"] ),
+                "",
+                "### Neutral / uncertain evidence (top)",
+                *( [f"- {x}" for x in neutral_lines[:6]] if neutral_lines else ["- (none)"] ),
                 "",
                 "### Negative trials (CT.gov)",
             ]
