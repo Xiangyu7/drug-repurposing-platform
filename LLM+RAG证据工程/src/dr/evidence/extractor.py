@@ -40,7 +40,8 @@ logger = get_logger(__name__)
 
 VALID_DIRECTIONS = {"benefit", "harm", "neutral", "unclear"}
 VALID_MODELS = {"human", "animal", "cell", "computational", "unclear"}
-VALID_ENDPOINTS = {"PLAQUE_IMAGING", "CV_EVENTS", "PAD_FUNCTION", "BIOMARKER", "OTHER"}
+VALID_ENDPOINTS = {"PLAQUE_IMAGING", "CV_EVENTS", "PAD_FUNCTION", "BIOMARKER", "OTHER",
+                    "CLINICAL_OUTCOME", "FUNCTIONAL", "IMAGING", "SURROGATE"}
 VALID_CONFIDENCES = {"HIGH", "MED", "LOW"}
 
 # JSON Schema for evidence extraction
@@ -51,7 +52,7 @@ EVIDENCE_SCHEMA = {
         "direction": {
             "type": "string",
             "enum": list(VALID_DIRECTIONS),
-            "description": "Effect direction: benefit (reduces atherosclerosis), harm (increases), neutral (no effect), unclear (insufficient info)"
+            "description": "Effect direction: benefit (improves the disease), harm (worsens it), neutral (no effect), unclear (insufficient info)"
         },
         "model": {
             "type": "string",
@@ -256,10 +257,14 @@ def coerce_extraction(data: Dict[str, Any]) -> Dict[str, Any]:
     if "endpoint" in result:
         e = str(result["endpoint"]).upper().strip()
         endpoint_map = {
-            "PLAQUE": "PLAQUE_IMAGING", "IMAGING": "PLAQUE_IMAGING",
+            # CV-specific coercions (backward compat)
+            "PLAQUE": "PLAQUE_IMAGING", "IMAGING": "IMAGING",
             "EVENTS": "CV_EVENTS", "MACE": "CV_EVENTS",
-            "PAD": "PAD_FUNCTION", "FUNCTION": "PAD_FUNCTION",
+            "PAD": "PAD_FUNCTION", "FUNCTION": "FUNCTIONAL",
+            # Generic coercions
             "BIOMARKERS": "BIOMARKER", "MARKER": "BIOMARKER",
+            "CLINICAL": "CLINICAL_OUTCOME", "OUTCOME": "CLINICAL_OUTCOME",
+            "SURROGATE_ENDPOINT": "SURROGATE",
         }
         result["endpoint"] = endpoint_map.get(e, e)
 
@@ -495,7 +500,7 @@ class LLMEvidenceExtractor:
         self.temperatures = temperatures or list(DEFAULT_TEMPERATURES)
         self.retry_base_delay = retry_base_delay
         self.hallucination_check = hallucination_check
-        self.target_disease = target_disease.strip() if target_disease else "atherosclerosis"
+        self.target_disease = target_disease.strip() if target_disease else "the target disease"
         logger.info("LLMEvidenceExtractor initialized (model=%s, retries=%d)",
                      model, len(self.temperatures))
 
@@ -678,8 +683,8 @@ class LLMEvidenceExtractor:
     def _build_prompt(
         self, title: str, abstract: str, drug_name: str, target_disease: str
     ) -> str:
-        disease = target_disease.strip() if target_disease else "atherosclerosis"
-        return f"""You are a medical evidence extraction expert. Extract structured information from this {disease} research paper about {drug_name}.
+        disease = target_disease.strip() if target_disease else "the target disease"
+        return f"""You are a medical evidence extraction expert. Extract structured information from this research paper about {drug_name} in the context of {disease}.
 
 **Paper Title**: {title}
 
@@ -688,8 +693,8 @@ class LLMEvidenceExtractor:
 **Task**: Extract the following structured information:
 
 1. **direction**: Does this paper suggest the drug has a beneficial, harmful, or neutral effect on {disease}?
-   - "benefit": Reduces {disease}, plaque, CV events, or improves related biomarkers
-   - "harm": Increases {disease}, plaque, CV events, or worsens biomarkers
+   - "benefit": Improves the disease or related outcomes/biomarkers
+   - "harm": Worsens the disease or related outcomes/biomarkers
    - "neutral": No significant effect, or mixed results
    - "unclear": Insufficient information, purely mechanistic study, or ambiguous results
 
@@ -701,10 +706,11 @@ class LLMEvidenceExtractor:
    - "unclear": Not specified or review article
 
 3. **endpoint**: What was the primary endpoint category?
-   - "PLAQUE_IMAGING": CIMT, coronary CTA, MRI, plaque volume, or imaging-based
-   - "CV_EVENTS": MACE, MI, stroke, cardiovascular death, or clinical events
-   - "PAD_FUNCTION": 6-minute walk test, ABI, claudication, or functional outcomes
-   - "BIOMARKER": LDL, HDL, CRP, IL-6, or biochemical markers
+   - "CLINICAL_OUTCOME": Clinical events, disease progression, mortality, or hard clinical endpoints
+   - "IMAGING": Imaging-based assessments (CT, MRI, ultrasound, X-ray, etc.)
+   - "FUNCTIONAL": Functional tests, physical performance, or quality of life measures
+   - "BIOMARKER": Blood tests, biochemical markers, or laboratory measurements
+   - "SURROGATE": Surrogate endpoints or composite measures
    - "OTHER": Other endpoints or multiple categories
 
 4. **mechanism**: Briefly describe (1-2 sentences) how the drug affects {disease} based on this paper. Focus on mechanism of action if stated, or primary finding if mechanism unclear.

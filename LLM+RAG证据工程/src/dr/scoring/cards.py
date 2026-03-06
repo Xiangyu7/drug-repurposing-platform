@@ -302,6 +302,14 @@ class HypothesisCardBuilder:
             mechanisms.append("macrophage modulation")
         if "plaque" in title_text and ("stabil" in title_text or "regress" in title_text):
             mechanisms.append("plaque stabilization/regression")
+        if "fibrosis" in title_text or "fibrotic" in title_text:
+            mechanisms.append("anti-fibrotic effects")
+        if "immune" in title_text or "immunomodulat" in title_text:
+            mechanisms.append("immune modulation")
+        if "apoptosis" in title_text or "apoptotic" in title_text:
+            mechanisms.append("apoptosis regulation")
+        if "angiogen" in title_text:
+            mechanisms.append("angiogenesis modulation")
 
         if mechanisms:
             mech_str = ", ".join(mechanisms)
@@ -328,7 +336,7 @@ class HypothesisCardBuilder:
                 value = metadata.get(key)
                 if isinstance(value, str) and value.strip():
                     return value.strip()
-        return "atherosclerosis"
+        return "the target disease"
 
     def _generate_next_steps(
         self,

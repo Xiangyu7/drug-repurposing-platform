@@ -326,7 +326,7 @@ class TestStep6BudgetControls:
         monkeypatch.setattr(
             step6,
             "extract_evidence_rule_based",
-            lambda pmid, title, abstract, endpoint_type: [
+            lambda pmid, title, abstract, endpoint_type, **kwargs: [
                 {
                     "pmid": pmid,
                     "supports": True,

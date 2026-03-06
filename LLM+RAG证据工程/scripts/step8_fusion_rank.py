@@ -50,6 +50,7 @@ STOP_WORDS = {
 
 DOCKING_POLICY_VERSION = "v1"
 ENDPOINT_HINTS: Dict[str, List[str]] = {
+    # CV-specific endpoints (backward compat)
     "PLAQUE_IMAGING": [
         "athero", "plaque", "foam", "endothelial", "vascular", "ldl", "lipid",
     ],
@@ -65,8 +66,24 @@ ENDPOINT_HINTS: Dict[str, List[str]] = {
     "INFLAMMATION": [
         "inflam", "il-", "nf", "tnf", "immune", "cytokine",
     ],
+    # Generic endpoints (disease-agnostic)
+    "CLINICAL_OUTCOME": [
+        "outcome", "endpoint", "efficacy", "survival", "progression", "mortality",
+    ],
+    "IMAGING": [
+        "imaging", "scan", "mri", "ct", "ultrasound", "radiograph",
+    ],
+    "FUNCTIONAL": [
+        "function", "quality", "score", "capacity", "performance", "symptom",
+    ],
+    "BIOMARKER": [
+        "biomarker", "marker", "level", "concentration", "assay", "panel",
+    ],
+    "SURROGATE": [
+        "surrogate", "composite", "proxy", "intermediate", "measure",
+    ],
     "OTHER": [
-        "vascular", "inflam", "lipid", "endothelial", "athero", "cardio",
+        "efficacy", "outcome", "inflam", "mechanism", "pathway", "target",
     ],
 }
 STRUCTURE_SCORE = {
@@ -463,8 +480,15 @@ def dossier_metrics(dossier: Dict[str, Any]) -> Dict[str, Any]:
     uniq_se = sorted(set(se_pmids))
     uniq_hn = sorted(set(hn_pmids))
 
+    # Step6 writes topic_match_ratio under dossier["qc"]["topic_match_ratio"].
+    # Also check legacy paths for backward compatibility.
+    # Use explicit None checks so that 0.0 is preserved (falsy but valid).
     qc = llm.get("qc_summary") or {}
-    topic_ratio = qc.get("topic_match_ratio", (dossier or {}).get("topic_match_ratio", None))
+    topic_ratio = qc.get("topic_match_ratio")
+    if topic_ratio is None:
+        topic_ratio = ((dossier or {}).get("qc") or {}).get("topic_match_ratio")
+    if topic_ratio is None:
+        topic_ratio = (dossier or {}).get("topic_match_ratio")
     try:
         topic_ratio = float(topic_ratio) if topic_ratio is not None else None
     except Exception:
@@ -480,13 +504,15 @@ def dossier_metrics(dossier: Dict[str, Any]) -> Dict[str, Any]:
         "topic_match_ratio": topic_ratio,
     }
 
-def top_evidence_lines(items: List[Dict[str, Any]], n: int = 10) -> List[str]:
+def top_evidence_lines(items: List[Dict[str, Any]], n: int = 10,
+                       include_direction: bool = False) -> List[str]:
     out = []
     for e in (items or [])[:n]:
         pmid = ";".join(extract_pmids(e.get("pmid",""))) or ""
         claim = str(e.get("claim","")).strip().replace("\n"," ")
         if claim:
-            out.append(f"PMID:{pmid} | {claim[:220]}")
+            prefix = f"[{e.get('direction', 'unknown')}] " if include_direction else ""
+            out.append(f"{prefix}PMID:{pmid} | {claim[:220]}")
     return out
 
 
@@ -1013,7 +1039,10 @@ def main():
             risks = llm.get("key_risks") or []
 
             se_lines = top_evidence_lines(se, n=10)
-            hn_lines = top_evidence_lines(hn, n=10)
+            # Sort harm first so safety signals aren't pushed below the fold
+            hn_sorted = sorted(hn, key=lambda e: {"harm": 0, "neutral": 1}.get(
+                e.get("direction", "unknown"), 2))
+            hn_lines = top_evidence_lines(hn_sorted, n=10, include_direction=True)
 
             # CT.gov neg trials detail
             trials_df = pd.DataFrame()
@@ -1121,7 +1150,7 @@ def main():
             md_lines += [
                 f"## {name}",
                 f"- Gate: **{r.get('gate','')}** ({r.get('decision_channel','exploit')}) | Score: {r.get('total_score_0_100','')} | Endpoint: {r.get('endpoint_type','')}",
-                f"- Unique supporting PMIDs: **{r.get('unique_supporting_pmids_count','')}** | Harm sentences: {r.get('harm_or_neutral_sentence_count','')}",
+                f"- Unique supporting PMIDs: **{r.get('unique_supporting_pmids_count','')}** | Harm/neutral sentences: {r.get('harm_or_neutral_sentence_count','')}",
                 f"- Topic match ratio: {r.get('topic_match_ratio','')} | Novelty: {r.get('novelty_score', 0.0)} | Uncertainty: {r.get('uncertainty_score', 0.0)}",
                 "",
                 "### Known targets (ChEMBL)",
@@ -1133,7 +1162,7 @@ def main():
                 "### Supporting evidence (top)",
                 *( [f"- {x}" for x in se_lines[:6]] if se_lines else ["- (none)"] ),
                 "",
-                "### Negative / risk evidence (top)",
+                "### Harm / neutral evidence (top)",
                 *( [f"- {x}" for x in hn_lines[:6]] if hn_lines else ["- (none)"] ),
                 "",
                 "### Negative trials (CT.gov)",

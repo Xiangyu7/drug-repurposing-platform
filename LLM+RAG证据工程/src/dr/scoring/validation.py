@@ -230,29 +230,29 @@ class ValidationPlanner:
             experiments.append("Assess drug availability and existing formulations")
 
         elif stage == "MECHANISM_VALIDATION":
-            experiments.append("In vitro assays: endothelial cell dysfunction models")
-            experiments.append("In vitro assays: macrophage foam cell formation")
-            experiments.append("In vitro assays: LDL oxidation and uptake")
+            experiments.append("In vitro assays: disease-relevant cell models")
+            experiments.append("In vitro assays: target pathway engagement confirmation")
+            experiments.append("In vitro assays: dose-response characterization")
             experiments.append("Pathway analysis: confirm hypothesized mechanism")
 
         elif stage == "PRECLINICAL_VALIDATION":
-            experiments.append("Mouse model: ApoE-/- mice on high-fat diet")
-            experiments.append("Endpoint: Plaque area quantification (aortic root)")
-            experiments.append("Endpoint: Plasma lipid profile (TC, LDL, HDL, TG)")
+            experiments.append("Appropriate disease animal model (species and model selection)")
+            experiments.append("Endpoint: Disease-relevant primary outcome measure")
+            experiments.append("Endpoint: Relevant biomarker panel")
             experiments.append("Endpoint: Inflammatory markers (IL-6, TNF-α, CRP)")
             experiments.append("Safety assessment: Body weight, liver enzymes, complete blood count")
 
         elif stage == "CLINICAL_TRIAL_DESIGN":
             experiments.append("Phase 2 proof-of-concept trial design")
-            experiments.append("Endpoint selection: CIMT, coronary CTA, or biomarkers")
+            experiments.append("Endpoint selection: disease-relevant primary endpoint (imaging, functional, or biomarker)")
             experiments.append("Power calculation and sample size estimation")
-            experiments.append("Identify suitable patient population (high CV risk)")
+            experiments.append("Identify suitable patient population based on disease severity")
 
         elif stage == "EXISTING_TRIAL_ANALYSIS":
             experiments.append("Systematic review of published trial data")
             experiments.append("Meta-analysis if multiple trials available")
             experiments.append("Request raw data from trial investigators (if possible)")
-            experiments.append("Subgroup analysis for atherosclerosis-related outcomes")
+            experiments.append("Subgroup analysis for disease-related outcomes")
 
         return experiments
 
@@ -270,28 +270,29 @@ class ValidationPlanner:
         Returns:
             Trial design dictionary
         """
+        target_disease = dossier.get("target_disease", "the target disease")
         design = {
             "phase": "Phase 2",
             "design_type": "Randomized, double-blind, placebo-controlled",
-            "primary_endpoint": "Change in carotid intima-media thickness (CIMT) at 12 months",
+            "primary_endpoint": f"Disease-relevant primary outcome for {target_disease} at 12 months",
             "secondary_endpoints": [
-                "Change in coronary plaque volume (CTA)",
-                "Change in LDL cholesterol",
-                "Major adverse cardiovascular events (MACE)"
+                "Relevant biomarker changes",
+                "Quality of life / functional assessment",
+                "Safety and tolerability"
             ],
             "duration_months": 12,
             "estimated_n": 200,
             "inclusion_criteria": [
-                "Adults 40-75 years",
-                "Elevated CV risk (ASCVD risk score ≥7.5%)",
-                "Baseline CIMT ≥0.7 mm",
-                "LDL ≥70 mg/dL despite statin therapy"
+                "Adults meeting diagnostic criteria",
+                f"Confirmed {target_disease} diagnosis",
+                "Adequate organ function",
+                "Stable on standard of care"
             ],
             "exclusion_criteria": [
-                "Recent MI or stroke (<3 months)",
                 "Severe renal or hepatic impairment",
                 "Active cancer",
-                "Pregnancy or breastfeeding"
+                "Pregnancy or breastfeeding",
+                "Contraindication to study drug"
             ]
         }
 
@@ -338,15 +339,15 @@ class ValidationPlanner:
         elif stage == "PRECLINICAL_VALIDATION":
             resources = {
                 "personnel": ["1 Postdoc", "2 Research Assistants", "1 Veterinary Technician"],
-                "equipment": ["Mouse colony", "Histology equipment", "Clinical chemistry analyzer"],
-                "materials": ["ApoE-/- mice (n=40)", "High-fat diet", "Drug formulation", "Histology supplies"],
+                "equipment": ["Animal colony", "Histology equipment", "Clinical chemistry analyzer"],
+                "materials": ["Disease-appropriate animal model (n=40)", "Drug formulation", "Histology supplies"],
                 "facilities": ["AAALAC-accredited animal facility", "Histology core"]
             }
 
         elif stage in ["CLINICAL_TRIAL_DESIGN", "EXISTING_TRIAL_ANALYSIS"]:
             resources = {
                 "personnel": ["1 Biostatistician", "1 Clinical Trial Manager", "1 Regulatory Specialist"],
-                "equipment": ["CTA scanner (if imaging endpoint)", "CIMT ultrasound"],
+                "equipment": ["Disease-relevant diagnostic equipment"],
                 "materials": ["Drug supply (GMP)", "CRFs and eCRF system"],
                 "facilities": ["Clinical research site(s)", "Data coordinating center"]
             }

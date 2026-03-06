@@ -233,6 +233,120 @@ TOPIC_KEYWORDS = {
     ]
 }
 
+
+def _build_disease_keywords(target_disease: str,
+                            synonyms_file: Optional[str] = None) -> List[str]:
+    """Build topic keywords from the target disease name.
+
+    For non-CV diseases, the disease name + word tokens are MUCH better
+    than the hardcoded CV TOPIC_KEYWORDS for assessing topic relevance.
+
+    Optionally loads cached synonyms from a file (one per line) if available.
+    """
+    disease = (target_disease or "").strip().lower()
+    if not disease:
+        return []
+
+    keywords: List[str] = [disease]
+
+    # Add meaningful individual words (>= 4 chars to avoid noise)
+    words = re.split(r"[\s\-_/]+", disease)
+    for w in words:
+        wl = w.lower()
+        if len(wl) >= 4 and wl not in keywords:
+            keywords.append(wl)
+
+    # Load cached synonyms file if provided
+    if synonyms_file:
+        try:
+            sf = Path(synonyms_file)
+            if sf.exists():
+                for line in sf.read_text(encoding="utf-8").splitlines():
+                    term = line.strip().lower()
+                    if term and len(term) >= 3 and term not in keywords:
+                        keywords.append(term)
+                log(f"[DISEASE] Loaded {len(keywords)} topic keywords from {sf.name}")
+        except Exception as e:
+            log(f"[DISEASE] Failed to load synonyms file: {e}", "warning")
+
+    return keywords
+
+
+def _fetch_opentargets_disease_context(
+    disease_id: str, timeout: float = 10.0,
+) -> Dict[str, Any]:
+    """Fetch disease synonyms and related diseases from OpenTargets GraphQL API.
+
+    Uses the disease ontology hierarchy (parents + children) to find related
+    diseases for cross-disease PubMed queries, and synonyms for synonym-expanded
+    queries. Returns a dict with keys: synonyms (List[str]), related_diseases (List[str]).
+    """
+    result: Dict[str, Any] = {"synonyms": [], "related_diseases": []}
+    if not disease_id or not disease_id.strip():
+        return result
+
+    # Try each comma-separated ID until one succeeds
+    for eid in disease_id.split(","):
+        eid = eid.strip()
+        if not eid:
+            continue
+        query = """
+        query DiseaseInfo($efoId: String!) {
+          disease(efoId: $efoId) {
+            name
+            synonyms { terms }
+            parents { id name }
+            children { id name }
+          }
+        }
+        """
+        try:
+            resp = request_with_retries(
+                "POST",
+                "https://api.platform.opentargets.org/api/v4/graphql",
+                json={"query": query, "variables": {"efoId": eid}},
+                timeout=timeout,
+                max_retries=2,
+                retry_sleep=1.0,
+            )
+            data = resp.json()
+            disease_data = (data.get("data") or {}).get("disease")
+            if not disease_data:
+                continue
+
+            # Extract synonyms
+            synonyms: List[str] = []
+            main_name = (disease_data.get("name") or "").strip()
+            if main_name:
+                synonyms.append(main_name)
+            for syn_group in disease_data.get("synonyms") or []:
+                for term in syn_group.get("terms") or []:
+                    t = (term or "").strip()
+                    if t and t not in synonyms:
+                        synonyms.append(t)
+
+            # Extract related diseases from ontology hierarchy
+            related: List[str] = []
+            for parent in disease_data.get("parents") or []:
+                name = (parent.get("name") or "").strip()
+                if name and name not in related:
+                    related.append(name)
+            for child in disease_data.get("children") or []:
+                name = (child.get("name") or "").strip()
+                if name and name not in related:
+                    related.append(name)
+
+            result["synonyms"] = synonyms
+            result["related_diseases"] = related
+            log(f"[DISEASE] OpenTargets {eid}: {len(synonyms)} synonyms, {len(related)} related diseases")
+            return result
+        except Exception as e:
+            log(f"[DISEASE] OpenTargets API failed for {eid}: {e}", "warning")
+            continue
+
+    return result
+
+
 ENDPOINT_QUERY = {
     "PLAQUE_IMAGING": '(atherosclerosis OR plaque OR atheroma OR "noncalcified plaque" OR "coronary plaque" OR "computed tomography angiography" OR CTA OR IVUS OR "carotid intima-media")',
     "PAD_FUNCTION": '("peripheral artery disease" OR PAD OR claudication OR "six-minute walk" OR treadmill OR "limb ischemia" OR perfusion)',
@@ -286,10 +400,20 @@ MECHANISM_HINTS_BY_ENDPOINT = {
     ],
 }
 
-def topic_match_ratio(text: str, endpoint_type: str) -> float:
-    kws = TOPIC_KEYWORDS.get(endpoint_type, TOPIC_KEYWORDS["OTHER"])
+def topic_match_ratio(text: str, endpoint_type: str,
+                      disease_keywords: Optional[List[str]] = None) -> float:
+    """Compute fraction of topic keywords that appear in the text.
+
+    If disease_keywords is provided, uses those instead of the hardcoded
+    CV TOPIC_KEYWORDS. This enables disease-agnostic topic matching.
+    """
+    if disease_keywords:
+        kws = disease_keywords
+    else:
+        kws = TOPIC_KEYWORDS.get(endpoint_type, TOPIC_KEYWORDS["OTHER"])
     t = (text or "").lower()
-    if not kws: return 0.0
+    if not kws:
+        return 0.0
     hit = sum(1 for k in kws if k.lower() in t)
     return hit / float(len(kws))
 
@@ -560,12 +684,17 @@ def split_sentences(text: str) -> List[str]:
             out.append(p)
     return out
 
-def pick_evidence_fragments(title: str, abstract: str, endpoint_type: str, max_frags: int = 3) -> List[str]:
+def pick_evidence_fragments(title: str, abstract: str, endpoint_type: str,
+                            max_frags: int = 3,
+                            disease_keywords: Optional[List[str]] = None) -> List[str]:
     sents = split_sentences(abstract)
     if not sents:
         return []
-    # score each sentence by endpoint keyword hits + direction words
-    kws = TOPIC_KEYWORDS.get(endpoint_type, TOPIC_KEYWORDS["OTHER"])
+    # score each sentence by disease/endpoint keyword hits + direction words
+    if disease_keywords:
+        kws = disease_keywords
+    else:
+        kws = TOPIC_KEYWORDS.get(endpoint_type, TOPIC_KEYWORDS["OTHER"])
     def sent_score(s: str) -> float:
         t = s.lower()
         k_hit = sum(1 for k in kws if k in t)
@@ -712,8 +841,10 @@ def extract_evidence_with_llm(drug: str, target_disease: str, endpoint_type: str
             return items
     return []
 
-def extract_evidence_rule_based(pmid: str, title: str, abstract: str, endpoint_type: str) -> List[Dict[str, Any]]:
-    frags = pick_evidence_fragments(title, abstract, endpoint_type, max_frags=2)
+def extract_evidence_rule_based(pmid: str, title: str, abstract: str, endpoint_type: str,
+                               disease_keywords: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    frags = pick_evidence_fragments(title, abstract, endpoint_type, max_frags=2,
+                                    disease_keywords=disease_keywords)
     out = []
     for frag in frags:
         model = guess_model(frag)
@@ -889,31 +1020,64 @@ def _related_disease_terms(target_disease: str, endpoint_type: str) -> List[str]
     return out[:5]
 
 
-def build_query_routes(drug: str, target_disease: str, endpoint_type: str) -> List[Dict[str, str]]:
-    endpoint_clause = ENDPOINT_QUERY.get(endpoint_type, ENDPOINT_QUERY["OTHER"])
-    mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type, MECHANISM_HINTS_BY_ENDPOINT["OTHER"])
-    mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])
-    related_terms = _related_disease_terms(target_disease, endpoint_type)
+def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
+                       disease_synonyms: Optional[List[str]] = None,
+                       related_diseases: Optional[List[str]] = None) -> List[Dict[str, str]]:
+    _CV_ENDPOINTS = {"PLAQUE_IMAGING", "PAD_FUNCTION", "CV_EVENTS"}
 
     routes: List[Dict[str, str]] = []
+
+    # Route 1: exact disease match (always present, universal)
     routes.append({
         "route": "exact_disease",
         "query": f'("{drug}") AND ("{target_disease}")',
     })
-    routes.append({
-        "route": "endpoint_mechanism",
-        "query": f'("{drug}") AND ({endpoint_clause}) AND ({mech_clause})',
-    })
-    routes.append({
-        "route": "disease_or_endpoint",
-        "query": f'("{drug}") AND (("{target_disease}") OR ({endpoint_clause}))',
-    })
-    if related_terms:
-        rel_clause = " OR ".join([f'"{t}"' for t in related_terms])
+
+    # Route 2: disease synonyms (OpenTargets enrichment)
+    # Expands recall by catching papers using alternative disease names
+    if disease_synonyms:
+        syn_terms = [s for s in disease_synonyms
+                     if s.strip().lower() != target_disease.strip().lower()][:6]
+        if syn_terms:
+            syn_clause = " OR ".join([f'"{s}"' for s in syn_terms])
+            routes.append({
+                "route": "disease_synonyms",
+                "query": f'("{drug}") AND ({syn_clause})',
+            })
+
+    # Route 3: endpoint mechanism (only for known CV endpoints with curated terms)
+    # For non-CV diseases or OTHER endpoint, skip — no reliable generic mechanism terms
+    if endpoint_type in _CV_ENDPOINTS:
+        endpoint_clause = ENDPOINT_QUERY.get(endpoint_type, ENDPOINT_QUERY["OTHER"])
+        mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type, MECHANISM_HINTS_BY_ENDPOINT["OTHER"])
+        mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])
         routes.append({
-            "route": "cross_disease_transfer",
-            "query": f'("{drug}") AND ({rel_clause}) AND ({mech_clause})',
+            "route": "endpoint_mechanism",
+            "query": f'("{drug}") AND ({endpoint_clause}) AND ({mech_clause})',
         })
+
+    # Route 4: cross-disease transfer
+    if related_diseases:
+        # Dynamic related diseases from OpenTargets disease ontology
+        rel_terms = [d for d in related_diseases
+                     if d.strip().lower() != target_disease.strip().lower()][:5]
+        if rel_terms:
+            rel_clause = " OR ".join([f'"{t}"' for t in rel_terms])
+            routes.append({
+                "route": "cross_disease_transfer",
+                "query": f'("{drug}") AND ({rel_clause})',
+            })
+    else:
+        # Legacy fallback: hardcoded related disease terms (CV only)
+        legacy_terms = _related_disease_terms(target_disease, endpoint_type)
+        if legacy_terms:
+            mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type, MECHANISM_HINTS_BY_ENDPOINT["OTHER"])
+            mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])
+            rel_clause = " OR ".join([f'"{t}"' for t in legacy_terms])
+            routes.append({
+                "route": "cross_disease_transfer",
+                "query": f'("{drug}") AND ({rel_clause}) AND ({mech_clause})',
+            })
 
     # Deduplicate exact query strings while preserving order.
     seen_q = set()
@@ -948,6 +1112,9 @@ def process_one(
     pubmed_parse_max: int = 60,
     max_rerank_docs: int = 40,
     max_evidence_docs: int = 12,
+    disease_keywords: Optional[List[str]] = None,
+    disease_synonyms: Optional[List[str]] = None,
+    related_diseases: Optional[List[str]] = None,
 ) -> Tuple[Path, Path, Dict[str, Any]]:
     # cache layout
     base = cache_dir / safe_filename(drug_id) / safe_filename(canonical_name)
@@ -961,7 +1128,11 @@ def process_one(
     if endpoint_type_hint and endpoint_type_hint != "nan":
         endpoint_type = str(endpoint_type_hint)
 
-    query_routes = build_query_routes(canonical_name, target_disease, endpoint_type)
+    query_routes = build_query_routes(
+        canonical_name, target_disease, endpoint_type,
+        disease_synonyms=disease_synonyms,
+        related_diseases=related_diseases,
+    )
     query = query_routes[0]["query"] if query_routes else build_query(canonical_name, target_disease, endpoint_type)
 
     # Markers for cross-drug leakage filtering (built once per drug)
@@ -1161,7 +1332,8 @@ def process_one(
         abstract = d.get("abstract","") or ""
 
         # pick fragments
-        frags = pick_evidence_fragments(title, abstract, endpoint_type, max_frags=2)
+        frags = pick_evidence_fragments(title, abstract, endpoint_type, max_frags=2,
+                                        disease_keywords=disease_keywords)
 
         extracted: List[Dict[str, Any]] = []
         # try LLM on the most on-topic fragments first
@@ -1174,7 +1346,8 @@ def process_one(
                 extracted.extend(items)
 
         if not extracted:
-            extracted = extract_evidence_rule_based(pmid, title, abstract, endpoint_type)
+            extracted = extract_evidence_rule_based(pmid, title, abstract, endpoint_type,
+                                                    disease_keywords=disease_keywords)
             for it in extracted:
                 it["source"] = "rule"
 
@@ -1197,7 +1370,8 @@ def process_one(
                     pre_removed_cross_drug += 1
 
             ev_text = f"{ev.get('claim','')} {ev.get('endpoint','')}"
-            tmr = topic_match_ratio(ev_text, endpoint_type)
+            tmr = topic_match_ratio(ev_text, endpoint_type,
+                                    disease_keywords=disease_keywords)
             ev["topic_match_ratio"] = round(tmr, 4)
 
             score = tmr + (0.15 if ev.get("direction") in {"benefit","harm","neutral"} else 0.0)
@@ -1266,7 +1440,8 @@ def process_one(
     # 6) QC / topic mismatch decision (endpoint-driven)
     # use evidence-block text (not raw abstract) for mismatch decision
     ev_text_all = " ".join([str(e.get("claim","")) for e in supporting[:8]]) + " " + " ".join([d.get("abstract","")[:500] for d in top_docs[:2]])
-    tmr_all = topic_match_ratio(ev_text_all, endpoint_type)
+    tmr_all = topic_match_ratio(ev_text_all, endpoint_type,
+                                disease_keywords=disease_keywords)
     mismatch = tmr_all < _Config.gating.TOPIC_MISMATCH_THRESHOLD and endpoint_type != "OTHER"
     qc_reasons = list(pre_qc_reasons)
     removed = int(pre_removed)
@@ -1450,6 +1625,10 @@ def main():
     ap.add_argument("--pubmed_parse_max", type=int, default=int(os.getenv("STEP6_PUBMED_PARSE_MAX", "60")))
     ap.add_argument("--max_rerank_docs", type=int, default=int(os.getenv("STEP6_MAX_RERANK_DOCS", "40")))
     ap.add_argument("--max_evidence_docs", type=int, default=int(os.getenv("STEP6_MAX_EVIDENCE_DOCS", "12")))
+    ap.add_argument("--disease_synonyms_file", default=os.getenv("STEP6_DISEASE_SYNONYMS_FILE", ""),
+                    help="Optional file with disease synonyms (one per line) for topic matching.")
+    ap.add_argument("--disease_id", default=os.getenv("STEP6_DISEASE_ID", ""),
+                    help="Disease ontology ID (e.g. EFO_0003914, MONDO_0004822) for OpenTargets enrichment.")
     args = ap.parse_args()
 
     rank = pd.read_csv(args.rank_in)
@@ -1461,6 +1640,33 @@ def main():
     out_dir = Path(args.out).resolve()
     cache_dir = out_dir / "cache" / "pubmed"
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Fetch disease context from OpenTargets (synonyms + related diseases)
+    disease_synonyms: List[str] = []
+    related_diseases: List[str] = []
+    if args.disease_id:
+        ot_ctx = _fetch_opentargets_disease_context(args.disease_id)
+        disease_synonyms = ot_ctx.get("synonyms", [])
+        related_diseases = ot_ctx.get("related_diseases", [])
+
+    # Build disease-specific topic keywords (for topic_match_ratio QC)
+    disease_keywords = _build_disease_keywords(
+        args.target_disease,
+        synonyms_file=args.disease_synonyms_file or None,
+    )
+    # Enrich topic keywords with OpenTargets synonyms (no duplicates)
+    if disease_synonyms:
+        kw_lower = {k.lower() for k in disease_keywords}
+        for syn in disease_synonyms:
+            sl = syn.strip().lower()
+            if sl and sl not in kw_lower and len(sl) >= 3:
+                disease_keywords.append(sl)
+                kw_lower.add(sl)
+    log(f"[DISEASE] Topic keywords for '{args.target_disease}': {disease_keywords}")
+    if disease_synonyms:
+        log(f"[DISEASE] PubMed synonyms: {disease_synonyms[:8]}")
+    if related_diseases:
+        log(f"[DISEASE] Related diseases: {related_diseases[:8]}")
 
     # keep topn if rank_score exists
     if "rank_score" in rank.columns:
@@ -1520,6 +1726,9 @@ def main():
                     pubmed_parse_max=args.pubmed_parse_max,
                     max_rerank_docs=args.max_rerank_docs,
                     max_evidence_docs=args.max_evidence_docs,
+                    disease_keywords=disease_keywords,
+                    disease_synonyms=disease_synonyms,
+                    related_diseases=related_diseases,
                 )
         else:
             json_path, md_path, dossier = process_one(
@@ -1530,6 +1739,9 @@ def main():
                 pubmed_parse_max=args.pubmed_parse_max,
                 max_rerank_docs=args.max_rerank_docs,
                 max_evidence_docs=args.max_evidence_docs,
+                disease_keywords=disease_keywords,
+                disease_synonyms=disease_synonyms,
+                related_diseases=related_diseases,
             )
 
         dossier_json_paths.append(str(json_path))

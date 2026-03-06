@@ -861,6 +861,7 @@ run_route_llm_stage() {
   local topk="${12}"
   local min_go="${13}"
   local quality_json="${14}"
+  local disease_id="${15:-}"      # Optional: EFO/MONDO IDs for OpenTargets enrichment
 
   # SKIP_LLM=1 → skip LLM step6-9, write skip markers, return success
   if [[ "${SKIP_LLM:-0}" == "1" ]]; then
@@ -870,7 +871,12 @@ run_route_llm_stage() {
     return 0
   fi
 
-  if ! run_cmd "${route_title}: step6 (${stage})" --timeout "${TIMEOUT_LLM_STEP6}" run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step6_evidence_extraction.py --rank_in "${bridge_csv}" --neg "${neg_csv}" --out "${step6_dir}" --target_disease "${disease_query}" --topn "${topn}" --pubmed_retmax "${STEP6_PUBMED_RETMAX}" --pubmed_parse_max "${STEP6_PUBMED_PARSE_MAX}" --max_rerank_docs "${STEP6_MAX_RERANK_DOCS}" --max_evidence_docs "${STEP6_MAX_EVIDENCE_DOCS}"; then
+  # Build optional --disease_id flag for OpenTargets synonym/related-disease enrichment
+  local _disease_id_flag=""
+  if [[ -n "${disease_id}" ]]; then
+    _disease_id_flag="--disease_id ${disease_id}"
+  fi
+  if ! run_cmd "${route_title}: step6 (${stage})" --timeout "${TIMEOUT_LLM_STEP6}" run_in_dir "${LLM_DIR}" "${LLM_PY}" scripts/step6_evidence_extraction.py --rank_in "${bridge_csv}" --neg "${neg_csv}" --out "${step6_dir}" --target_disease "${disease_query}" --topn "${topn}" --pubmed_retmax "${STEP6_PUBMED_RETMAX}" --pubmed_parse_max "${STEP6_PUBMED_PARSE_MAX}" --max_rerank_docs "${STEP6_MAX_RERANK_DOCS}" --max_evidence_docs "${STEP6_MAX_EVIDENCE_DOCS}" ${_disease_id_flag}; then
     write_topn_quality_skip_json "${quality_json}" "${route_key}" "${topk}" "${min_go}" "${stage}_step6_failed" "${stage}"
     return 1
   fi
@@ -1697,7 +1703,7 @@ process_disease() {
   mark_step_done "kg_origin"
   next_step "${disease_key}" "Origin: LLM evidence (Step6-9, topn=${origin_topn})"
 
-  if ! run_route_llm_stage "Origin" "origin" "stage1" "${bridge_origin}" "${neg_csv}" "${step6_origin}" "${step7_origin}" "${step8_origin}" "${step9_origin}" "${disease_query}" "${origin_topn}" "${TOPK_ORIGIN}" "${SHORTLIST_MIN_GO_ORIGIN}" "${origin_quality_stage1}"; then
+  if ! run_route_llm_stage "Origin" "origin" "stage1" "${bridge_origin}" "${neg_csv}" "${step6_origin}" "${step7_origin}" "${step8_origin}" "${step9_origin}" "${disease_query}" "${origin_topn}" "${TOPK_ORIGIN}" "${SHORTLIST_MIN_GO_ORIGIN}" "${origin_quality_stage1}" "${origin_ids_input}"; then
     fail_disease "${disease_key}" "${run_id}" "origin_stage1" "origin stage1 pipeline failed" "${cross_status}" "${origin_status}"
     return 1
   fi
@@ -1736,7 +1742,7 @@ process_disease() {
         local step9_origin_stage2="${disease_work}/llm/step9_origin_reassess_stage2"
         log "[INFO] Origin stage2 expansion: topn ${origin_topn} -> ${origin_topn_stage2}"
         seed_stage2_dossiers "${step6_origin}" "${step6_origin_stage2}"
-        if run_route_llm_stage "Origin" "origin" "stage2" "${bridge_origin}" "${neg_csv}" "${step6_origin_stage2}" "${step7_origin_stage2}" "${step8_origin_stage2}" "${step9_origin_stage2}" "${disease_query}" "${origin_topn_stage2}" "${TOPK_ORIGIN}" "${SHORTLIST_MIN_GO_ORIGIN}" "${origin_quality_stage2}"; then
+        if run_route_llm_stage "Origin" "origin" "stage2" "${bridge_origin}" "${neg_csv}" "${step6_origin_stage2}" "${step7_origin_stage2}" "${step8_origin_stage2}" "${step9_origin_stage2}" "${disease_query}" "${origin_topn_stage2}" "${TOPK_ORIGIN}" "${SHORTLIST_MIN_GO_ORIGIN}" "${origin_quality_stage2}" "${origin_ids_input}"; then
           origin_selected_stage="stage2"
           origin_selected_topn="${origin_topn_stage2}"
           origin_quality_passed="$(json_get_field "${origin_quality_stage2}" "quality_passed")"
@@ -2087,7 +2093,7 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
   mark_step_done "kg_cross"
   next_step "${disease_key}" "Cross: LLM evidence (Step6-9, topn=${cross_topn})"
 
-  if ! run_route_llm_stage "Cross" "cross" "stage1" "${bridge_cross}" "${neg_csv}" "${step6_cross}" "${step7_cross}" "${step8_cross}" "${step9_cross}" "${disease_query}" "${cross_topn}" "${TOPK_CROSS}" "${SHORTLIST_MIN_GO_CROSS}" "${cross_quality_stage1}"; then
+  if ! run_route_llm_stage "Cross" "cross" "stage1" "${bridge_cross}" "${neg_csv}" "${step6_cross}" "${step7_cross}" "${step8_cross}" "${step9_cross}" "${disease_query}" "${cross_topn}" "${TOPK_CROSS}" "${SHORTLIST_MIN_GO_CROSS}" "${cross_quality_stage1}" "${origin_ids_input}"; then
     log "[ERROR] Cross: stage1 pipeline failed"
     return 1
   fi
@@ -2126,7 +2132,7 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
         local step9_cross_stage2="${disease_work}/llm/step9_repurpose_cross_stage2"
         log "[INFO] Cross stage2 expansion: topn ${cross_topn} -> ${cross_topn_stage2}"
         seed_stage2_dossiers "${step6_cross}" "${step6_cross_stage2}"
-        if run_route_llm_stage "Cross" "cross" "stage2" "${bridge_cross}" "${neg_csv}" "${step6_cross_stage2}" "${step7_cross_stage2}" "${step8_cross_stage2}" "${step9_cross_stage2}" "${disease_query}" "${cross_topn_stage2}" "${TOPK_CROSS}" "${SHORTLIST_MIN_GO_CROSS}" "${cross_quality_stage2}"; then
+        if run_route_llm_stage "Cross" "cross" "stage2" "${bridge_cross}" "${neg_csv}" "${step6_cross_stage2}" "${step7_cross_stage2}" "${step8_cross_stage2}" "${step9_cross_stage2}" "${disease_query}" "${cross_topn_stage2}" "${TOPK_CROSS}" "${SHORTLIST_MIN_GO_CROSS}" "${cross_quality_stage2}" "${origin_ids_input}"; then
           cross_selected_stage="stage2"
           cross_selected_topn="${cross_topn_stage2}"
           cross_quality_passed="$(json_get_field "${cross_quality_stage2}" "quality_passed")"

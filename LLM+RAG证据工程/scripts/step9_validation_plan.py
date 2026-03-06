@@ -56,10 +56,16 @@ def _pick_shortlist(step8_dir: Path, shortlist: str = "") -> Path:
 def _endpoint_readouts(endpoint_type: str) -> str:
     endpoint = (endpoint_type or "OTHER").upper()
     mapping = {
+        # CV-specific endpoints (backward compat for CV diseases)
         "PLAQUE_IMAGING": "plaque_area_pct_change; lesion_burden; inflammatory_marker_panel",
         "CV_EVENTS": "MACE_surrogate; CV_event_composite; mortality_signal",
         "PAD_FUNCTION": "walking_distance; ABI_change; claudication_score",
-        "BIOMARKER": "LDL_C; hsCRP; IL6; endothelial_function_panel",
+        # Generic endpoints (disease-agnostic)
+        "CLINICAL_OUTCOME": "disease_progression; clinical_event_composite; mortality_signal",
+        "IMAGING": "imaging_based_change; lesion_burden; structural_assessment",
+        "FUNCTIONAL": "functional_score_change; quality_of_life; exercise_capacity",
+        "BIOMARKER": "disease_relevant_biomarker_panel; inflammatory_markers; surrogate_endpoint",
+        "SURROGATE": "surrogate_endpoint_panel; composite_score",
         "OTHER": "disease_relevant_primary_readout; orthogonal_biomarker_panel",
     }
     return mapping.get(endpoint, mapping["OTHER"])
