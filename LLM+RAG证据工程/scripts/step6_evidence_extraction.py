@@ -376,7 +376,7 @@ def _fetch_opentargets_disease_context(
         }
         """
         try:
-            resp = request_with_retries(
+            resp = shared_request_with_retries(
                 "POST",
                 "https://api.platform.opentargets.org/api/v4/graphql",
                 json={"query": query, "variables": {"efoId": eid}},
