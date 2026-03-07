@@ -304,6 +304,7 @@ class TestSensitivityAnalysis:
                 "reversal_score": d.get("rev", 0.0),
                 "uncertainty_score": d.get("unc", 0.0),
                 "harm_or_neutral_sentence_count": d.get("harm", 0),
+                "harm_sentence_count": d.get("harm", 0),
                 "neg_trials_n": d.get("neg", 0),
                 "safety_blacklist_hit": d.get("bl", 0),
                 "rank_key": d.get("rank_key", 30.0),

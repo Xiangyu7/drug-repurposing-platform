@@ -47,6 +47,7 @@ class HypothesisCard:
     decision_channel: str = "exploit"
     novelty_score: float = 0.0
     uncertainty_score: float = 0.0
+    endpoint_type: str = "OTHER"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -64,6 +65,7 @@ class HypothesisCard:
             "decision_channel": self.decision_channel,
             "novelty_score": round(float(self.novelty_score), 4),
             "uncertainty_score": round(float(self.uncertainty_score), 4),
+            "endpoint_type": self.endpoint_type,
         }
 
     def to_markdown(self) -> str:
@@ -227,6 +229,7 @@ class HypothesisCardBuilder:
             decision_channel=getattr(gating_decision, "decision_channel", "exploit"),
             novelty_score=float(getattr(gating_decision, "novelty_score", 0.0) or 0.0),
             uncertainty_score=float(getattr(gating_decision, "uncertainty_score", 0.0) or 0.0),
+            endpoint_type=str(dossier.get("endpoint_type", "OTHER") or "OTHER"),
         )
 
         return card

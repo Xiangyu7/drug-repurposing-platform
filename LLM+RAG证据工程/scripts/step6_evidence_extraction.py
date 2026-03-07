@@ -210,15 +210,41 @@ def contains_other_drug(text: str, other_markers: List[str]) -> bool:
 # ---------------------------
 def classify_endpoint(primary_outcome_title: str, conditions: str) -> str:
     s = f"{primary_outcome_title} {conditions}".lower()
+    # --- CV-specific endpoints ---
     if any(k in s for k in ["plaque", "atheroma", "cta", "ivus", "carotid", "intima-media", "non-calcified", "noncalcified"]):
         return "PLAQUE_IMAGING"
     if any(k in s for k in ["six-minute walk", "6-minute walk", "6mw", "claudication", "walking distance", "treadmill", "limb ischemia", "perfusion", "pad", "peripheral artery"]):
         return "PAD_FUNCTION"
     if any(k in s for k in ["mace", "major adverse", "myocardial infarction", "stroke", "cv death", "revascularization", "acute coronary syndrome"]):
         return "CV_EVENTS"
+    # --- Generic endpoints (disease-agnostic) ---
+    if any(k in s for k in ["ct scan", "mri", "x-ray", "ultrasound", "imaging", "radiograph",
+                             "hrct", "chest ct", "bone density", "dexa", "pet scan"]):
+        return "IMAGING"
+    if any(k in s for k in ["fev1", "fvc", "peak flow", "spirometry", "lung function",
+                             "exercise capacity", "walk test", "disability score",
+                             "quality of life", "qol", "functional score", "updrs",
+                             "adas-cog", "mmse", "edss", "acr20", "acr50", "pasi",
+                             "mayo score", "cdai", "das28", "basdai", "dlco"]):
+        return "FUNCTIONAL"
+    if any(k in s for k in ["mortality", "survival", "overall survival", "progression-free",
+                             "event-free", "relapse", "remission", "exacerbation",
+                             "hospitalization", "disease progression", "time to event",
+                             "recurrence", "flare"]):
+        return "CLINICAL_OUTCOME"
+    if any(k in s for k in ["biomarker", "serum level", "blood level", "plasma level",
+                             "c-reactive protein", "crp", "il-6", "tnf", "ige",
+                             "eosinophil", "neutrophil", "cytokine", "antibody",
+                             "hba1c", "alt", "ast", "creatinine", "proteinuria",
+                             "ferritin", "troponin", "bnp", "albumin"]):
+        return "BIOMARKER"
+    if any(k in s for k in ["surrogate", "composite score", "composite endpoint",
+                             "response rate", "partial response", "complete response"]):
+        return "SURROGATE"
     return "OTHER"
 
 TOPIC_KEYWORDS = {
+    # CV-specific (legacy)
     "PLAQUE_IMAGING": [
         "atherosclerosis","plaque","atheroma","noncalcified","non-calcified","cta","ivus","carotid","coronary","intima-media","foam cell","oxldl","ldlr","apoe"
     ],
@@ -228,17 +254,86 @@ TOPIC_KEYWORDS = {
     "CV_EVENTS": [
         "myocardial infarction","mi","acute coronary","acs","mace","stroke","cv death","revascularization","coronary heart disease","chd"
     ],
+    # Generic (populated dynamically from disease_keywords when available)
+    "IMAGING": [
+        "imaging","ct scan","mri","x-ray","ultrasound","radiograph","hrct","pet scan","bone density"
+    ],
+    "FUNCTIONAL": [
+        "fev1","spirometry","lung function","exercise capacity","walk test","quality of life",
+        "disability score","functional score"
+    ],
+    "CLINICAL_OUTCOME": [
+        "mortality","survival","disease progression","exacerbation","hospitalization",
+        "relapse","remission","recurrence"
+    ],
+    "BIOMARKER": [
+        "biomarker","serum level","c-reactive protein","crp","cytokine","eosinophil","neutrophil"
+    ],
+    "SURROGATE": [
+        "surrogate","composite score","response rate"
+    ],
     "OTHER": [
         "atherosclerosis","cardiovascular","vascular","inflammation","endothelial","lipid","cholesterol"
-    ]
+    ],
+}
+
+
+_DISEASE_TOPIC_SYNONYMS = {
+    # Respiratory
+    "asthma": ["bronchial asthma", "eosinophilic asthma", "airway hyperresponsiveness",
+               "allergic asthma", "severe asthma", "airway inflammation", "bronchoconstriction"],
+    "bronchiectasis": ["non-cystic fibrosis bronchiectasis", "chronic suppurative lung disease",
+                       "bronchial dilatation", "cystic fibrosis"],
+    "ipf": ["idiopathic pulmonary fibrosis", "lung fibrosis", "pulmonary fibrosis",
+            "interstitial lung disease"],
+    # Autoimmune / Inflammatory
+    "lupus": ["systemic lupus erythematosus", "lupus nephritis", "SLE", "autoimmune"],
+    "psoriasis": ["psoriatic", "psoriasis vulgaris", "plaque psoriasis", "skin inflammation"],
+    "crohns_disease": ["crohn", "crohns disease", "ileitis", "inflammatory bowel disease"],
+    "ankylosing_spondylitis": ["ankylosing spondylitis", "axial spondyloarthritis", "spondylitis"],
+    # Neurodegeneration
+    "alzheimers_disease": ["alzheimer", "alzheimers disease", "amyloid", "tauopathy", "dementia",
+                           "cognitive decline", "neurodegeneration"],
+    "parkinsons_disease": ["parkinson", "parkinsons disease", "dopaminergic", "substantia nigra",
+                           "neurodegeneration"],
+    "als": ["amyotrophic lateral sclerosis", "motor neuron disease", "motor neuron degeneration"],
+    "huntingtons_disease": ["huntington", "huntingtons disease", "huntingtin", "polyglutamine"],
+    # Metabolic / Liver
+    "nash": ["nonalcoholic steatohepatitis", "NASH", "MASH", "NAFLD", "fatty liver",
+             "hepatic steatosis", "steatosis", "liver inflammation"],
+    "nafld": ["nonalcoholic fatty liver disease", "NAFLD", "MASLD", "fatty liver",
+              "hepatic steatosis"],
+    # Fibrosis
+    "liver_fibrosis": ["liver fibrosis", "hepatic fibrosis", "cirrhosis", "fibrotic liver"],
+    "renal_fibrosis": ["renal fibrosis", "kidney fibrosis", "nephrosclerosis", "chronic kidney disease"],
+    # Oncology
+    "pancreatic_cancer": ["pancreatic adenocarcinoma", "PDAC", "pancreatic ductal", "pancreatic tumor"],
+    "glioblastoma": ["glioblastoma", "glioma", "brain tumor", "astrocytoma", "GBM"],
+    "triple_negative_breast_cancer": ["TNBC", "triple negative", "basal-like breast cancer"],
+    "colorectal_cancer": ["colorectal carcinoma", "colon cancer", "rectal cancer", "CRC"],
+    # Psychiatry
+    "schizophrenia": ["schizophrenic", "psychosis", "antipsychotic"],
+    "bipolar_disorder": ["bipolar", "manic-depressive", "mania", "bipolar depression"],
+    # Dermatology
+    "vitiligo": ["depigmentation", "melanocyte", "leukoderma", "repigmentation"],
+    # Hematology
+    "myelofibrosis": ["primary myelofibrosis", "bone marrow fibrosis",
+                      "myeloproliferative neoplasm"],
+    # Cardiovascular
+    "atherosclerosis": ["atherosclerotic", "plaque", "coronary artery disease", "endothelial",
+                        "foam cell", "vascular inflammation"],
+    "heart_failure": ["cardiac failure", "cardiomyopathy", "HFrEF", "HFpEF",
+                      "cardiac remodeling", "ventricular dysfunction"],
+    "pulmonary_arterial_hypertension": ["PAH", "pulmonary hypertension",
+                                         "right ventricular failure"],
 }
 
 
 def _build_disease_keywords(target_disease: str,
                             synonyms_file: Optional[str] = None) -> List[str]:
-    """Build topic keywords from the target disease name.
+    """Build topic keywords from the target disease name + built-in synonyms.
 
-    For non-CV diseases, the disease name + word tokens are MUCH better
+    For non-CV diseases, the disease name + synonyms are MUCH better
     than the hardcoded CV TOPIC_KEYWORDS for assessing topic relevance.
 
     Optionally loads cached synonyms from a file (one per line) if available.
@@ -255,6 +350,20 @@ def _build_disease_keywords(target_disease: str,
         wl = w.lower()
         if len(wl) >= 4 and wl not in keywords:
             keywords.append(wl)
+
+    # Add built-in disease synonyms (fallback when no OpenTargets synonyms)
+    disease_key = disease.replace(" ", "_").replace("-", "_")
+    builtin = _DISEASE_TOPIC_SYNONYMS.get(disease_key, [])
+    if not builtin:
+        # Try matching by substring (e.g., "nonalcoholic steatohepatitis" → "nash")
+        for k, v in _DISEASE_TOPIC_SYNONYMS.items():
+            if k.replace("_", " ") in disease or disease in k.replace("_", " "):
+                builtin = v
+                break
+    for term in builtin:
+        tl = term.strip().lower()
+        if tl and tl not in keywords and len(tl) >= 3:
+            keywords.append(tl)
 
     # Load cached synonyms file if provided
     if synonyms_file:
@@ -348,10 +457,17 @@ def _fetch_opentargets_disease_context(
 
 
 ENDPOINT_QUERY = {
+    # CV-specific
     "PLAQUE_IMAGING": '(atherosclerosis OR plaque OR atheroma OR "noncalcified plaque" OR "coronary plaque" OR "computed tomography angiography" OR CTA OR IVUS OR "carotid intima-media")',
     "PAD_FUNCTION": '("peripheral artery disease" OR PAD OR claudication OR "six-minute walk" OR treadmill OR "limb ischemia" OR perfusion)',
     "CV_EVENTS": '("myocardial infarction" OR MI OR "acute coronary syndrome" OR ACS OR MACE OR stroke OR revascularization)',
-    "OTHER": '(atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)'
+    # Generic
+    "IMAGING": '(imaging OR "CT scan" OR MRI OR HRCT OR radiograph OR "bone density" OR DEXA OR PET)',
+    "FUNCTIONAL": '(FEV1 OR spirometry OR "lung function" OR "exercise capacity" OR "walk test" OR "quality of life" OR "disability score")',
+    "CLINICAL_OUTCOME": '(mortality OR survival OR "disease progression" OR exacerbation OR hospitalization OR relapse OR remission)',
+    "BIOMARKER": '(biomarker OR "serum level" OR "C-reactive protein" OR cytokine OR eosinophil OR "blood level")',
+    "SURROGATE": '("surrogate endpoint" OR "composite score" OR "response rate")',
+    "OTHER": '(atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)',
 }
 
 RELATED_DISEASE_TERMS = {
@@ -374,6 +490,7 @@ RELATED_DISEASE_TERMS = {
 }
 
 MECHANISM_HINTS_BY_ENDPOINT = {
+    # CV-specific
     "PLAQUE_IMAGING": [
         "endothelial dysfunction",
         "foam cell",
@@ -392,6 +509,36 @@ MECHANISM_HINTS_BY_ENDPOINT = {
         "platelet activation",
         "vascular inflammation",
         "plaque instability",
+    ],
+    # Generic
+    "IMAGING": [
+        "structural change",
+        "tissue remodeling",
+        "fibrosis",
+        "inflammation",
+    ],
+    "FUNCTIONAL": [
+        "symptom relief",
+        "functional improvement",
+        "exercise tolerance",
+        "quality of life",
+    ],
+    "CLINICAL_OUTCOME": [
+        "disease modification",
+        "survival benefit",
+        "relapse prevention",
+        "anti-inflammatory",
+    ],
+    "BIOMARKER": [
+        "pathway modulation",
+        "immune regulation",
+        "oxidative stress",
+        "cytokine",
+    ],
+    "SURROGATE": [
+        "surrogate endpoint",
+        "composite response",
+        "disease activity",
     ],
     "OTHER": [
         "inflammation",
@@ -1045,9 +1192,10 @@ def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
                 "query": f'("{drug}") AND ({syn_clause})',
             })
 
-    # Route 3: endpoint mechanism (only for known CV endpoints with curated terms)
-    # For non-CV diseases or OTHER endpoint, skip — no reliable generic mechanism terms
-    if endpoint_type in _CV_ENDPOINTS:
+    # Route 3: endpoint mechanism (for any classified endpoint, not just CV)
+    # Skip only for "OTHER" — no reliable generic mechanism terms for unclassified endpoints
+    _SKIP_ENDPOINTS = {"OTHER"}
+    if endpoint_type not in _SKIP_ENDPOINTS:
         endpoint_clause = ENDPOINT_QUERY.get(endpoint_type, ENDPOINT_QUERY["OTHER"])
         mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type, MECHANISM_HINTS_BY_ENDPOINT["OTHER"])
         mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])

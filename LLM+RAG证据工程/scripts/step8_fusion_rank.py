@@ -494,11 +494,14 @@ def dossier_metrics(dossier: Dict[str, Any]) -> Dict[str, Any]:
     except Exception:
         topic_ratio = None
 
+    harm_only = [e for e in hn if str(e.get("direction", "")).lower() == "harm"]
+
     return {
         "supporting_sentence_count": len(se),
         "unique_supporting_pmids_count": len(uniq_se),
         "unique_supporting_pmids": uniq_se,
         "harm_or_neutral_sentence_count": len(hn),
+        "harm_sentence_count": len(harm_only),
         "unique_harm_pmids_count": len(uniq_hn),
         "unique_harm_pmids": uniq_hn,
         "topic_match_ratio": topic_ratio,
@@ -552,7 +555,7 @@ def _sensitivity_analysis(
     llm = df["total_score_0_100"].fillna(0).values.astype(float)
     novelty = df["novelty_score"].fillna(0).values.astype(float)
     unc = df["uncertainty_score"].fillna(0).values.astype(float)
-    harm = df["harm_or_neutral_sentence_count"].fillna(0).values.astype(float)
+    harm = df["harm_sentence_count"].fillna(0).values.astype(float)
     neg_t = df["neg_trials_n"].fillna(0).values.astype(float)
     bl = df["safety_blacklist_hit"].values.astype(float)
 
@@ -871,7 +874,7 @@ def main():
         + mech_rank * MECHANISM_W      # ★ KG mechanism score (rank-normalised)
         + rev_rank * REVERSAL_W        # ★ SigReverse reversal score (rank-normalised)
         - df["uncertainty_score"].fillna(0).astype(float) * 4.0
-        - df["harm_or_neutral_sentence_count"].fillna(0).astype(float) * 0.5
+        - df["harm_sentence_count"].fillna(0).astype(float) * 0.5
         - df["neg_trials_n"].fillna(0).astype(float) * 1.0
         - df["safety_blacklist_hit"].astype(int) * 8.0
     )
