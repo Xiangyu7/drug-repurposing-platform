@@ -1114,9 +1114,11 @@ def main():
             start += max(4, min(24, len(risks)+3))
             pd.DataFrame({"Supporting evidence (top10)": se_lines}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
             start += max(14, len(se_lines)+4)
-            all_hn_lines = harm_lines + neutral_lines
-            pd.DataFrame({"Harm evidence": harm_lines or ["(none)"], "Neutral evidence": neutral_lines or ["(none)"]}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
-            start += max(14, len(all_hn_lines)+4)
+            max_hn = max(len(harm_lines), len(neutral_lines), 1)
+            harm_padded = (harm_lines or ["(none)"]) + [""] * max_hn
+            neutral_padded = (neutral_lines or ["(none)"]) + [""] * max_hn
+            pd.DataFrame({"Harm evidence": harm_padded[:max_hn], "Neutral evidence": neutral_padded[:max_hn]}).to_excel(writer, sheet_name=sheet, index=False, startrow=start)
+            start += max(14, max_hn+4)
             if len(trials_df):
                 trials_df.to_excel(writer, sheet_name=sheet, index=False, startrow=start)
 
