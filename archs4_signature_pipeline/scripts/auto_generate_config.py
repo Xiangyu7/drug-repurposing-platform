@@ -200,6 +200,7 @@ def generate_config(disease_key: str, disease_name: str, efo_id: str,
         "signature": {
             "top_n": 300,
             "min_de_fdr": 0.5,
+            "min_signature_genes": 50,
             "weight_formula": "meta_z_times_ot_score",
         },
     }

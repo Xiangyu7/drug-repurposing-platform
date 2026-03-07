@@ -205,6 +205,11 @@ def main():
     disease_name = cfg["disease"]["name"]
     top_n = cfg["signature"].get("top_n", 300)
     min_de_fdr = cfg["signature"].get("min_de_fdr", 0.5)
+    # Minimum genes per direction before FDR relaxation kicks in.
+    # If FDR filter leaves fewer genes than this, we fall back to top-N by weight
+    # (|meta_z| × ot_score) regardless of FDR, ensuring the signature has enough
+    # genes for downstream sigreverse and KG to work with.
+    min_signature_genes = cfg["signature"].get("min_signature_genes", 50)
 
     sig_dir = outdir / "signature"
     sig_dir.mkdir(parents=True, exist_ok=True)
@@ -289,35 +294,42 @@ def main():
         _write_empty(sig_dir, disease_name, top_n)
         return
 
-    # --- Apply FDR filter ---
+    # --- Apply FDR filter (with adaptive relaxation) ---
+    # Strategy: FDR is used as a PREFERENCE, not a hard gate.
+    # 1. Try strict FDR filter first
+    # 2. If too few genes survive (< min_signature_genes per direction),
+    #    fall back to keeping ALL genes and let top-N by weight select the best.
+    # This prevents the common failure mode where ARCHS4 meta-analysis produces
+    # hundreds of direction-consistent genes but few pass FDR (e.g., 571 → 28),
+    # resulting in a signature too small for SigReverse/KG to work with.
     n_before_fdr = len(de_df)
+    fdr_applied = False
     if "fdr" in de_df.columns:
-        de_df = de_df[de_df["fdr"] <= min_de_fdr].copy()
-        logger.info("FDR filter (<= %.2f): %d / %d genes", min_de_fdr, len(de_df), n_before_fdr)
+        fdr_filtered = de_df[de_df["fdr"] <= min_de_fdr].copy()
+        n_fdr_pass = len(fdr_filtered)
+        logger.info("FDR filter (<= %.2f): %d / %d genes pass", min_de_fdr, n_fdr_pass, n_before_fdr)
+
+        # Check if FDR-filtered set has enough genes per direction
+        n_up_fdr = (fdr_filtered["meta_logFC"] > 0).sum() if n_fdr_pass > 0 else 0
+        n_down_fdr = (fdr_filtered["meta_logFC"] < 0).sum() if n_fdr_pass > 0 else 0
+        min_dir_fdr = min(n_up_fdr, n_down_fdr)
+
+        if min_dir_fdr >= min_signature_genes:
+            # Enough genes pass FDR — use strict filter
+            de_df = fdr_filtered
+            fdr_applied = True
+            logger.info("FDR filter retained: %d up + %d down (>= %d per direction)",
+                        n_up_fdr, n_down_fdr, min_signature_genes)
+        else:
+            # Too few genes after FDR — keep all genes, rely on weight-based top-N
+            logger.warning(
+                "FDR filter too strict: only %d up + %d down genes (need >= %d per direction). "
+                "Keeping all %d genes and selecting top-N by weight (|meta_z| × ot_score).",
+                n_up_fdr, n_down_fdr, min_signature_genes, n_before_fdr,
+            )
+            # de_df unchanged — all genes kept
 
     n_after_fdr = len(de_df)
-
-    if len(de_df) == 0:
-        logger.warning("No genes pass FDR filter (<=%.2f). Relaxing to FDR <= 1.0...", min_de_fdr)
-        de_df = pd.read_csv(meta_path, sep="\t")
-        de_df = de_df.dropna(subset=["meta_logFC", "meta_z"]).copy()
-        if ot_df is not None and len(ot_df) > 0:
-            ot_genes = set(ot_df["gene_symbol"].dropna().str.upper())
-            de_df["feature_id_upper"] = de_df["feature_id"].astype(str).str.upper()
-            # Soft prior (same as above — keep all genes)
-            ot_lookup = ot_df.drop_duplicates(subset=["gene_symbol"]).set_index(
-                ot_df["gene_symbol"].str.upper()
-            )["ot_score"]
-            de_df["ot_score"] = de_df["feature_id_upper"].map(ot_lookup)
-            valid_scores = de_df["ot_score"].dropna()
-            fallback_score = max(float(np.percentile(valid_scores, 5)) if len(valid_scores) > 0 else 0.1, 0.05)
-            de_df["ot_score"] = de_df["ot_score"].fillna(fallback_score)
-            de_df["in_opentargets"] = de_df["feature_id_upper"].isin(ot_genes)
-            de_df = de_df.drop(columns=["feature_id_upper"])
-        else:
-            de_df["ot_score"] = 1.0
-            de_df["in_opentargets"] = False
-        n_after_fdr = len(de_df)
 
     # --- Compute weighted score ---
     # Weight = |meta_z| * ot_score
@@ -356,6 +368,8 @@ def main():
         "genes_from_meta": n_de_valid,
         "genes_after_ot_intersection": n_after_ot,
         "genes_after_fdr_filter": n_after_fdr,
+        "fdr_applied": fdr_applied,
+        "min_signature_genes": min_signature_genes,
         "up_candidates": len(up_df),
         "down_candidates": len(down_df),
         "up_selected": len(up_selected),
