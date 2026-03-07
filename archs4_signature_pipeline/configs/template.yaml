@@ -36,6 +36,4 @@ meta:
 
 signature:
   top_n: 300
-  min_de_fdr: 0.5
-  min_signature_genes: 50  # per direction; if FDR filter leaves fewer, relax to top-N by weight
-  weight_formula: meta_z_times_ot_score
+  weight_formula: meta_z_times_ot_score_times_1minusFDR
