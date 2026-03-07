@@ -126,38 +126,39 @@ class TestClassifyEndpoint:
 # Topic match ratio
 # ============================================================
 class TestTopicMatchRatio:
-    def test_high_match_plaque(self):
+    _DISEASE_KWS = ["atherosclerosis", "plaque", "coronary", "carotid", "foam cell"]
+
+    def test_high_match(self):
         text = "atherosclerosis plaque regression carotid coronary foam cell oxLDL"
-        ratio = topic_match_ratio(text, "PLAQUE_IMAGING")
-        assert ratio > 0.3
+        ratio = topic_match_ratio(text, "OTHER", disease_keywords=self._DISEASE_KWS)
+        assert ratio > 0.5
 
     def test_zero_match(self):
         text = "completely unrelated text about cooking recipes"
-        ratio = topic_match_ratio(text, "PLAQUE_IMAGING")
+        ratio = topic_match_ratio(text, "OTHER", disease_keywords=self._DISEASE_KWS)
         assert ratio == 0.0
 
-    def test_other_endpoint_broad(self):
-        """OTHER keywords are broad cardiovascular terms."""
+    def test_no_keywords_returns_zero(self):
+        """Without disease_keywords, ratio is always 0."""
         text = "atherosclerosis cardiovascular inflammation"
         ratio = topic_match_ratio(text, "OTHER")
-        assert ratio > 0.2
+        assert ratio == 0.0
 
     def test_empty_text(self):
-        assert topic_match_ratio("", "PLAQUE_IMAGING") == 0.0
-        assert topic_match_ratio(None, "PLAQUE_IMAGING") == 0.0
+        assert topic_match_ratio("", "OTHER", disease_keywords=self._DISEASE_KWS) == 0.0
+        assert topic_match_ratio(None, "OTHER", disease_keywords=self._DISEASE_KWS) == 0.0
 
-    def test_boundary_threshold(self):
-        """Test value near the 0.30 topic mismatch threshold."""
-        # Single keyword hit out of 14 PLAQUE_IMAGING keywords = ~0.07
+    def test_partial_match(self):
+        """Single keyword hit out of 5 = 0.2."""
         text = "atherosclerosis"
-        ratio = topic_match_ratio(text, "PLAQUE_IMAGING")
-        assert ratio < 0.30  # below mismatch threshold
+        ratio = topic_match_ratio(text, "OTHER", disease_keywords=self._DISEASE_KWS)
+        assert 0.15 < ratio < 0.25
 
     def test_above_threshold(self):
         """Multiple keyword hits should exceed threshold."""
-        text = "atherosclerosis plaque atheroma coronary carotid foam cell"
-        ratio = topic_match_ratio(text, "PLAQUE_IMAGING")
-        assert ratio >= 0.30
+        text = "atherosclerosis plaque coronary carotid foam cell"
+        ratio = topic_match_ratio(text, "OTHER", disease_keywords=self._DISEASE_KWS)
+        assert ratio >= 0.8
 
 
 # ============================================================

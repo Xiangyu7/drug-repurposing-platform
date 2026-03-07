@@ -243,40 +243,6 @@ def classify_endpoint(primary_outcome_title: str, conditions: str) -> str:
         return "SURROGATE"
     return "OTHER"
 
-TOPIC_KEYWORDS = {
-    # CV-specific (legacy)
-    "PLAQUE_IMAGING": [
-        "atherosclerosis","plaque","atheroma","noncalcified","non-calcified","cta","ivus","carotid","coronary","intima-media","foam cell","oxldl","ldlr","apoe"
-    ],
-    "PAD_FUNCTION": [
-        "peripheral artery disease","pad","claudication","limb ischemia","ischemic limb","walking","six-minute walk","6-minute walk","treadmill","ankle brachial","perfusion","collateral"
-    ],
-    "CV_EVENTS": [
-        "myocardial infarction","mi","acute coronary","acs","mace","stroke","cv death","revascularization","coronary heart disease","chd"
-    ],
-    # Generic (populated dynamically from disease_keywords when available)
-    "IMAGING": [
-        "imaging","ct scan","mri","x-ray","ultrasound","radiograph","hrct","pet scan","bone density"
-    ],
-    "FUNCTIONAL": [
-        "fev1","spirometry","lung function","exercise capacity","walk test","quality of life",
-        "disability score","functional score"
-    ],
-    "CLINICAL_OUTCOME": [
-        "mortality","survival","disease progression","exacerbation","hospitalization",
-        "relapse","remission","recurrence"
-    ],
-    "BIOMARKER": [
-        "biomarker","serum level","c-reactive protein","crp","cytokine","eosinophil","neutrophil"
-    ],
-    "SURROGATE": [
-        "surrogate","composite score","response rate"
-    ],
-    "OTHER": [
-        "atherosclerosis","cardiovascular","vascular","inflammation","endothelial","lipid","cholesterol"
-    ],
-}
-
 
 _DISEASE_TOPIC_SYNONYMS = {
     # Respiratory
@@ -467,27 +433,8 @@ ENDPOINT_QUERY = {
     "CLINICAL_OUTCOME": '(mortality OR survival OR "disease progression" OR exacerbation OR hospitalization OR relapse OR remission)',
     "BIOMARKER": '(biomarker OR "serum level" OR "C-reactive protein" OR cytokine OR eosinophil OR "blood level")',
     "SURROGATE": '("surrogate endpoint" OR "composite score" OR "response rate")',
-    "OTHER": '(atherosclerosis OR cardiovascular OR vascular OR endothelial OR inflammation)',
 }
 
-RELATED_DISEASE_TERMS = {
-    "atherosclerosis": [
-        "coronary artery disease",
-        "peripheral artery disease",
-        "ischemic stroke",
-        "carotid stenosis",
-    ],
-    "coronary artery disease": [
-        "atherosclerosis",
-        "myocardial infarction",
-        "ischemic heart disease",
-    ],
-    "heart failure": [
-        "cardiomyopathy",
-        "ischemic heart disease",
-        "cardiac remodeling",
-    ],
-}
 
 MECHANISM_HINTS_BY_ENDPOINT = {
     # CV-specific
@@ -540,24 +487,12 @@ MECHANISM_HINTS_BY_ENDPOINT = {
         "composite response",
         "disease activity",
     ],
-    "OTHER": [
-        "inflammation",
-        "oxidative stress",
-        "immune modulation",
-    ],
 }
 
 def topic_match_ratio(text: str, endpoint_type: str,
                       disease_keywords: Optional[List[str]] = None) -> float:
-    """Compute fraction of topic keywords that appear in the text.
-
-    If disease_keywords is provided, uses those instead of the hardcoded
-    CV TOPIC_KEYWORDS. This enables disease-agnostic topic matching.
-    """
-    if disease_keywords:
-        kws = disease_keywords
-    else:
-        kws = TOPIC_KEYWORDS.get(endpoint_type, TOPIC_KEYWORDS["OTHER"])
+    """Compute fraction of disease keywords that appear in the text."""
+    kws = disease_keywords or []
     t = (text or "").lower()
     if not kws:
         return 0.0
@@ -837,11 +772,8 @@ def pick_evidence_fragments(title: str, abstract: str, endpoint_type: str,
     sents = split_sentences(abstract)
     if not sents:
         return []
-    # score each sentence by disease/endpoint keyword hits + direction words
-    if disease_keywords:
-        kws = disease_keywords
-    else:
-        kws = TOPIC_KEYWORDS.get(endpoint_type, TOPIC_KEYWORDS["OTHER"])
+    # score each sentence by disease keyword hits + direction words
+    kws = disease_keywords or []
     def sent_score(s: str) -> float:
         t = s.lower()
         k_hit = sum(1 for k in kws if k in t)
@@ -1138,40 +1070,9 @@ negative_evidence_from_trials = evidence_from_trials
 # ---------------------------
 # Main per-candidate
 # ---------------------------
-def _normalize_disease_key(disease: str) -> str:
-    s = (disease or "").strip().lower()
-    s = re.sub(r"\s+", " ", s)
-    return s
-
-
-def _related_disease_terms(target_disease: str, endpoint_type: str) -> List[str]:
-    base_key = _normalize_disease_key(target_disease)
-    terms = list(RELATED_DISEASE_TERMS.get(base_key, []))
-
-    # Endpoint-specific defaults increase recall for cross-disease repurposing.
-    if endpoint_type == "PLAQUE_IMAGING":
-        terms.extend(["coronary artery disease", "peripheral artery disease", "ischemic stroke"])
-    elif endpoint_type == "PAD_FUNCTION":
-        terms.extend(["critical limb ischemia", "intermittent claudication"])
-    elif endpoint_type == "CV_EVENTS":
-        terms.extend(["acute coronary syndrome", "myocardial infarction", "ischemic stroke"])
-
-    seen = set()
-    out = []
-    for t in terms:
-        tt = (t or "").strip().lower()
-        if not tt or tt == base_key or tt in seen:
-            continue
-        seen.add(tt)
-        out.append(t)
-    return out[:5]
-
-
 def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
                        disease_synonyms: Optional[List[str]] = None,
                        related_diseases: Optional[List[str]] = None) -> List[Dict[str, str]]:
-    _CV_ENDPOINTS = {"PLAQUE_IMAGING", "PAD_FUNCTION", "CV_EVENTS"}
-
     routes: List[Dict[str, str]] = []
 
     # Route 1: exact disease match (always present, universal)
@@ -1192,21 +1093,18 @@ def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
                 "query": f'("{drug}") AND ({syn_clause})',
             })
 
-    # Route 3: endpoint mechanism (for any classified endpoint, not just CV)
-    # Skip only for "OTHER" — no reliable generic mechanism terms for unclassified endpoints
-    _SKIP_ENDPOINTS = {"OTHER"}
-    if endpoint_type not in _SKIP_ENDPOINTS:
-        endpoint_clause = ENDPOINT_QUERY.get(endpoint_type, ENDPOINT_QUERY["OTHER"])
-        mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type, MECHANISM_HINTS_BY_ENDPOINT["OTHER"])
+    # Route 3: endpoint mechanism (for classified endpoints only)
+    endpoint_clause = ENDPOINT_QUERY.get(endpoint_type)
+    mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type)
+    if endpoint_clause and mech_hints:
         mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])
         routes.append({
             "route": "endpoint_mechanism",
             "query": f'("{drug}") AND ({endpoint_clause}) AND ({mech_clause})',
         })
 
-    # Route 4: cross-disease transfer
+    # Route 4: cross-disease transfer (OpenTargets disease ontology)
     if related_diseases:
-        # Dynamic related diseases from OpenTargets disease ontology
         rel_terms = [d for d in related_diseases
                      if d.strip().lower() != target_disease.strip().lower()][:5]
         if rel_terms:
@@ -1214,17 +1112,6 @@ def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
             routes.append({
                 "route": "cross_disease_transfer",
                 "query": f'("{drug}") AND ({rel_clause})',
-            })
-    else:
-        # Legacy fallback: hardcoded related disease terms (CV only)
-        legacy_terms = _related_disease_terms(target_disease, endpoint_type)
-        if legacy_terms:
-            mech_hints = MECHANISM_HINTS_BY_ENDPOINT.get(endpoint_type, MECHANISM_HINTS_BY_ENDPOINT["OTHER"])
-            mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])
-            rel_clause = " OR ".join([f'"{t}"' for t in legacy_terms])
-            routes.append({
-                "route": "cross_disease_transfer",
-                "query": f'("{drug}") AND ({rel_clause}) AND ({mech_clause})',
             })
 
     # Deduplicate exact query strings while preserving order.
@@ -1238,13 +1125,6 @@ def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
         deduped.append(item)
     return deduped
 
-
-def build_query(drug: str, target_disease: str, endpoint_type: str) -> str:
-    """Backward-compatible single query accessor (primary route)."""
-    routes = build_query_routes(drug, target_disease, endpoint_type)
-    if not routes:
-        return f'("{drug}") AND ("{target_disease}")'
-    return routes[0]["query"]
 
 def process_one(
     drug_id: str,
@@ -1281,7 +1161,7 @@ def process_one(
         disease_synonyms=disease_synonyms,
         related_diseases=related_diseases,
     )
-    query = query_routes[0]["query"] if query_routes else build_query(canonical_name, target_disease, endpoint_type)
+    query = query_routes[0]["query"] if query_routes else f'("{canonical_name}") AND ("{target_disease}")'
 
     # Markers for cross-drug leakage filtering (built once per drug)
     other_markers: List[str] = []
