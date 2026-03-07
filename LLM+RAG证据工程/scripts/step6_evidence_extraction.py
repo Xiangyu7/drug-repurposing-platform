@@ -63,12 +63,10 @@ if not _logger.handlers:
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.dr.evidence.ranker import (
     BM25Ranker,
-    HybridRanker,
-    RankingPipeline,
     reciprocal_rank_fusion,
 )
 from src.dr.evidence.extractor import repair_json as modular_repair_json
-from src.dr.evidence.extractor import validate_extraction, coerce_extraction, detect_hallucination
+from src.dr.evidence.extractor import detect_hallucination
 from src.dr.common.http import request_with_retries as shared_request_with_retries
 from src.dr.common.provenance import build_manifest, write_manifest
 from src.dr.contracts import (
@@ -181,21 +179,6 @@ def normalize_pmid(v: Any) -> str:
         return ""
     m = PMID_DIGITS_RE.search(s)
     return m.group(1) if m else ""
-
-def build_other_drug_markers(all_drugs_lower: List[str], current_lower: str) -> List[str]:
-    """Markers used to detect cross-drug leakage in extracted claims."""
-    markers = []
-    for d in all_drugs_lower:
-        dd = (d or "").strip().lower()
-        if not dd or dd == current_lower:
-            continue
-        # avoid very short strings that cause false positives
-        if len(dd) < 4:
-            continue
-        markers.append(dd)
-    # longer first reduces accidental matches
-    markers.sort(key=len, reverse=True)
-    return markers
 
 def contains_other_drug(text: str, other_markers: List[str]) -> bool:
     t = (text or "").lower()
@@ -585,15 +568,6 @@ def parse_pubmed_xml(xml_text: str, max_articles: int = 200) -> List[Dict[str, A
 
     return docs
 
-
-# ---------------------------
-# BM25 (no external deps)
-# ---------------------------
-def tokenize(text: str) -> List[str]:
-    text = (text or "").lower()
-    text = re.sub(r"[^a-z0-9\s\-]+", " ", text)
-    toks = [t for t in text.split() if t and len(t) > 2]
-    return toks
 
 _bm25_ranker = BM25Ranker(k1=1.5, b=0.75)
 
@@ -1063,9 +1037,6 @@ def evidence_from_trials(trials: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         })
     return out
 
-
-# Keep old name as alias for backward compatibility
-negative_evidence_from_trials = evidence_from_trials
 
 # ---------------------------
 # Main per-candidate

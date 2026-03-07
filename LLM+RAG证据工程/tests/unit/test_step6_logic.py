@@ -9,7 +9,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from scripts.step6_evidence_extraction import (
     normalize_pmid,
-    build_other_drug_markers,
     contains_other_drug,
     classify_endpoint,
     topic_match_ratio,
@@ -58,26 +57,6 @@ class TestNormalizePmid:
 # Cross-drug filtering
 # ============================================================
 class TestCrossDrugFilter:
-    def test_build_markers_excludes_current(self):
-        markers = build_other_drug_markers(
-            ["resveratrol", "dexamethasone", "abc"], "resveratrol"
-        )
-        assert "resveratrol" not in markers
-        assert "dexamethasone" in markers
-        assert "abc" not in markers  # len < 4, filtered out
-
-    def test_build_markers_excludes_short(self):
-        markers = build_other_drug_markers(["ab", "abc", "abcdef"], "xyz")
-        assert "ab" not in markers
-        assert "abc" not in markers
-        assert "abcdef" in markers
-
-    def test_build_markers_sorted_longest_first(self):
-        markers = build_other_drug_markers(
-            ["aaaa", "bbbbbb", "ccccc"], "xxxx"
-        )
-        assert markers[0] == "bbbbbb"  # longest first
-
     def test_contains_other_drug_positive(self):
         markers = ["dexamethasone", "metformin"]
         assert contains_other_drug("This study used dexamethasone in rats", markers) is True
