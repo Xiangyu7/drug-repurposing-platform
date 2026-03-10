@@ -1805,12 +1805,29 @@ def main():
 
         endpoint_hint = str(rr.get("endpoint_type","OTHER"))
         chembl_pref = str(rr.get("chembl_pref_name","")).strip()
-        drug_aliases = [chembl_pref] if chembl_pref and chembl_pref.lower() != canon.lower() else []
-        # Add salt-stripped parent name as alias for broader PubMed recall
-        # e.g. "upadacitinib hemihydrate" → also search "upadacitinib"
+
+        # --- Salt-form query fix ---
+        # Use the salt-stripped base name as the PRIMARY PubMed search term.
+        # The full salt form (e.g. "regrelor disodium") can trigger PubMed's
+        # Automatic Term Mapping, which silently decomposes unrecognised phrases
+        # into individual word searches — causing "disodium" to match edetate
+        # disodium (EDTA) literature.  The base name ("regrelor") avoids this
+        # and still matches papers that mention the full salt form.
         parent_name = strip_salt_form(canon)
-        if parent_name and parent_name.lower() != canon.lower() and parent_name.lower() not in {a.lower() for a in drug_aliases}:
-            drug_aliases.append(parent_name)
+        # Use parent (salt-stripped) as primary search name if it is non-empty
+        # and different from the canonical name; otherwise keep canonical as-is.
+        search_name = parent_name if (parent_name and parent_name.lower() != canon.lower()) else canon
+
+        drug_aliases = []
+        # Add chembl_pref_name (also salt-stripped) as alias if it differs
+        if chembl_pref:
+            chembl_base = strip_salt_form(chembl_pref)
+            alias_candidate = chembl_base if (chembl_base and chembl_base.lower() != chembl_pref.lower()) else chembl_pref
+            if alias_candidate.lower() != search_name.lower():
+                drug_aliases.append(alias_candidate)
+
+        # Override canon for downstream process_one — use the clean base name
+        canon = search_name
 
         # Extract drug targets from KG bridge data (targets or signature_genes column)
         targets_raw = str(rr.get("targets", "") or rr.get("signature_genes", "") or "").strip()

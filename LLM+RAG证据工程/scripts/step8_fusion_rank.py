@@ -799,11 +799,21 @@ def main():
         neg_trial_summary = ""
         if len(neg):
             tr = neg[neg["_canon"].str.lower() == strip_salt_form(canonicalize_name(canon)).lower()].copy()
-            neg_trials_n = len(tr)
+            # BUG FIX: Only count trials with NEGATIVE outcome, not all trials.
+            # Previously counted ALL matching trials regardless of outcome_label,
+            # causing drugs like rosuvastatin (10 UNCLEAR trials) to get unfair
+            # penalties.  Now only truly negative results penalise candidates.
+            if "outcome_label_final" in tr.columns:
+                tr_neg = tr[tr["outcome_label_final"].astype(str).str.upper() == "NEGATIVE"]
+            elif "outcome_label_mvp" in tr.columns:
+                tr_neg = tr[tr["outcome_label_mvp"].astype(str).str.upper() == "NEGATIVE"]
+            else:
+                tr_neg = tr  # fallback: no outcome column, count all (legacy behaviour)
+            neg_trials_n = len(tr_neg)
             if neg_trials_n:
                 neg_trial_summary = " | ".join(
                     [f"{r.get('nctId','')}: {str(r.get('primary_outcome_pvalues',''))}"
-                     for _, r in tr.head(3).iterrows()]
+                     for _, r in tr_neg.head(3).iterrows()]
                 )
 
         drug_id = c.get("drug_id", "")

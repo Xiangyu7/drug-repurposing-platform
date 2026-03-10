@@ -25,11 +25,56 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
+import re
+
 import numpy as np
 import pandas as pd
 import yaml
 
 logger = logging.getLogger("archs4.assemble")
+
+# ---------------------------------------------------------------------------
+# Non-coding gene filter: remove pseudogenes, lncRNAs, IG/TCR segments, etc.
+# These genes cannot be matched in LINCS L1000 (which profiles only protein-
+# coding genes), so they waste signature slots without contributing to
+# drug reversal scoring.
+# ---------------------------------------------------------------------------
+_NONCODING_PATTERNS = re.compile(
+    r"^ENSG\d|"                       # Ensembl-only IDs (no HGNC symbol)
+    r"^LOC\d|"                        # NCBI LOC genes (uncharacterised)
+    r"^LINC\d|"                       # Long intergenic non-coding RNAs
+    r"^MIR\d|^MIRLET|"               # microRNAs
+    r"^SNOR[A-Z]|^RNU\d|^RN7S|"     # snoRNAs, snRNAs
+    r"^SCARNA\d|"                     # scaRNAs
+    r"^IGH[VDJGCE]|^IGK[VJC]|^IGL[VJC]|"  # Immunoglobulin segments
+    r"^TR[ABDG][VDJ]|"               # T-cell receptor segments
+    r"^RNA5S|^RNA18S|^RNA28S|^RNA45S",  # Ribosomal RNAs
+    re.IGNORECASE,
+)
+
+# Pseudogene suffix pattern: genes ending in P + digits (e.g., RPL26P34, TOMM40P2)
+_PSEUDOGENE_SUFFIX = re.compile(r"P\d+$")
+
+# Known pseudogene prefixes (ribosomal protein pseudogenes, etc.)
+_PSEUDOGENE_PREFIXES = re.compile(
+    r"^RPL\d+P|^RPS\d+P|^KRT\d+P|^TOMM\d+P|^CICP\d",
+    re.IGNORECASE,
+)
+
+
+def _is_noncoding(gene_symbol: str) -> bool:
+    """Return True if gene_symbol looks like a non-coding/pseudogene feature."""
+    s = str(gene_symbol).strip()
+    if not s:
+        return True
+    if _NONCODING_PATTERNS.match(s):
+        return True
+    if _PSEUDOGENE_PREFIXES.match(s):
+        return True
+    # Versioned gene symbols like "CRIM1.1", "NXN.2" from ARCHS4 dedup artifacts
+    if re.search(r"\.\d+$", s) and not s.startswith("HLA-"):
+        return True
+    return False
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -303,6 +348,17 @@ def main():
         de_df["weight"] = np.abs(de_df["meta_z"]) * de_df["ot_score"]
         logger.info("Weight = |meta_z| × ot_score (no FDR column available)")
 
+    # --- Filter non-coding genes ---
+    # Non-coding RNAs, pseudogenes, IG/TCR segments cannot be matched in LINCS
+    # and waste signature slots.  Remove them before top-N selection so the
+    # freed slots go to protein-coding genes that SigReverse can actually use.
+    n_before_nc = len(de_df)
+    nc_mask = de_df["feature_id"].apply(_is_noncoding)
+    n_noncoding = int(nc_mask.sum())
+    de_df = de_df[~nc_mask].copy()
+    logger.info("Non-coding filter: removed %d / %d genes (%.1f%%), %d protein-coding remain",
+                n_noncoding, n_before_nc, 100 * n_noncoding / max(n_before_nc, 1), len(de_df))
+
     # --- Split up / down by logFC direction ---
     up_df = de_df[de_df["meta_logFC"] > 0].sort_values("weight", ascending=False)
     down_df = de_df[de_df["meta_logFC"] < 0].sort_values("weight", ascending=False)
@@ -335,13 +391,15 @@ def main():
         "name": "assemble_signature",
         "genes_from_meta": n_de_valid,
         "genes_after_ot_intersection": n_after_ot,
+        "noncoding_filtered": n_noncoding,
+        "protein_coding_remaining": len(de_df),
         "fdr_mode": "continuous_weight",
         "up_candidates": len(up_df),
         "down_candidates": len(down_df),
         "up_selected": len(up_selected),
         "down_selected": len(down_selected),
-        "detail": (f"Meta({n_de_valid}) → OT∩({n_after_ot}) → weight(|z|×OT×(1-FDR)) "
-                  f"→ {len(up_selected)} up + {len(down_selected)} down"),
+        "detail": (f"Meta({n_de_valid}) → OT∩({n_after_ot}) → nc_filter(-{n_noncoding}) "
+                  f"→ weight(|z|×OT×(1-FDR)) → {len(up_selected)} up + {len(down_selected)} down"),
     })
     audit["lincs_coverage"] = lincs_coverage
     audit["generated_at"] = datetime.now(timezone.utc).isoformat()
