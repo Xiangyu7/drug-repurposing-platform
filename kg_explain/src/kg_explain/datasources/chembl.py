@@ -20,6 +20,30 @@ from .rxnorm import _is_non_drug
 
 logger = logging.getLogger(__name__)
 
+# Biologics classification based on ChEMBL molecule_type
+_BIOLOGIC_TYPES = {"Antibody", "Protein", "Enzyme", "Oligonucleotide", "Cell",
+                   "Oligosaccharide"}
+_SMALL_MOLECULE_TYPES = {"Small molecule"}
+
+
+def _classify_drug(molecule_type: str) -> str:
+    """Classify a drug as 'small_molecule' or 'biologic' based on ChEMBL molecule_type.
+
+    ChEMBL molecule_type values include:
+        Small molecule, Antibody, Protein, Enzyme, Oligonucleotide,
+        Cell, Oligosaccharide, Unknown
+
+    Monoclonal antibodies (tocilizumab, rituximab) are classified as 'biologic'.
+    """
+    if not molecule_type:
+        return "unknown"
+    mt = molecule_type.strip()
+    if mt in _SMALL_MOLECULE_TYPES:
+        return "small_molecule"
+    if mt in _BIOLOGIC_TYPES:
+        return "biologic"
+    return "unknown"
+
 # ChEMBL API端点
 CHEMBL_API = "https://www.ebi.ac.uk/chembl/api/data"
 
@@ -88,7 +112,7 @@ def chembl_map(
     def _search_one(item):
         canon, q = item
         if not q:
-            return canon, None, None
+            return canon, None, None, None
 
         # Build candidate query strings: original + parenthetical variants
         # Handles RxNorm patterns like "idec-c2b8 (rituximab)" → also try "rituximab"
@@ -106,7 +130,7 @@ def chembl_map(
             try:
                 exact = _chembl_molecule_by_pref_name(cache, query)
                 if exact and exact.get("molecule_chembl_id"):
-                    return canon, exact["molecule_chembl_id"], exact.get("pref_name")
+                    return canon, exact["molecule_chembl_id"], exact.get("pref_name"), exact.get("molecule_type", "")
             except Exception:
                 pass
 
@@ -118,20 +142,20 @@ def chembl_map(
                 for h in hits:
                     pn = (h.get("pref_name") or "").lower().strip()
                     if pn == q_lower and h.get("molecule_chembl_id"):
-                        return canon, h["molecule_chembl_id"], h.get("pref_name")
+                        return canon, h["molecule_chembl_id"], h.get("pref_name"), h.get("molecule_type", "")
                 # fallback: accept first hit that has a chembl_id
                 for h in hits:
                     if h.get("molecule_chembl_id"):
-                        return canon, h["molecule_chembl_id"], h.get("pref_name")
+                        return canon, h["molecule_chembl_id"], h.get("pref_name"), h.get("molecule_type", "")
             except Exception as e:
                 logger.warning("ChEMBL 分子搜索失败, query=%s: %s", query, e)
-        return canon, None, None
+        return canon, None, None, None
 
     results = concurrent_map(
         _search_one, list(unique_queries.items()),
         max_workers=cache.max_workers, desc="ChEMBL mapping",
     )
-    chembl_lookup = {canon: (cid, pname) for r in results if r is not None for canon, cid, pname in [r]}
+    chembl_lookup = {canon: (cid, pname, mtype) for r in results if r is not None for canon, cid, pname, mtype in [r]}
 
     # 展开到所有药物行
     rows = []
@@ -139,13 +163,15 @@ def chembl_map(
         raw = safe_str(r.get("drug_raw"))
         term = safe_str(r.get("rxnorm_term"))
         canon = canonical.get(raw.lower(), raw.lower())
-        chembl_id, pref_name = chembl_lookup.get(canon, (None, None))
+        chembl_id, pref_name, mol_type = chembl_lookup.get(canon, (None, None, None))
         rows.append({
             "drug_raw": raw,
             "canonical_name": canon,
             "rxnorm_term": term,
             "chembl_id": chembl_id,
             "chembl_pref_name": pref_name,
+            "molecule_type": mol_type or "",
+            "drug_class": _classify_drug(mol_type or ""),
         })
 
     result_df = pd.DataFrame(rows)

@@ -1,0 +1,206 @@
+gse_id	title	platform	organism	sample_total	case_n	control_n	confidence	quality_score	case_regex	control_regex	include	exclude_reason
+GSE59526	Affymetrix Chip data of the transcriptome of human clinical study for acupunctur	570	Homo sapiens	18	0	0	low	20.0			0	
+GSE243821	LncRNA of human Fibroblast-like synoviocytes of rheumatoid arthritis and osteoar	24592	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE224842	Gene expression profiles of peripheral blood mononuclear cells before abatacept 	6480	Homo sapiens	30	0	0	low	20.0			0	
+GSE224330	Gene expression of monocytes from rheumatoid arthritis patients treated with bDM	21185	Homo sapiens	31	0	0	low	20.0			0	
+GSE205962	Expression data from whole blood sample of eight kinds of TCM syndromes of rheum	16043	Homo sapiens	20	0	0	low	20.0			0	
+GSE206848	Dysregulated gene expression in human osteoarthritic (OA) and rheumatoid arthrit	570	Homo sapiens	16	0	0	low	20.0			0	
+GSE176440	Gene expression profiles of CD4+ T cells before and after methotrexate treatment	6480	Homo sapiens	56	0	0	low	20.0			0	
+GSE197057	Expression data (U133 Plus 2.0) from fibroblast like synoviocytes from patients 	570	Homo sapiens	8	0	0	low	20.0			0	
+GSE172188	Rheumatoid arthritis synovium response to abatacept	570	Homo sapiens	20	0	0	low	20.0			0	
+GSE181614	RNA Sequencing facilitates quantitative analysis of lncRNA and mRNA expression i	16956	Homo sapiens	10	0	0	low	0.0			0	excluded: lncrna
+GSE97948	RA-MAP: mapping the molecular immunological landscape in early rheumatoid arthri	10904	Homo sapiens	1126	0	0	low	20.0			0	
+GSE97810	RA-MAP: mapping molecular immunological landscapes in early rheumatoid arthritis	10904	Homo sapiens	1068	0	0	low	20.0			0	
+GSE97476	RA-MAP: mapping molecular immunological landscapes in early rheumatoid arthritis	10904;11154	Homo sapiens	5066	0	0	low	20.0			0	
+GSE97475	RA-MAP: mapping molecular immunological landscapes in early rheumatoid arthritis	10904	Homo sapiens	158	0	0	low	20.0			0	
+GSE80785	Gene expressions of CD4+ T cells from patients with rheumatoid arthritis in each	570	Homo sapiens	24	0	0	low	20.0			0	
+GSE166389	Genes regulated by both of Ten-Eleven translocation 3 and Tumor necrosis factor 	23159	Homo sapiens	12	0	0	low	0.0			0	excluded: methylation
+GSE153015	Comparison of gene expression profiles in paired synovial biopsies from rheumato	570	Homo sapiens	24	0	0	low	20.0			0	
+GSE91079	Gene expression fluctuation in Abatacept treated Rheumatoid Arthritis patients b	4133	Homo sapiens	19	0	0	low	20.0			0	
+GSE153378	Expression data (U133 Plus 2.0) from fibroblast like synoviocytes from patients 	570	Homo sapiens	8	0	0	low	20.0			0	
+GSE140036	Microarray analysis of the synovial membrane of rheumatoid arthritis patients un	8234	Homo sapiens	11	0	0	low	20.0			0	
+GSE121894	Gene expression profile of endothelial cells derived from circulating progenitor	25734	Homo sapiens	58	0	0	low	20.0			0	
+GSE53221	RF003-V3: Glucocorticoid-responsiveness correlates with an Interferon signature 	13384	Homo sapiens	19	0	0	low	20.0			0	
+GSE120785	Gene expression from fibroblast-like synoviocytes (FLS) of three patients with r	21185	Homo sapiens	8	0	0	low	17.0			0	
+GSE132832	Impaired ATM Activation in B Cells Promotes Osteoclastogenic Cytokine Production	570	Homo sapiens	8	0	0	low	0.0			0	excluded: mouse
+GSE84074	Rheumatoid arthritis and response to LLDT-8: Fibroblast-like Synoviocytes	19640	Homo sapiens	10	0	0	low	0.0			0	excluded: lncrna
+GSE47726	Genome-wide transcriptional analysis of synovial tissue gene expression associat	8234	Homo sapiens	11	0	0	low	17.0			0	
+GSE131866	IL-6 mediated transcriptional programming of CD4+ T cells in early rheumatoid ar	10558	Homo sapiens	42	0	0	low	17.0			0	
+GSE126476	Gene expression analysis of vascular pathophysiology related to anti-TNF treatme	15207	Homo sapiens	19	0	0	low	17.0			0	
+GSE38064	Expression data of subtypes of inflamed synovia from patients with rheumatoid ar	570	Homo sapiens	12	0	0	low	17.0			0	
+GSE103578	lncRNA and mRNA expression profiles in fibroblast-like synoviocytes from rheumat	15314	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE118958	Expression data (U133 Plus 2.0) from fibroblast like synoviocytes from patients 	570	Homo sapiens	8	0	0	low	17.0			0	
+GSE93777	Multi-omics monitoring of drug response in rheumatoid arthritis.	570	Homo sapiens	448	0	0	low	17.0			0	
+GSE93776	Immune cells gene expression from rheumatoid arthritis and healthy donors	570	Homo sapiens	173	0	0	low	17.0			0	
+GSE93272	Whole blood gene expression of rheumatoid arthritis	570	Homo sapiens	275	0	0	low	17.0			0	
+GSE68689	Gene expression from the whole blood of rheumatoid arthritis patients and normal	20171	Homo sapiens	21	16	5	high	63.2	patient	healthy	1	
+GSE112809	Treatment of rheumatoid arthritis patients with chaperonin 10	570	Homo sapiens	8	0	0	low	17.0			0	
+GSE110008	Rheumatoid arthritis: aortic biopsies	571	Homo sapiens	16	0	0	low	17.0			0	
+GSE65908	Identification of genes regulating TRAIL-induced apoptosis in rheumatoid arthrit	10523	Homo sapiens	12	0	0	low	17.0			0	
+GSE109450	Functionally distinct disease-associated fibroblast subsets in rheumatoid arthri	16686;18573	Homo sapiens	445	0	0	low	17.0			0	
+GSE107105	Microarray analysis of freshly isolated synovial fibroblast subsets in patients 	16686	Homo sapiens	36	0	0	low	17.0			0	
+GSE106893	lncRNA and mRNA expression profiles associated with response to Tripterygium wil	5175	Homo sapiens	12	0	0	low	0.0			0	excluded: lncrna
+GSE48823	RF003-V1: The expression of ERAP2 and LST1 distinguishes between Glucocorticoid-	13384	Homo sapiens	20	0	0	low	17.0			0	
+GSE97779	Expression data from rheumatoid arthritis synovial macrophages	570	Homo sapiens	14	0	0	low	17.0			0	
+GSE101193	Identify the expression of lncRNAs in peripheral blood mononuclear cells from rh	21827	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE100786	Expression data of bone marrow and blood monocytes from patients with rheumatoid	570	Homo sapiens	28	0	0	low	17.0			0	
+GSE100191	Transcriptional Signature Associated with Early Rheumatoid Arthritis and Healthy	13497	Homo sapiens	19	0	0	low	17.0			0	
+GSE68215	Gene expression profiling in Abatacept treated Rheumatoid Arthritis patients acc	4133	Homo sapiens	36	0	0	low	17.0			0	
+GSE56649	Expression data from active rheumatoid arthritis patients and healthy control.	570	Homo sapiens	22	0	0	low	17.0			0	
+GSE71370	Profiling of CD14+ monocytes from paired rheumatoid arthritis (RA)-patient perip	16268	Homo sapiens	26	18	8	high	65.9	patient	control|healthy	1	
+GSE72100	Increased expression of long non-coding RNAs in T cells from patients with rheum	17077	Homo sapiens	6	0	0	low	17.0			0	
+GSE78068	Identification of baseline gene expression signatures predicting therapeutic res	6480	Homo sapiens	209	0	0	low	17.0			0	
+GSE83147	RNA expression profiles in fibroblast-like synoviocytes from rheumatoid arthriti	16956	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE74143	Whole blood gene expression from subjects with moderate to severe rheumatoid art	13158	Homo sapiens	377	0	0	low	17.0			0	
+GSE77298	Synovial biopsies of rheumatoid arthritis and healthy controls	570	Homo sapiens	23	0	0	low	17.0			0	
+GSE65010	Gene expression profiling of effector and regulatory T-cells from peripheral blo	570	Homo sapiens	48	0	0	low	0.0			0	excluded: in vitro
+GSE72258	Microarray data for Rheumatoid arthritis synovial fibroblast (RASF) after C5orf3	10558	Homo sapiens	12	0	0	low	0.0			0	excluded: in vitro
+GSE45291	Inhibition of Lymphotoxin-LIGHT Signaling Reduces the Interferon Signature in Rh	13158	Homo sapiens	805	0	0	low	17.0			0	
+GSE54629	Whole-blood transcriptomic profiling highlights rituximab response in rheumatoid	6244	Homo sapiens	138	0	0	low	17.0			0	
+GSE63995	Expression data (U133 Plus 2.0) from fibroblast like synoviocytes from patients 	570	Homo sapiens	8	0	0	low	14.0			0	
+GSE58795	Whole blood gene expression profiling of rheumatoid arthritis patients	10379	Homo sapiens	59	0	0	low	14.0			0	
+GSE55468	Genome-wide analysis of gene expression variation in CD4+ T cells from patients 	2507	Homo sapiens	26	0	0	low	14.0			0	
+GSE48780	Expression data from Rheumatoid Arthritis synovial tissue samples	570	Homo sapiens	83	0	0	low	14.0			0	
+GSE55584	Identification of rheumatoid arthritis and osteoarthritis patients by transcript	96	Homo sapiens	16	0	0	low	14.0			0	
+GSE55457	Identification of rheumatoid arthritis and osteoarthritis patients by transcript	96	Homo sapiens	33	0	0	low	14.0			0	
+55457	Rheumatoid arthritis and osteoarthritis: synovial tissues (Jena dataset)	96	Homo sapiens	33	0	0	low	14.0			0	
+55584	Rheumatoid arthritis and osteoarthritis: synovial tissues (Leipzig dataset)	96	Homo sapiens	16	0	0	low	14.0			0	
+GSE55235	Identification of rheumatoid arthritis and osteoarthritis patients by transcript	96	Homo sapiens	30	0	0	low	14.0			0	
+55235	Rheumatoid arthritis and osteoarthritis: synovial tissues (Berlin dataset)	96	Homo sapiens	30	0	0	low	14.0			0	
+GSE35455	Human peripheral blood cells (PB): Effect of Tocilizumab/MRA compared to methotr	1291	Homo sapiens	224	0	0	low	14.0			0	
+GSE49604	Global gene expression profiles of synoviocytes and macrophages in patients with	10558;8432	Homo sapiens	20	0	0	low	0.0			0	excluded: in vitro
+GSE31685	The influence of resveratrol on rheumatoid fibroblast-like synoviocytes based on	6244	Homo sapiens	6	0	0	low	14.0			0	
+GSE30023	A comparative gene expression profiling of spondyloarthropathy and rheumatoid ar	1708;4133	Homo sapiens	12	0	0	low	14.0			0	
+GSE42296	Distinct, non-overlapping gene panels of peripheral blood gene expression predic	6244	Homo sapiens	78	0	0	low	14.0			0	
+GSE45665	Expression data (U133 Plus 2.0) from fibroblast like synoviocytes from patients 	570	Homo sapiens	8	0	0	low	14.0			0	
+GSE39340	Indentification of special gene expressions in synovial tissues of rheumatoid ar	10558	Homo sapiens	22	0	0	low	14.0			0	
+GSE30662	Comparison of human Rheumatoid arthritis patient peripheral whole blood mRNAs ju	5639	Homo sapiens	8	0	0	low	14.0			0	
+GSE33377	Expression profiling of rheumatoid arthritis patients treated with anti-TNF	5175	Homo sapiens	42	0	0	low	14.0			0	
+GSE27390	Human bone marrow-derived mononuclear cells (BMMC): rheumatoid arthritis vs. ost	570	Homo sapiens	19	0	0	low	14.0			0	
+GSE25160	Combination of peripheral blood gene expression profiles and clinical parameters	6244	Homo sapiens	26	0	0	low	14.0			0	
+GSE21959	Transcriptional response to hypoxia of normal and rheumatoid arthritis synovial 	4133	Homo sapiens	36	0	0	low	14.0			0	
+GSE23561	Peripheral blood gene expression profiles in metabolic syndrome, coronary artery	10775	Homo sapiens	35	6	9	low	47.3	disease	control	1	
+GSE19821	Rheumatoid arthritis and anti-TNF treatment	9871;9869;9870	Homo sapiens	30	0	0	low	14.0			0	
+GSE12051	Microarray predictor of response to infliximab in rheumatoid arthritis (RA) pati	2507	Homo sapiens	44	0	0	low	11.0			0	
+12051	Rheumatoid arthritis and response to anti-TNF alpha therapy: blood	2507	Homo sapiens	44	0	0	low	11.0			0	
+GSE15258	Whole blood transcript profiling of rheumatoid arthritis patients	570	Homo sapiens	86	0	0	low	11.0			0	
+15258	Rheumatoid arthritis and response to anti-TNF therapy: blood	570	Homo sapiens	86	0	0	low	11.0			0	
+GSE15573	Immunity and Defense Genes in Peripheral Blood Mononuclear Cells of Rheumatoid A	6102	Homo sapiens	33	0	0	low	11.0			0	
+GSE12653	Gene Expression Analysis in Peripheral Blood of Patients with Rheumatoid Arthrit	7220	Homo sapiens	72	0	0	low	11.0			0	
+15573	Rheumatoid arthritis: peripheral blood mononuclear cells	6102	Homo sapiens	33	0	0	low	11.0			0	
+GSE13026	Early and long-standing rheumatoid arthritis: molecular signatures identified by	5215	Homo sapiens	45	0	0	low	11.0			0	
+GSE12021	Identification of inter-individual and gene-specific variances in mRNA expressio	96;97	Homo sapiens	57	0	0	low	11.0			0	
+GSE11827	Identification of markers of responsiveness in rheumatoid arthritis patients	5215	Homo sapiens	49	0	0	low	11.0			0	
+GSE11575	Mutual Antagonistic Relationship Between Prostaglandin E2 and Interferon-(gamma)	4372	Homo sapiens	12	0	0	low	11.0			0	
+GSE10500	Gene expression in rheumatoid arthritis synovial macrophages	8300	Homo sapiens	8	0	0	low	11.0			0	
+10500	Rheumatoid arthritis: synovial macrophages	8300	Homo sapiens	8	0	0	low	11.0			0	
+GSE10024	Key Regulatory Molecules of Cartilage Destruction in Rheumatoid Arthritis: An in	96	Homo sapiens	6	0	0	low	0.0			0	excluded: cell line
+10024	Rheumatoid arthritis-related cartilage destruction model: chondrocytes	96	Homo sapiens	6	0	0	low	11.0			0	
+GSE9027	Gene expression profiling of rheumatoid arthritis synovial tissues	2649;3007;3002;2831	Homo sapiens	28	0	0	low	11.0			0	
+GSE7669	Synovial fibroblasts, RA versus OA	8300	Homo sapiens	12	0	0	low	11.0			0	
+7669	Rheumatoid arthritis and osteoarthritis: synovial fibroblasts	8300	Homo sapiens	12	0	0	low	11.0			0	
+GSE7524	Expression profiling in RA disease pre and post anti-TNF treatment	96	Homo sapiens	6	0	0	low	11.0			0	
+7524	Rheumatoid arthritis response to anti-tumor necrosis factor treatment: whole blo	96	Homo sapiens	6	0	0	low	11.0			0	
+GSE4061	Fibroblast-like synoviocytes derived from patients with rheumatoid arthritis	3002;2831;2832;2649	Homo sapiens	19	0	0	low	11.0			0	
+GSE3824	Rheumatoid arthritis and rheumatoid synovium	3002;2831;2649;3007	Homo sapiens	16	0	0	low	11.0			0	
+GSE3592	Expression profiling of responsiveness to infliximab in rheumatoid arthritis pat	3064	Homo sapiens	44	0	0	low	11.0			0	
+GSE2053	RAvs.ND	1740	Homo sapiens	8	0	0	low	11.0			0	
+2053	Rheumatoid arthritis: synovial tissues	1740	Homo sapiens	8	0	0	low	11.0			0	
+GSE1919	Rheumatoid arthritis	91	Homo sapiens	15	0	0	low	11.0			0	
+1919	Rheumatoid arthritis: synovial tissues	91	Homo sapiens	15	0	0	low	11.0			0	
+GSE1402	Juvenile Rheumatoid Arthritis Profiles In PBMC and SFMC	8300	Homo sapiens	57	0	0	low	11.0			0	
+1402	Juvenile rheumatoid arthritis expression profiles in mononuclear cells	8300	Homo sapiens	57	0	0	low	11.0			0	
+GSE551	OA	367	Homo sapiens	14	0	0	low	11.0			0	
+GSE550	RA	367	Homo sapiens	7	0	0	low	11.0			0	
+GSE766	RASF + IKB/Adtet + TNFa	8300	Homo sapiens	6	0	0	low	0.0			0	excluded: cell line
+766	Rheumatoid arthritis and TNFalpha	8300	Homo sapiens	6	0	0	low	11.0			0	
+GSE307297	Single cell RNAseq on rheumatoid arthritis-related interstitial lung disease	34284	Homo sapiens	12	0	0	low	0.0			0	excluded: single-cell
+GSE266852	Comparison of differential gene expression in blood PBMCs from healthy controls,	24676	Homo sapiens	10	0	0	low	0.0			0	excluded: single-cell
+GSE311923	Role of m⁶A-Modified GAS6 in Rheumatoid Arthritis: Insights from Multi-Omics Ana	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE234702	Single-cell genomic profile of articular chondrocytes from rheumatoid arthritis 	30173	Homo sapiens	7	0	0	low	0.0			0	excluded: single-cell
+GSE314078	Transcriptional Profiling of Synovial Macrophages using Minimally Invasive Ultra	18573	Homo sapiens	18	0	0	low	20.0			0	
+GSE314080	Transcriptional Profiling of Synovial Macrophages using Minimally Invasive Ultra	18573	Homo sapiens	24	0	0	low	20.0			0	
+GSE285865	Super-Omics and PCAS Reveal Rheumatoid Arthritis as a Tumor-like Disease	24676	Homo sapiens	18	0	0	low	20.0			0	
+GSE309533	snoRNA Snord3 promotes rheumatoid arthritis by epigenetic regulation of ESM1 in 	18460	Homo sapiens	11	0	0	low	20.0			0	
+GSE274680	Inflammation and lymphocyte activation during longitudinal progression to rheuma	24676	Homo sapiens	243	0	0	low	20.0			0	
+GSE274996	RNAseq analysis of human neutrophils from people with DMARD-refractory rheumatoi	28038	Homo sapiens	48	0	0	low	20.0			0	
+GSE274598	RNAseq analysis of human neutrophils from people with rheumatoid arthritis	11154	Homo sapiens	41	0	0	low	20.0			0	
+GSE296117	A single-cell RNA-seq dataset of synovial fluid from rheumatoid arthritis treate	24676	Homo sapiens	18	0	0	low	0.0			0	excluded: single-cell
+GSE237993	Human umbilical cord mesenchymal stem cell-derived exosomes deliver miRNA-451a t	24676	Homo sapiens	27	0	0	low	0.0			0	excluded: mirna
+GSE237991	Human umbilical cord mesenchymal stem cell-derived exosomes deliver miRNA-451a t	24676	Homo sapiens	12	0	0	low	0.0			0	excluded: in vitro
+GSE294225	Transcriptional profiles are dramatically altered in circulating CD14+ monocytes	24676	Homo sapiens	24	0	0	low	20.0			0	
+GSE291978	Expression and significance of lncRNAs derived from PBMC in rheumatoid arthritis	11154;16791	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE283881	Differential response of tissue engineered skeletal muscle from rheumatoid arthr	24676	Homo sapiens	24	0	0	low	0.0			0	excluded: in vitro
+GSE261149	Ginsenoside compound K plays an anti-inflammatory effect without inducing glucos	24676	Homo sapiens	9	0	0	low	20.0			0	
+GSE279838	ScRNA-seq Analysis of peripheral blood Tfh cells from rheumatoid arthritis patie	24676	Homo sapiens	6	0	0	low	0.0			0	excluded: scrna
+GSE285734	Lactylated histone promotes rheumatoid arthritis progression by increasing NFATc	34284	Homo sapiens	6	0	0	low	0.0			0	excluded: mouse
+GSE284403	Lactylated histone promotes rheumatoid arthritis progression by increasing NFATc	34284	Homo sapiens	6	0	0	low	0.0			0	excluded: mouse
+GSE271643	Cellular Communication Network Factor 3 contributes to the pathological process 	24676	Homo sapiens	6	0	0	low	0.0			0	excluded: in vitro
+GSE278613	A New Role for Huntingtin-Interacting Protein 1-Related (HIP1R) in Rheumatoid Ar	24676	Homo sapiens	9	0	0	low	20.0			0	
+GSE276772	NUSAP1 regulates Rheumatoid Arthritis Fibroblast-Like Synoviocyte Phenotypes Imp	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE273760	Homeostatic signals induce the development of peripheral helper T cells promoted	24676	Homo sapiens	12	0	0	low	20.0			0	
+GSE266310	Effects of methotrexate and tofacitinib on gene expression of activated rheumato	18573	Homo sapiens	9	0	0	low	20.0			0	
+GSE246421	Loss of synovial tissue macrophage homeostasis precedes Rheumatoid Arthritis cli	18573	Homo sapiens	26	0	0	low	20.0			0	
+GSE276473	DLX4 regulates the invasiveness of Rheumatoid Arthritis Fibroblast-Like Synovioc	24676	Homo sapiens	6	0	0	low	20.0			0	
+GSE242173	Secretory phenotype in PBMCs of elderly patients with rheumatoid arthritis	20795	Homo sapiens	9	0	0	low	20.0			0	
+GSE271161	Serum exosomes lncRNAs: TCONS_I2_00013502 and ENST00000363624 are new diagnostic	20301	Homo sapiens	18	0	0	low	0.0			0	excluded: lncrna
+GSE253553	Two Broad Categories Overlapping With Rheumatoid Arthritis Observed in Synovial 	20301	Homo sapiens	24	0	0	low	20.0			0	
+GSE253495	Human CD14+ monocytes from rheumatoid arthritis patients before and after a 3-mo	23227	Homo sapiens	6	0	0	low	20.0			0	
+GSE172223	Effect of 630nm LED red light on rheumatoid arthritis	16791	Homo sapiens	6	0	0	low	20.0			0	
+GSE245403	Single-cell insights into immune dysregulation in rheumatoid arthritis flare ver	24676	Homo sapiens	24	0	0	low	0.0			0	excluded: single-cell
+GSE235508	Single-cell resolution of longitudinal blood transcriptome profiles in rheumatoi	20301	Homo sapiens	335	0	0	low	0.0			0	excluded: single-cell
+GSE217012	MYD88 dimerization controls the proliferative, invasive, and pro-inflammatory re	30173;24676	Homo sapiens	15	0	0	low	20.0			0	
+GSE201669	RNAseq of CD4 T cells from female Rheumatoid arthritis patients [NeumRA_CD4]	11154	Homo sapiens	60	0	0	low	20.0			0	
+GSE209982	Osteoclast microRNA profiling to capture the erosive factor in rheumatoid arthri	11154	Homo sapiens	16	0	0	low	0.0			0	excluded: microrna
+GSE229449	Peripheral blood cellular dynamics of Rheumatoid arthritis treatment informs abo	16791	Homo sapiens	60	0	0	low	20.0			0	
+GSE216245	Single-cell immunoprofiling of synovial helper T cell of rheumatoid arthritis pa	28038	Homo sapiens	8	0	0	low	0.0			0	excluded: single-cell
+GSE213842	Comprehensive analysis and functional characteristics of differential expression	11154	Homo sapiens	8	0	0	low	0.0			0	excluded: methylation
+GSE223325	Rheumatoid Arthritis macrophages are primed for inflammation and display bioener	18573	Homo sapiens	18	0	0	low	20.0			0	
+GSE200293	Additive efficacy of a novel bispecific anti-TNF/IL-6 NANOBODY compound in trans	24676;24247	Homo sapiens; Mus musculus	154	0	0	low	20.0			0	
+GSE208161	Randomized phase-1 trial of antigen-specific tolerizing immunotherapy with pepti	24676	Homo sapiens	12	0	0	low	20.0			0	
+GSE141529	Peripheral Blood Gene Expression Signatures in Patients with Rheumatoid Arthriti	16791	Homo sapiens	40	0	0	low	20.0			0	
+GSE190349	RNAseq of CD4 T cells from female Rheumatoid arthritis patients	11154	Homo sapiens	24	0	0	low	20.0			0	
+GSE214842	ATF6αis required for the inflammation and survival in rheumatoid arthritis fibro	11154	Homo sapiens	6	0	0	low	20.0			0	
+GSE201670	RNAseq of CD14 T cells from female Rheumatoid arthritis patients [NeumRA_CD14]	11154	Homo sapiens	59	0	0	low	20.0			0	
+GSE198520	Synovial inflammatory pathways characterize anti-TNF-responsive rheumatoid arthr	21290	Homo sapiens	92	0	0	low	20.0			0	
+GSE195557	TNFR2 is critical for TNF-induced rheumatoid arthritis fibroblast-like synoviocy	21290	Homo sapiens	16	0	0	low	20.0			0	
+GSE193193	Transcriptome -Wide m6A Methylome and Potential Drug Targets Prediction Analysis	24676	Homo sapiens	20	0	0	low	0.0			0	excluded: methylation
+GSE181313	Transcriptional effects of LXR on the differentiation of monocyte-derived macrop	23227	Homo sapiens	20	0	0	low	20.0			0	
+GSE191101	Targeted inhibition of TAK1 phosphorylation at Thr184,184 sites by Tubuloside B 	20795	Homo sapiens	8	0	0	low	20.0			0	
+GSE141836	The pathogenic role of stem cell-like memory T cells in rheumatoid arthritis	16791	Homo sapiens	8	0	0	low	20.0			0	
+GSE189136	Targeting MyD88 Downregulates Inflammatory Mediators and Pathogenic Processes in	24676	Homo sapiens	19	0	0	low	20.0			0	
+GSE179302	Physical Activity Moderates Inflammatory Gene Expression in Rheumatoid Arthritis	24676	Homo sapiens	35	0	0	low	20.0			0	
+GSE168008	RNA sequencing of mesenchymal stem cells reveals a blocking of differentiation a	18573	Homo sapiens	10	0	0	low	20.0			0	
+GSE159618	miR-497 Reduction and the Increase of its Family Member miR-424 Leads to the Dys	21290	Homo sapiens	12	0	0	low	0.0			0	excluded: mirna
+GSE163605	Expression levels of HLA-DRB and HLA-DQ are associated with MHC Class II haploty	16791	Homo sapiens	86	0	0	low	20.0			0	
+GSE163548	Functional genomics atlas of synovial fibroblasts defining rheumatoid arthritis 	24676;16791;20301	Homo sapiens	142	0	0	low	0.0			0	excluded: chip-seq
+GSE154474	RNAseq analysis of peripheral blood and synovial fluid neutrophils from rheumato	11154	Homo sapiens	6	0	0	low	20.0			0	
+GSE151897	RHEUMATOID ARTHRITIS SYNOVIAL MICROENVIRONMENT INDUCES METABOLIC AND FUNCTIONAL 	18573	Homo sapiens	9	0	0	low	0.0			0	excluded: in vitro
+GSE122616	lncRNA expression profiles inin fibroblast-like synoviocytes from rheumatoid art	20795	Homo sapiens	6	0	0	low	0.0			0	excluded: lncrna
+GSE154988	Properties of PD1+ B cells in Rheumatoid Arthritis (RA) Patients	18573	Homo sapiens	10	0	0	low	20.0			0	
+GSE138747	Multi-omics and Machine Learning Accurately Predicts Clinical Response to Adalim	21145;20301	Homo sapiens	320	0	0	low	20.0			0	
+GSE138746	Multi-omics and Machine Learning Accurately Predicts Clinical Response to Adalim	20301	Homo sapiens	240	0	0	low	0.0			0	excluded: methylation
+GSE145204	Transcriptional responses to TNF following HFl treatment of primary rheumatoid a	16791	Homo sapiens	14	0	0	low	20.0			0	
+GSE133527	miR-221-3p drives the Shift of M2-Macrophage to a Pro-Inflammatory Function by M	18573	Homo sapiens	20	0	0	low	0.0			0	excluded: in vitro
+GSE143443	Joint Location-Specific JAK-STAT Signaling in Rheumatoid Arthritis Fibroblast-li	11154	Homo sapiens	20	0	0	low	0.0			0	excluded: methylation
+GSE129705	RNA-sequencing of whole blood samples from biologic naïve rheumatoid arthritis p	16791	Homo sapiens	128	0	0	low	17.0			0	
+GSE122612	Predicting drug-free remission in rheumatoid arthritis: the Biomarkers of Remiss	18573	Homo sapiens	44	0	0	low	17.0			0	
+GSE120178	Pharmacodynamic Biomarkers and Differential Effects of TNF- and GM-CSF-Targeting	16791	Homo sapiens	147	0	0	low	17.0			0	
+GSE118829	Gene expressions of T cells in each developmental stages in healthy volunteers a	17303	Homo sapiens	336	0	0	low	17.0			0	
+GSE113156	Transcriptome change after tocilizumab therapy in rheumatoid arthritis patients	17303	Homo sapiens	22	0	0	low	17.0			0	
+GSE95588	Macrophage polarization controlled by fibroblast crosstalk and targeted by medic	20301;16791	Homo sapiens	74	0	0	low	17.0			0	
+GSE99006	Whole transcriptome profile of citrulline-specific B cells from patients with rh	21290	Homo sapiens	12	0	0	low	17.0			0	
+GSE118209	Mixed-Effects Association of Single Cells Identifies an Expanded Effector CD4+ T	16791	Homo sapiens	96	0	0	low	0.0			0	excluded: single-cell
+GSE117769	White blood cells from rheumatoid arthritis patients and matched healthy donors	16791	Homo sapiens	120	0	0	low	17.0			0	
+GSE116899	Synovial fluid and blood neutrophils from rheumatoid arthritis patients and matc	11154	Homo sapiens	30	0	0	low	17.0			0	
+GSE112658	Comprehensive Epigenetic Landscape of Rheumatoid Arthritis Fibroblast-like Synov	11154	Homo sapiens	213	0	0	low	17.0			0	
+GSE112656	Comprehensive Epigenetic Landscape of Rheumatoid Arthritis Fibroblast-like Synov	11154	Homo sapiens	20	0	0	low	0.0			0	excluded: methylation
+GSE110999	RNA sequencing of B cell subsets (CD11c hi IgD+ B cells, CD11c hi IgD- B cells, 	11154	Homo sapiens	48	0	0	low	17.0			0	
+GSE109449	Single cell RNA-seq analysis of freshly isolated synovial fibroblasts in patient	18573	Homo sapiens	384	0	0	low	17.0			0	
+GSE109448	RNA-seq analysis of freshly isolated synovial fibroblast subsets from patients w	18573	Homo sapiens	25	0	0	low	17.0			0	
+GSE102728	IgG immunocomplexes sensitize human monocytes for  inflammatory hyperactivity vi	11154	Homo sapiens	16	0	0	low	0.0			0	excluded: in vitro
+GSE97165	RNAseq study of synovial biopsies after triple DMARD treatment	11154	Homo sapiens	38	0	0	low	17.0			0	
+GSE89408	RNAseq study of synovial biopsies	11154	Homo sapiens	218	0	0	low	17.0			0	
+GSE94897	B cells expressing the IgA receptor FcRL4 participate in the autoimmune response	16791	Homo sapiens	8	0	0	low	17.0			0	
+GSE90081	Discovery of new candidate genes for rheumatoid arthritis through integration of	11154	Homo sapiens	24	12	12	high	77.0	patient	control|healthy	1	
+GSE80072	Joint-specific DNA transcriptome signatures in rheumatoid arthritis [RNA-seq]	11154	Homo sapiens	9	0	0	low	0.0			0	excluded: methylation

@@ -28,6 +28,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dr.common.provenance import build_manifest, write_manifest
+from src.dr.common.text import strip_salt_form
 from src.dr.contracts import (
     STEP7_CARDS_SCHEMA,
     STEP7_CARDS_VERSION,
@@ -563,9 +564,10 @@ def _sensitivity_analysis(
     mech_vals = df["mechanism_score"].fillna(0).values.astype(float)
     rev_vals_raw = df["reversal_score"].values.astype(float)
     mech_rank = rankdata(mech_vals) / n_drugs          # higher = better
-    # NaN = untested drug → neutral rank (0), not penalised
+    # NaN = untested drug: biologics get median rank (0.5), others get 0.0
     _rev_finite = np.isfinite(rev_vals_raw)
-    rev_rank = np.zeros(n_drugs)
+    _is_bio = (df.get("drug_class", pd.Series("", index=df.index)).fillna("") == "biologic").values
+    rev_rank = np.where(_is_bio, 0.5, 0.0)  # default: biologics=neutral, others=pessimistic
     if _rev_finite.sum() > 0:
         rev_rank[_rev_finite] = rankdata(-rev_vals_raw[_rev_finite]) / _rev_finite.sum()
 
@@ -715,9 +717,9 @@ def main():
     neg = pd.read_csv(neg_path) if neg_path and neg_path.exists() else pd.DataFrame()
     if len(neg):
         if "drug_raw" in neg.columns:
-            neg["_canon"] = neg["drug_raw"].astype(str).apply(canonicalize_name)
+            neg["_canon"] = neg["drug_raw"].astype(str).apply(lambda x: strip_salt_form(canonicalize_name(x)))
         elif "drug_normalized" in neg.columns:
-            neg["_canon"] = neg["drug_normalized"].astype(str).apply(canonicalize_name)
+            neg["_canon"] = neg["drug_normalized"].astype(str).apply(lambda x: strip_salt_form(canonicalize_name(x)))
         else:
             neg["_canon"] = ""
 
@@ -726,6 +728,7 @@ def main():
     bridge_target_details: Dict[str, str] = {}  # drug_id → target_details JSON
     bridge_mechanism_score: Dict[str, float] = {}  # drug_id → KG mechanism score
     bridge_reversal_score: Dict[str, float] = {}  # drug_id → SigReverse reversal score
+    bridge_drug_class: Dict[str, str] = {}  # drug_id → "small_molecule" | "biologic"
     bridge_path = Path(args.bridge).resolve() if args.bridge else None
     if not bridge_path or not bridge_path.exists():
         # Auto-detect: look for bridge CSVs in common locations
@@ -760,9 +763,14 @@ def main():
                                 bridge_reversal_score[did] = float(_rev)
                             except (ValueError, TypeError):
                                 pass
+                        _dc = br.get("drug_class", "")
+                        if _dc not in ("", "nan", None):
+                            bridge_drug_class[did] = str(_dc)
+                n_biologics = sum(1 for v in bridge_drug_class.values() if v == "biologic")
                 print(f"[INFO] Loaded bridge: {len(bridge_target_map)} targets, "
                       f"{len(bridge_mechanism_score)} mechanism scores, "
-                      f"{len(bridge_reversal_score)} reversal scores "
+                      f"{len(bridge_reversal_score)} reversal scores, "
+                      f"{n_biologics} biologics "
                       f"from {bridge_path.name}")
         except Exception as e:
             print(f"[WARN] Failed to load bridge CSV: {e}")
@@ -790,7 +798,7 @@ def main():
         neg_trials_n = 0
         neg_trial_summary = ""
         if len(neg):
-            tr = neg[neg["_canon"].str.lower() == canonicalize_name(canon).lower()].copy()
+            tr = neg[neg["_canon"].str.lower() == strip_salt_form(canonicalize_name(canon)).lower()].copy()
             neg_trials_n = len(tr)
             if neg_trials_n:
                 neg_trial_summary = " | ".join(
@@ -819,6 +827,7 @@ def main():
             "target_details": bridge_target_details.get(drug_id, ""),
             "mechanism_score": bridge_mechanism_score.get(drug_id, 0.0),
             "reversal_score": bridge_reversal_score.get(drug_id, None),  # None = not tested (neutral)
+            "drug_class": bridge_drug_class.get(drug_id, ""),
         })
 
     df = pd.DataFrame(rows)
@@ -863,8 +872,15 @@ def main():
     mech_rank = mech_vals.rank(pct=True, ascending=True)    # higher = better
 
     rev_vals = df["reversal_score"].astype(float)  # keep NaN = drug not in LINCS (untested)
-    # na_option="keep" → NaN drugs get NaN rank, fillna(0) → neutral contribution (no bonus, no penalty)
-    rev_rank = rev_vals.rank(pct=True, ascending=False, na_option="keep").fillna(0.0)
+    # na_option="keep" → NaN drugs get NaN rank
+    # Biologics (drug_class=="biologic") cannot have reversal_score (LINCS only tests small molecules).
+    # fillna(0.5) = median rank = truly neutral (no bonus, no penalty).
+    # Previous fillna(0.0) penalized biologics by ~7.5 points vs the median small molecule.
+    _rev_rank_raw = rev_vals.rank(pct=True, ascending=False, na_option="keep")
+    _is_biologic = df.get("drug_class", pd.Series("", index=df.index)).fillna("") == "biologic"
+    # Biologics: median (0.5) = neutral; other untested drugs: 0.0 (mild pessimism)
+    rev_rank = _rev_rank_raw.where(_rev_rank_raw.notna(),
+                                    _is_biologic.map({True: 0.5, False: 0.0}))
 
     df["rank_key"] = (
         pmid_score
@@ -1011,7 +1027,7 @@ def main():
     with pd.ExcelWriter(xlsx_path, engine="openpyxl") as writer:
         # summary
         cols = [
-            "canonical_name","drug_id","gate","decision_channel","endpoint_type","total_score_0_100","rank_key",
+            "canonical_name","drug_id","gate","decision_channel","endpoint_type","drug_class","total_score_0_100","rank_key",
             "mechanism_score","reversal_score",
             "novelty_score","uncertainty_score",
             "unique_supporting_pmids_count","supporting_sentence_count",

@@ -1,0 +1,79 @@
+GEO Auto-Discovery Report
+========================
+Disease: rheumatoid arthritis (key: rheumatoid_arthritis)
+Date: 2026-02-27 21:48:09
+Total candidates: 205
+Valid (case+control detected): 4
+Excluded: 44
+Selected: 4
+
+SELECTED DATASETS
+------------------------------------------------------------
+
+1. GSE90081 (score: 77.0, confidence: high)
+   Title: Discovery of new candidate genes for rheumatoid arthritis through integration of genetic association data with expression pathway analysis
+   Platform: 11154 (11154)
+   Samples: 24 total, 12 case, 12 control
+   Case regex: patient
+   Control regex: control|healthy
+   Field matched: characteristics
+   Date: 2016/11/24
+
+2. GSE71370 (score: 65.9, confidence: high)
+   Title: Profiling of CD14+ monocytes from paired rheumatoid arthritis (RA)-patient peripheral blood and synovial fluid samples
+   Platform: 16268 (16268)
+   Samples: 26 total, 18 case, 8 control
+   Case regex: patient
+   Control regex: control|healthy
+   Field matched: title
+   Date: 2017/01/30
+
+3. GSE68689 (score: 63.2, confidence: high)
+   Title: Gene expression from the whole blood of rheumatoid arthritis patients and normal controls.
+   Platform: 20171 (20171)
+   Samples: 21 total, 16 case, 5 control
+   Case regex: patient
+   Control regex: healthy
+   Field matched: title
+   Date: 2018/05/01
+
+4. GSE23561 (score: 47.3, confidence: low)
+   Title: Peripheral blood gene expression profiles in metabolic syndrome, coronary artery disease and type 2 diabetes
+   Platform: 10775 (10775)
+   Samples: 35 total, 6 case, 9 control
+   Case regex: disease
+   Control regex: control
+   Field matched: title
+   Date: 2010/08/12
+
+
+EXCLUDED DATASETS
+------------------------------------------------------------
+  GSE243821: excluded: lncrna | LncRNA of human Fibroblast-like synoviocytes of rheumatoid a
+  GSE181614: excluded: lncrna | RNA Sequencing facilitates quantitative analysis of lncRNA a
+  GSE166389: excluded: methylation | Genes regulated by both of Ten-Eleven translocation 3 and Tu
+  GSE132832: excluded: mouse | Impaired ATM Activation in B Cells Promotes Osteoclastogenic
+  GSE84074: excluded: lncrna | Rheumatoid arthritis and response to LLDT-8: Fibroblast-like
+  GSE103578: excluded: lncrna | lncRNA and mRNA expression profiles in fibroblast-like synov
+  GSE106893: excluded: lncrna | lncRNA and mRNA expression profiles associated with response
+  GSE101193: excluded: lncrna | Identify the expression of lncRNAs in peripheral blood monon
+  GSE83147: excluded: lncrna | RNA expression profiles in fibroblast-like synoviocytes from
+  GSE65010: excluded: in vitro | Gene expression profiling of effector and regulatory T-cells
+  GSE72258: excluded: in vitro | Microarray data for Rheumatoid arthritis synovial fibroblast
+  GSE49604: excluded: in vitro | Global gene expression profiles of synoviocytes and macropha
+  GSE10024: excluded: cell line | Key Regulatory Molecules of Cartilage Destruction in Rheumat
+  GSE766: excluded: cell line | RASF + IKB/Adtet + TNFa
+  GSE307297: excluded: single-cell | Single cell RNAseq on rheumatoid arthritis-related interstit
+  GSE266852: excluded: single-cell | Comparison of differential gene expression in blood PBMCs fr
+  GSE234702: excluded: single-cell | Single-cell genomic profile of articular chondrocytes from r
+  GSE296117: excluded: single-cell | A single-cell RNA-seq dataset of synovial fluid from rheumat
+  GSE237993: excluded: mirna | Human umbilical cord mesenchymal stem cell-derived exosomes 
+  GSE237991: excluded: in vitro | Human umbilical cord mesenchymal stem cell-derived exosomes 
+
+
+ALL VALID CANDIDATES (ranked by score)
+------------------------------------------------------------
+>>> GSE90081 score= 77.0 conf=high   case= 12 ctrl= 12 plt=11154    | Discovery of new candidate genes for rheumatoid ar
+>>> GSE71370 score= 65.9 conf=high   case= 18 ctrl=  8 plt=16268    | Profiling of CD14+ monocytes from paired rheumatoi
+>>> GSE68689 score= 63.2 conf=high   case= 16 ctrl=  5 plt=20171    | Gene expression from the whole blood of rheumatoid
+>>> GSE23561 score= 47.3 conf=low    case=  6 ctrl=  9 plt=10775    | Peripheral blood gene expression profiles in metab

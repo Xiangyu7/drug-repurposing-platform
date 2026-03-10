@@ -69,6 +69,7 @@ from src.dr.evidence.extractor import repair_json as modular_repair_json
 from src.dr.evidence.extractor import detect_hallucination
 from src.dr.common.http import request_with_retries as shared_request_with_retries
 from src.dr.common.provenance import build_manifest, write_manifest
+from src.dr.common.text import strip_salt_form
 from src.dr.contracts import (
     STEP6_DOSSIER_SCHEMA,
     STEP6_DOSSIER_VERSION,
@@ -672,7 +673,15 @@ def rerank_with_embeddings(
 # Evidence extraction: rule + LLM (JSON)
 # ---------------------------
 DIRECTION_WORDS = {
-    "benefit": ["reduced","decreased","attenuated","improved","lowered","regressed","stabilized","inhibited","prevented","associated with improvement","significantly reduced"],
+    "benefit": [
+        "reduced","decreased","attenuated","improved","lowered","regressed",
+        "stabilized","inhibited","prevented","associated with improvement",
+        "significantly reduced",
+        # P4 expansion: clinical/pharmacological benefit indicators
+        "promising","protective","efficacious","favorable",
+        "ameliorated","alleviated","mitigated","suppressed",
+        "remission","resolved","improved outcome",
+    ],
     "harm": ["increased","worsened","aggravated","promoted","accelerated","associated with higher","significantly increased"],
     "neutral": ["no difference","not significantly","did not improve","failed to","not associated","nonsignificant","no significant"]
 }
@@ -1041,15 +1050,39 @@ def evidence_from_trials(trials: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 # ---------------------------
 # Main per-candidate
 # ---------------------------
+def _build_drug_clause(drug: str, drug_aliases: Optional[List[str]] = None) -> str:
+    """Build a PubMed drug clause with aliases for broader recall.
+
+    If aliases are provided, constructs an OR query:
+        ("tofacitinib" OR "TOFACITINIB CITRATE" OR "xeljanz")
+    Otherwise returns the simple quoted drug name:
+        ("tofacitinib")
+    """
+    terms = [drug]
+    if drug_aliases:
+        seen = {drug.strip().lower()}
+        for alias in drug_aliases:
+            a = alias.strip()
+            if a and a.lower() not in seen:
+                terms.append(a)
+                seen.add(a.lower())
+    if len(terms) == 1:
+        return f'("{terms[0]}")'
+    return "(" + " OR ".join([f'"{t}"' for t in terms]) + ")"
+
+
 def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
                        disease_synonyms: Optional[List[str]] = None,
-                       related_diseases: Optional[List[str]] = None) -> List[Dict[str, str]]:
+                       related_diseases: Optional[List[str]] = None,
+                       drug_targets: Optional[List[str]] = None,
+                       drug_aliases: Optional[List[str]] = None) -> List[Dict[str, str]]:
     routes: List[Dict[str, str]] = []
+    drug_clause = _build_drug_clause(drug, drug_aliases)
 
     # Route 1: exact disease match (always present, universal)
     routes.append({
         "route": "exact_disease",
-        "query": f'("{drug}") AND ("{target_disease}")',
+        "query": f'{drug_clause} AND ("{target_disease}")',
     })
 
     # Route 2: disease synonyms (OpenTargets enrichment)
@@ -1061,7 +1094,7 @@ def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
             syn_clause = " OR ".join([f'"{s}"' for s in syn_terms])
             routes.append({
                 "route": "disease_synonyms",
-                "query": f'("{drug}") AND ({syn_clause})',
+                "query": f'{drug_clause} AND ({syn_clause})',
             })
 
     # Route 3: endpoint mechanism (for classified endpoints only)
@@ -1071,7 +1104,7 @@ def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
         mech_clause = " OR ".join([f'"{m}"' for m in mech_hints[:5]])
         routes.append({
             "route": "endpoint_mechanism",
-            "query": f'("{drug}") AND ({endpoint_clause}) AND ({mech_clause})',
+            "query": f'{drug_clause} AND ({endpoint_clause}) AND ({mech_clause})',
         })
 
     # Route 4: cross-disease transfer (OpenTargets disease ontology)
@@ -1082,8 +1115,26 @@ def build_query_routes(drug: str, target_disease: str, endpoint_type: str,
             rel_clause = " OR ".join([f'"{t}"' for t in rel_terms])
             routes.append({
                 "route": "cross_disease_transfer",
-                "query": f'("{drug}") AND ({rel_clause})',
+                "query": f'{drug_clause} AND ({rel_clause})',
             })
+
+    # Route 5: MeSH term disease query (P4 Fix 3)
+    # Uses MeSH qualifier for the disease to catch papers indexed with
+    # controlled vocabulary even when the abstract text differs.
+    routes.append({
+        "route": "mesh_disease",
+        "query": f'{drug_clause} AND ("{target_disease}"[MeSH Terms])',
+    })
+
+    # Route 6 & 7 (L2/L3) — DISABLED.
+    # L2 (drug+target) and L3 (target+disease) papers must NOT be mixed into
+    # the L1 evidence pool.  L3 papers may not mention the drug at all, which
+    # inflates total_pmids and can cause the LLM to hallucinate connections.
+    # These routes require a proper layered evidence architecture where each
+    # layer is counted and weighted separately.  Re-enable only after:
+    #   1. Evidence items carry a "layer" tag (L1/L2/L3)
+    #   2. total_pmids and supporting counts are split by layer
+    #   3. Gating uses L1 counts for direct evidence, L2/L3 for mechanism score
 
     # Deduplicate exact query strings while preserving order.
     seen_q = set()
@@ -1114,6 +1165,8 @@ def process_one(
     disease_keywords: Optional[List[str]] = None,
     disease_synonyms: Optional[List[str]] = None,
     related_diseases: Optional[List[str]] = None,
+    drug_targets: Optional[List[str]] = None,
+    kg_scores: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Path, Path, Dict[str, Any]]:
     # cache layout
     base = cache_dir / safe_filename(drug_id) / safe_filename(canonical_name)
@@ -1131,6 +1184,8 @@ def process_one(
         canonical_name, target_disease, endpoint_type,
         disease_synonyms=disease_synonyms,
         related_diseases=related_diseases,
+        drug_targets=drug_targets,
+        drug_aliases=aliases,
     )
     query = query_routes[0]["query"] if query_routes else f'("{canonical_name}") AND ("{target_disease}")'
 
@@ -1495,6 +1550,8 @@ def process_one(
         "canonical_name": canonical_name,
         "target_disease": target_disease,
         "endpoint_type": endpoint_type,
+        "targets": drug_targets or [],
+        "kg_scores": kg_scores or {},
         "query": query,
         "query_routes": query_routes,
         "retrieval": {
@@ -1621,7 +1678,10 @@ def main():
     ap.add_argument("--neg", default="data/poolA_negative_drug_level.csv", help="Optional CT.gov negative CSV (e.g., data/poolA_negative_drug_level.csv).")
     ap.add_argument("--out", default="output/step6", help="Output directory.")
     ap.add_argument("--target_disease", default="atherosclerosis")
-    ap.add_argument("--topn", type=int, default=50)
+    ap.add_argument("--topn", type=int, default=100)
+    ap.add_argument("--min_mechanism_score", type=float, default=0.0,
+                    help="When > 0, include ALL drugs with mechanism_score >= threshold regardless of rank. "
+                         "Union with topn selection ensures high-mechanism drugs are never cut off.")
     ap.add_argument("--pubmed_retmax", type=int, default=int(os.getenv("STEP6_PUBMED_RETMAX", "120")))
     ap.add_argument("--pubmed_parse_max", type=int, default=int(os.getenv("STEP6_PUBMED_PARSE_MAX", "60")))
     ap.add_argument("--max_rerank_docs", type=int, default=int(os.getenv("STEP6_MAX_RERANK_DOCS", "40")))
@@ -1637,6 +1697,21 @@ def main():
     miss = [c for c in needed if c not in rank.columns]
     if miss:
         raise ValueError(f"{args.rank_in} missing columns: {miss}")
+
+    # Salt-form dedup: merge "methotrexate sodium" into "methotrexate" etc.
+    # Keep highest-scoring row per parent molecule.
+    rank["_parent_name"] = rank["canonical_name"].apply(
+        lambda x: strip_salt_form(str(x).strip()) if str(x).strip() else ""
+    )
+    score_col = "final_score" if "final_score" in rank.columns else ("rank_score" if "rank_score" in rank.columns else None)
+    if score_col:
+        rank = rank.sort_values(score_col, ascending=False)
+    n_before = len(rank)
+    rank = rank.drop_duplicates(subset="_parent_name", keep="first")
+    n_deduped = n_before - len(rank)
+    if n_deduped > 0:
+        log(f"[DEDUP] Salt-form dedup: {n_before} → {len(rank)} drugs ({n_deduped} duplicates removed)")
+    rank = rank.drop(columns=["_parent_name"])
 
     out_dir = Path(args.out).resolve()
     cache_dir = out_dir / "cache" / "pubmed"
@@ -1671,9 +1746,34 @@ def main():
 
     # keep topn if rank_score exists
     if "rank_score" in rank.columns:
-        rank = rank.sort_values("rank_score", ascending=False).head(args.topn).copy()
+        rank_sorted = rank.sort_values("rank_score", ascending=False)
+        topn_selection = rank_sorted.head(args.topn)
     else:
-        rank = rank.head(args.topn).copy()
+        rank_sorted = rank
+        topn_selection = rank_sorted.head(args.topn)
+
+    # P2 Fix: score-based threshold — include all drugs above mechanism_score
+    # threshold regardless of rank, so high-mechanism drugs are never cut off
+    if args.min_mechanism_score > 0:
+        mech_col = "max_mechanism_score" if "max_mechanism_score" in rank.columns else (
+            "mechanism_score" if "mechanism_score" in rank.columns else None)
+        if mech_col:
+            above_threshold = rank[pd.to_numeric(rank[mech_col], errors="coerce").fillna(0.0) >= args.min_mechanism_score]
+            if len(above_threshold) > 0:
+                # Union: combine topn + above-threshold, deduplicate by index
+                combined = pd.concat([topn_selection, above_threshold]).drop_duplicates(subset=["drug_id"], keep="first")
+                n_extra = len(combined) - len(topn_selection)
+                if n_extra > 0:
+                    log(f"[TOPN] Score threshold {args.min_mechanism_score}: added {n_extra} drugs above threshold "
+                        f"(total {len(combined)} = topn {len(topn_selection)} + {n_extra} threshold)")
+                rank = combined.copy()
+            else:
+                rank = topn_selection.copy()
+        else:
+            log(f"[TOPN] --min_mechanism_score={args.min_mechanism_score} ignored: no mechanism_score column found")
+            rank = topn_selection.copy()
+    else:
+        rank = topn_selection.copy()
 
     all_drug_names = [str(x).strip() for x in rank['canonical_name'].tolist() if str(x).strip()]
 
@@ -1706,6 +1806,30 @@ def main():
         endpoint_hint = str(rr.get("endpoint_type","OTHER"))
         chembl_pref = str(rr.get("chembl_pref_name","")).strip()
         drug_aliases = [chembl_pref] if chembl_pref and chembl_pref.lower() != canon.lower() else []
+        # Add salt-stripped parent name as alias for broader PubMed recall
+        # e.g. "upadacitinib hemihydrate" → also search "upadacitinib"
+        parent_name = strip_salt_form(canon)
+        if parent_name and parent_name.lower() != canon.lower() and parent_name.lower() not in {a.lower() for a in drug_aliases}:
+            drug_aliases.append(parent_name)
+
+        # Extract drug targets from KG bridge data (targets or signature_genes column)
+        targets_raw = str(rr.get("targets", "") or rr.get("signature_genes", "") or "").strip()
+        drug_targets = [t.strip() for t in targets_raw.split(",") if t.strip()] if targets_raw else []
+
+        # Extract KG scores for MPS computation in Step 7
+        def _safe_float(val, default=0.0):
+            try: return float(val) if val and str(val).strip() not in ('', 'nan', 'None') else default
+            except (ValueError, TypeError): return default
+        kg_scores = {
+            "mechanism_score": _safe_float(rr.get("max_mechanism_score") or rr.get("mechanism_score")),
+            "final_score": _safe_float(rr.get("final_score")),
+            "safety_penalty": _safe_float(rr.get("safety_penalty"), 1.0),
+            "trial_penalty": _safe_float(rr.get("trial_penalty")),
+            "risk_multiplier": _safe_float(rr.get("risk_multiplier"), 1.0),
+            "confidence_tier": str(rr.get("confidence_tier", "") or "").strip(),
+            "n_signature_targets": int(_safe_float(rr.get("n_signature_targets"))),
+            "n_evidence_paths": int(_safe_float(rr.get("n_evidence_paths"))),
+        }
 
         # --- Skip if dossier already exists (restartability) ---
         dossiers_dir = out_dir / "dossiers"
@@ -1730,6 +1854,8 @@ def main():
                     disease_keywords=disease_keywords,
                     disease_synonyms=disease_synonyms,
                     related_diseases=related_diseases,
+                    drug_targets=drug_targets,
+                    kg_scores=kg_scores,
                 )
         else:
             json_path, md_path, dossier = process_one(
@@ -1743,6 +1869,8 @@ def main():
                 disease_keywords=disease_keywords,
                 disease_synonyms=disease_synonyms,
                 related_diseases=related_diseases,
+                drug_targets=drug_targets,
+                kg_scores=kg_scores,
             )
 
         dossier_json_paths.append(str(json_path))
@@ -1807,6 +1935,7 @@ def main():
             "out": str(out_dir),
             "target_disease": args.target_disease,
             "topn": int(args.topn),
+            "min_mechanism_score": float(args.min_mechanism_score),
             "pubmed_retmax": int(args.pubmed_retmax),
             "pubmed_parse_max": int(args.pubmed_parse_max),
             "max_rerank_docs": int(args.max_rerank_docs),

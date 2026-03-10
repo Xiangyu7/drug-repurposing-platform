@@ -174,6 +174,9 @@ def aggregate_to_drug(
     aggregation_mode: str = "weighted_median",  # or "quantile_max"
     n_factor_mode: str = "log",  # "log" (soft) or "sqrt" (harsh)
     cl_diversity_bonus: float = 0.1,  # bonus per extra cell line
+    mimicker_rescue: bool = False,  # enable mimicker rescue mechanism
+    mimicker_rescue_threshold: float = 2.0,  # min |score| to qualify for rescue
+    mimicker_rescue_penalty: float = 0.3,  # penalty factor applied to rescued score
 ) -> pd.DataFrame:
     """Aggregate signature-level results to drug-level with robustness weighting.
 
@@ -200,6 +203,16 @@ def aggregate_to_drug(
         aggregation_mode: 'weighted_median' or 'quantile_max'.
         n_factor_mode: 'log' (gentle) or 'sqrt' (harsh) sample-size penalty.
         cl_diversity_bonus: Bonus multiplier per additional cell line (0 = disabled).
+        mimicker_rescue: If True, rescue strong mimickers with a penalized positive score.
+            Pharmacological rationale: LINCS uses cancer cell lines (A549, MCF7, PC3) where
+            drugs targeting immune pathways (e.g., JAK inhibitors) show as mimickers because
+            pathway suppression has opposite transcriptomic effects in cancer vs immune cells.
+            A strong mimicker (high |score|) clearly perturbs the disease pathway — it just
+            does so in the "wrong" direction in a non-disease-relevant cell context.
+        mimicker_rescue_threshold: Minimum absolute median score for a drug to qualify for
+            mimicker rescue. Only drugs with strong perturbation signal are rescued.
+        mimicker_rescue_penalty: Penalty factor (0-1) applied to the rescued score.
+            E.g., 0.3 means the rescued drug gets 30% of its absolute perturbation strength.
 
     Returns:
         Drug-level DataFrame sorted by final_reversal_score (ascending).
@@ -260,6 +273,38 @@ def aggregate_to_drug(
 
         if n_rev < min_reverser:
             med_s = float(g_filtered[score_col].median()) if len(g_filtered) > 0 else 0.0
+
+            # --- Mimicker rescue mechanism ---
+            # Pharmacological rationale: LINCS L1000 uses cancer cell lines (A549,
+            # MCF7, PC3) where drugs targeting immune/inflammatory pathways (e.g.,
+            # JAK inhibitors tofacitinib, baricitinib) show as "mimickers" because
+            # pathway suppression has opposite transcriptomic effects in cancer vs
+            # immune cells. A strong mimicker signal proves the drug potently
+            # perturbs the disease pathway — just in the "wrong" direction for the
+            # cell context tested. We rescue these with a penalized positive score.
+            n_mimicker = cat_dist.get("mimicker", 0)
+            if (mimicker_rescue
+                    and n_mimicker > 0
+                    and abs(med_s) >= mimicker_rescue_threshold):
+                rescued_score = -abs(med_s) * mimicker_rescue_penalty
+                n_factor = _compute_n_factor(n_after_fdr, n_cap, mode=n_factor_mode)
+                p_mim = n_mimicker / n_after_fdr if n_after_fdr > 0 else 0.0
+                cl_bonus = 1.0 + cl_diversity_bonus * max(0, n_cell_lines - 1)
+                rescued_final = rescued_score * p_mim * n_factor * cl_bonus
+                logger.info(
+                    f"  Mimicker rescue: {drug} — {n_mimicker} mimicker sigs, "
+                    f"|median|={abs(med_s):.2f} > threshold={mimicker_rescue_threshold:.1f}, "
+                    f"rescued_score={rescued_final:.4f} (penalty={mimicker_rescue_penalty})"
+                )
+                rows.append(_make_drug_row(
+                    drug, float(rescued_final), float(p_mim), n_total, n_after_fdr,
+                    n_rev, n_fdr_removed, med_s, 0.0, cat_dist,
+                    "mimicker_rescued",
+                    confidence_tier=confidence_tier, n_cell_lines=n_cell_lines,
+                    mimicker_rescued=True,
+                ))
+                continue
+
             rows.append(_make_drug_row(
                 drug, 0.0, p_rev, n_total, n_after_fdr, n_rev, n_fdr_removed,
                 med_s, 0.0, cat_dist, "no_reverser_context",
@@ -285,11 +330,20 @@ def aggregate_to_drug(
             unique_dirs = set(cl_directions.values) - {"partial", "orthogonal"}
             has_cl_conflict = len(unique_dirs) >= 2  # e.g., both reverser AND mimicker
 
-        # --- Aggregation: use quantile_max when cell-line conflict detected ---
-        if aggregation_mode == "quantile_max" or has_cl_conflict:
+        # --- Aggregation ---
+        # When cell-line conflict is detected AND disease-specific weights are
+        # available, weighted_median is preferred over quantile_max.  The weights
+        # already encode biological relevance (e.g. immune cell lines > cancer
+        # cell lines for autoimmune diseases), so the weighted median naturally
+        # resolves the conflict by favoring the relevant cell type.
+        if aggregation_mode == "quantile_max" and not has_cl_conflict:
             agg_score = _quantile_max_aggregate(scores)
-            if has_cl_conflict:
-                logger.debug(f"  {drug}: cell-line conflict detected, using quantile_max")
+        elif has_cl_conflict and cell_line_weights:
+            agg_score = weighted_median(scores, weights)
+            logger.debug(f"  {drug}: cell-line conflict detected, using weighted_median (cell-line weights available)")
+        elif has_cl_conflict:
+            agg_score = _quantile_max_aggregate(scores)
+            logger.debug(f"  {drug}: cell-line conflict detected, using quantile_max (no cell-line weights)")
         else:
             agg_score = weighted_median(scores, weights)
 
@@ -331,11 +385,13 @@ def aggregate_to_drug(
     if len(df_drug) > 0:
         df_drug = df_drug.sort_values("final_reversal_score", ascending=True)
 
+    n_rescued = (df_drug['status'] == 'mimicker_rescued').sum() if 'status' in df_drug.columns else 0
     logger.info(
         f"Aggregated {len(df_drug)} drugs: "
         f"{(df_drug['status'] == 'ok').sum()} ok, "
         f"{(df_drug['status'] == 'too_few_signatures').sum()} too_few, "
-        f"{(df_drug['status'] == 'no_reverser_context').sum()} no_reverser"
+        f"{(df_drug['status'] == 'no_reverser_context').sum()} no_reverser, "
+        f"{n_rescued} mimicker_rescued"
     )
     return df_drug
 
@@ -360,7 +416,7 @@ def _compute_effective_weights(
     # Cell line relevance
     if cell_line_weights and "meta.cell_line" in g.columns:
         cl_w = g["meta.cell_line"].map(
-            lambda x: cell_line_weights.get(x, 0.5)  # unknown cell lines get 0.5
+            lambda x: cell_line_weights.get(x, 0.3)  # unknown cell lines get 0.3 (most LINCS lines are cancer)
         ).values.astype(float)
         weights *= cl_w
 
@@ -408,6 +464,7 @@ def _make_drug_row(
     confidence_tier: str = "exploratory",
     n_cell_lines: int = 1,
     has_cl_conflict: bool = False,
+    mimicker_rescued: bool = False,
 ) -> dict:
     """Create a standardized drug-level result row."""
     return {
@@ -426,5 +483,6 @@ def _make_drug_row(
         "n_cell_lines": n_cell_lines,
         "confidence_tier": confidence_tier,
         "has_cl_conflict": has_cl_conflict,
+        "mimicker_rescued": mimicker_rescued,
         "status": status,
     }

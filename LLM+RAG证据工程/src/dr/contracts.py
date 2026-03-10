@@ -92,6 +92,7 @@ STEP8_SHORTLIST_REQUIRED_COLUMNS = {
     "docking_policy_version",
     "mechanism_score",
     "reversal_score",
+    "drug_class",
 }
 
 STEP9_PLAN_REQUIRED_COLUMNS = {

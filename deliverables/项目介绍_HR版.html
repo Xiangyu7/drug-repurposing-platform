@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目介绍 | HR版</title>
+  <meta name="description" content="面向 HR 的项目介绍页，聚焦项目目标、业务价值、产出形式与整体成熟度，不展开具体技术细节。">
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --paper: rgba(255, 252, 247, 0.82);
+      --card: rgba(255, 251, 245, 0.92);
+      --ink: #172f43;
+      --soft: #4c6478;
+      --line: rgba(23, 47, 67, 0.1);
+      --teal: #2e6f6c;
+      --clay: #c96f48;
+      --gold: #c9a46a;
+      --olive: #7e8d68;
+      --sky: #dfe9e6;
+      --sand: #ece1d1;
+      --glow: 0 24px 80px rgba(23, 47, 67, 0.08);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --max-width: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(201, 164, 106, 0.18), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(46, 111, 108, 0.12), transparent 26%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: radial-gradient(circle at center, black 32%, transparent 80%);
+      opacity: 0.4;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max-width), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 18px;
+      z-index: 20;
+      width: min(var(--max-width), calc(100% - 40px));
+      margin: 18px auto 0;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: rgba(255, 252, 247, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 999px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 10px 30px rgba(23, 47, 67, 0.07);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay), var(--gold));
+      box-shadow: 0 0 0 8px rgba(201, 111, 72, 0.14);
+    }
+
+    .nav {
+      display: flex;
+      gap: 18px;
+      color: var(--soft);
+      font-size: 0.92rem;
+    }
+
+    .nav a {
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    .nav a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--clay), var(--gold));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 180ms ease;
+    }
+
+    .nav a:hover::after {
+      transform: scaleX(1);
+    }
+
+    .hero {
+      padding: 74px 0 44px;
+    }
+
+    .hero-shell {
+      position: relative;
+      overflow: hidden;
+      padding: 56px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 34px;
+      background:
+        radial-gradient(circle at 90% 16%, rgba(255, 255, 255, 0.72), transparent 26%),
+        linear-gradient(140deg, rgba(255, 255, 255, 0.88), rgba(248, 242, 233, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      border-radius: 42px;
+      box-shadow: var(--glow);
+      isolation: isolate;
+    }
+
+    .hero-shell::before,
+    .hero-shell::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      z-index: -1;
+    }
+
+    .hero-shell::before {
+      top: -120px;
+      right: -110px;
+      width: 330px;
+      height: 330px;
+      background: rgba(201, 164, 106, 0.14);
+    }
+
+    .hero-shell::after {
+      left: -90px;
+      bottom: -120px;
+      width: 280px;
+      height: 280px;
+      background: rgba(46, 111, 108, 0.11);
+    }
+
+    .eyebrow,
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--clay);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hero-title,
+    .section-title,
+    .quote-title,
+    .summary-title {
+      font-family: "Iowan Old Style", "Baskerville", "Songti SC", serif;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+
+    .hero-title {
+      margin-top: 22px;
+      font-size: clamp(2.8rem, 6.6vw, 5.4rem);
+      max-width: 8ch;
+    }
+
+    .hero-copy {
+      margin-top: 26px;
+      max-width: 39rem;
+      font-size: 1.08rem;
+      color: var(--soft);
+    }
+
+    .hero-note {
+      margin-top: 24px;
+      max-width: 40rem;
+      padding-left: 18px;
+      border-left: 3px solid rgba(201, 111, 72, 0.72);
+      font-size: 0.98rem;
+    }
+
+    .hero-tags {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tag {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(23, 47, 67, 0.08);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .hero-aside {
+      display: grid;
+      gap: 18px;
+      align-content: center;
+    }
+
+    .metric-card,
+    .card,
+    .summary-block,
+    .quote-block {
+      background: rgba(255, 252, 247, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 18px 50px rgba(23, 47, 67, 0.06);
+    }
+
+    .metric-card {
+      padding: 24px;
+    }
+
+    .metric-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1.2rem;
+    }
+
+    .metric-card span {
+      color: var(--soft);
+      font-size: 0.95rem;
+    }
+
+    .metric-card:nth-child(1) strong { color: var(--teal); }
+    .metric-card:nth-child(2) strong { color: var(--clay); }
+    .metric-card:nth-child(3) strong { color: var(--olive); }
+
+    section {
+      padding: 92px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      margin-top: 14px;
+      font-size: clamp(2.1rem, 4vw, 3.5rem);
+      max-width: 10ch;
+    }
+
+    .section-copy {
+      max-width: 35rem;
+      color: var(--soft);
+      font-size: 1rem;
+    }
+
+    .grid-3,
+    .grid-4,
+    .grid-2 {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      padding: 28px 24px;
+    }
+
+    .card h3 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .card p {
+      color: var(--soft);
+      font-size: 0.96rem;
+    }
+
+    .tone-1 { background: linear-gradient(180deg, rgba(223, 233, 230, 0.9), rgba(255, 252, 247, 0.84)); }
+    .tone-2 { background: linear-gradient(180deg, rgba(236, 225, 209, 0.92), rgba(255, 252, 247, 0.84)); }
+    .tone-3 { background: linear-gradient(180deg, rgba(240, 233, 220, 0.94), rgba(255, 252, 247, 0.84)); }
+    .tone-4 { background: linear-gradient(180deg, rgba(228, 234, 221, 0.9), rgba(255, 252, 247, 0.84)); }
+
+    .process-shell {
+      position: relative;
+      padding: 32px;
+    }
+
+    .process-shell::before {
+      content: "";
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      top: 102px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(23, 47, 67, 0.16), rgba(23, 47, 67, 0.06));
+    }
+
+    .process-step {
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-dot {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 22px;
+      box-shadow: 0 10px 28px rgba(23, 47, 67, 0.15);
+    }
+
+    .process-step:nth-child(1) .step-dot,
+    .process-step:nth-child(4) .step-dot { background: var(--teal); }
+    .process-step:nth-child(2) .step-dot { background: var(--clay); }
+    .process-step:nth-child(3) .step-dot { background: var(--gold); }
+
+    .process-step h3 {
+      margin-bottom: 10px;
+      font-size: 1.08rem;
+    }
+
+    .process-step p {
+      color: var(--soft);
+      font-size: 0.94rem;
+    }
+
+    .quote-block {
+      padding: 38px;
+      background:
+        radial-gradient(circle at right top, rgba(201, 164, 106, 0.12), transparent 28%),
+        linear-gradient(140deg, rgba(255, 252, 247, 0.94), rgba(243, 236, 227, 0.94));
+    }
+
+    .quote-title {
+      font-size: clamp(2.2rem, 3.8vw, 3.6rem);
+      max-width: 11ch;
+      margin-bottom: 18px;
+    }
+
+    .quote-block p {
+      max-width: 30rem;
+      color: var(--soft);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 92px;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .pill-teal { background: var(--teal); }
+    .pill-clay { background: var(--clay); }
+    .pill-gold { background: var(--gold); }
+    .pill-olive { background: var(--olive); }
+
+    .list-card ul {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .list-card li {
+      list-style: none;
+      position: relative;
+      padding: 14px 16px 14px 46px;
+      border-radius: 18px;
+      background: rgba(223, 233, 230, 0.62);
+      color: var(--soft);
+    }
+
+    .list-card li::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: 20px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay), var(--gold));
+      box-shadow: 0 0 0 7px rgba(201, 111, 72, 0.12);
+    }
+
+    .summary-block {
+      padding: 44px;
+      background:
+        radial-gradient(circle at right top, rgba(201, 164, 106, 0.12), transparent 24%),
+        linear-gradient(135deg, rgba(255, 252, 247, 0.94), rgba(239, 232, 221, 0.95));
+    }
+
+    .summary-title {
+      max-width: 12ch;
+      font-size: clamp(2.3rem, 4.2vw, 4rem);
+      margin-bottom: 16px;
+    }
+
+    .summary-block p {
+      max-width: 42rem;
+      color: var(--soft);
+      font-size: 1.02rem;
+    }
+
+    .footnote {
+      margin-top: 16px;
+      color: var(--soft);
+      font-size: 0.92rem;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 540ms ease, transform 540ms ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1080px) {
+      .hero-shell,
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .process-shell::before {
+        display: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .nav {
+        display: none;
+      }
+
+      .hero,
+      section {
+        padding-top: 56px;
+      }
+
+      .hero-shell,
+      .card,
+      .quote-block,
+      .summary-block {
+        padding: 28px 22px;
+      }
+
+      .container,
+      .topbar {
+        width: calc(100% - 24px);
+      }
+
+      .section-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      body::before,
+      .topbar {
+        display: none;
+      }
+
+      .hero,
+      section {
+        padding: 28px 0;
+      }
+
+      .hero-shell,
+      .metric-card,
+      .card,
+      .quote-block,
+      .summary-block {
+        box-shadow: none;
+        border: 1px solid #ddd7cf;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span>Project Brief</span>
+    </div>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#overview">概览</a>
+      <a href="#process">流程</a>
+      <a href="#output">输出</a>
+      <a href="#strength">亮点</a>
+      <a href="#trust">质量</a>
+      <a href="#summary">总结</a>
+    </nav>
+  </div>
+
+  <header class="hero" id="overview">
+    <div class="container">
+      <div class="hero-shell reveal">
+        <div>
+          <div class="eyebrow">HR Reading Version</div>
+          <h1 class="hero-title">一个把分散证据，整理成候选方案的项目。</h1>
+          <p class="hero-copy">
+            这个项目的核心目标，是帮助团队更高效地从已有药物中发现新的潜在治疗方向。
+            它不是单一工具，而是一套从信息收集、候选筛选、优先级判断到结果输出的完整流程。
+          </p>
+          <div class="hero-note">
+            为了适合 HR 快速理解，这里刻意不展开具体技术实现，只保留项目定位、业务价值、产出形式和整体成熟度。
+          </div>
+          <div class="hero-tags" aria-label="项目关键词">
+            <span class="tag">药物重定位</span>
+            <span class="tag">候选筛选</span>
+            <span class="tag">证据整合</span>
+            <span class="tag">优先级判断</span>
+            <span class="tag">结果交付</span>
+          </div>
+        </div>
+
+        <div class="hero-aside">
+          <article class="metric-card">
+            <strong>解决的问题</strong>
+            <span>把零散、复杂、难比较的信息，整理成更清晰的候选清单。</span>
+          </article>
+          <article class="metric-card">
+            <strong>项目形态</strong>
+            <span>端到端平台，覆盖从前期筛选到结果汇总的完整链路。</span>
+          </article>
+          <article class="metric-card">
+            <strong>交付形式</strong>
+            <span>输出候选名单、证据摘要、优先级建议和后续验证方向。</span>
+          </article>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">Project Positioning</div>
+          <h2 class="section-title">这个项目本质上在做什么</h2>
+        </div>
+        <p class="section-copy">
+          如果用非技术语言概括，它做的是“把公开证据中的可能性变成更可执行的候选方案”，
+          从而减少前期研究里大量重复、分散、低效的人工梳理工作。
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <article class="card tone-1 reveal">
+          <h3>面向真实问题</h3>
+          <p>围绕“已有药物还能否找到新的治疗方向”这个实际问题展开，而不是停留在概念验证。</p>
+        </article>
+        <article class="card tone-2 reveal">
+          <h3>强调结果可用</h3>
+          <p>不是只给出一个结论，而是给出可供继续判断和推进的候选名单与依据。</p>
+        </article>
+        <article class="card tone-4 reveal">
+          <h3>覆盖完整流程</h3>
+          <p>从信息整理到输出建议形成闭环，更接近完整项目，而不是一次性的单点尝试。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">How It Works</div>
+          <h2 class="section-title">项目流程可以被理解为四个阶段</h2>
+        </div>
+        <p class="section-copy">
+          整体逻辑并不复杂：先收集，再筛选，再比较，最后形成便于决策的输出。
+        </p>
+      </div>
+
+      <div class="card process-shell reveal">
+        <div class="grid-4">
+          <article class="process-step">
+            <div class="step-dot">1</div>
+            <h3>收集信息</h3>
+            <p>整合疾病、药物和公开研究中的相关信息，建立初始候选范围。</p>
+          </article>
+          <article class="process-step">
+            <div class="step-dot">2</div>
+            <h3>筛出候选</h3>
+            <p>把大量可能性收敛成更值得关注的一批对象，减少人工遍历成本。</p>
+          </article>
+          <article class="process-step">
+            <div class="step-dot">3</div>
+            <h3>综合判断</h3>
+            <p>结合多方面证据进行排序和比较，不依赖单一来源做结论。</p>
+          </article>
+          <article class="process-step">
+            <div class="step-dot">4</div>
+            <h3>形成输出</h3>
+            <p>给出可阅读、可汇报、可继续推进的结果包和后续验证建议。</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="output">
+    <div class="container">
+      <div class="grid-2">
+        <article class="quote-block reveal">
+          <div class="section-kicker">Deliverables</div>
+          <h2 class="quote-title">项目输出的重点，不是“算出了什么”，而是“能不能拿去用”。</h2>
+          <p>
+            因此输出设计更偏向业务可读和后续可执行，而不是只停留在研究过程本身。
+          </p>
+        </article>
+
+        <article class="card list-card reveal">
+          <h3>对 HR 更容易理解的输出形式</h3>
+          <ul>
+            <li>候选药物清单，便于快速看到项目最终产出</li>
+            <li>每个候选的简要依据，便于理解为什么被保留</li>
+            <li>优先级排序，便于区分先看什么、后看什么</li>
+            <li>后续验证建议，便于把结果继续往下推进</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="strength">
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">Why It Stands Out</div>
+          <h2 class="section-title">这个项目更像“成体系的研究平台”，而不是一次性实验。</h2>
+        </div>
+        <p class="section-copy">
+          它的亮点不只是会筛选，更在于能持续运行、重复使用、覆盖不同场景，并且输出有一定标准化程度。
+        </p>
+      </div>
+
+      <div class="grid-4">
+        <article class="card reveal">
+          <span class="pill pill-teal">Scope</span>
+          <h3>覆盖面较广</h3>
+          <p>项目并非只服务单一疾病场景，而是具备扩展到更多疾病方向的能力。</p>
+        </article>
+        <article class="card reveal">
+          <span class="pill pill-clay">Workflow</span>
+          <h3>流程完整</h3>
+          <p>从前期筛选到结果整理形成闭环，而不是只解决中间某一个环节。</p>
+        </article>
+        <article class="card reveal">
+          <span class="pill pill-gold">Reuse</span>
+          <h3>可重复使用</h3>
+          <p>能够在不同任务中复用已有流程和结构，降低重新搭建成本。</p>
+        </article>
+        <article class="card reveal">
+          <span class="pill pill-olive">Maturity</span>
+          <h3>具备运营思维</h3>
+          <p>不仅考虑结果，也考虑持续运行、状态追踪、失败隔离和交付稳定性。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="trust">
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">Reliability</div>
+          <h2 class="section-title">为什么这个项目更值得信任</h2>
+        </div>
+        <p class="section-copy">
+          在这类项目里，结果本身并不够，是否可靠、是否可复盘、是否能经得起后续检验同样重要。
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <article class="card tone-1 reveal">
+          <h3>不只依赖单一路径</h3>
+          <p>项目会从不同角度交叉判断，尽量避免因为单一来源偏差而得出过于乐观的结果。</p>
+        </article>
+        <article class="card tone-2 reveal">
+          <h3>重视质量控制</h3>
+          <p>项目设计里包含多层检查和校验思路，目标是让输出更稳定、更可追溯。</p>
+        </article>
+        <article class="card tone-4 reveal">
+          <h3>强调最终可复盘</h3>
+          <p>输出不是一次性的结论，而是能回头核查、比较和继续推进的结果材料。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">How To Read</div>
+          <h2 class="section-title">如果从 HR 角度看，这个项目能体现什么</h2>
+        </div>
+        <p class="section-copy">
+          它体现的不是某一个具体技术点，而是项目复杂度、跨环节组织能力、结果导向和系统化建设能力。
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <article class="card reveal">
+          <h3>项目复杂度高</h3>
+          <p>牵涉多类信息、多阶段流程和多种输出形式，说明不是轻量级练习项目。</p>
+        </article>
+        <article class="card reveal">
+          <h3>更接近产品化思路</h3>
+          <p>不仅关注“能不能做出来”，也关注“是否能被持续使用、持续扩展”。</p>
+        </article>
+        <article class="card reveal">
+          <h3>结果导向明确</h3>
+          <p>从一开始就围绕最终交付物设计流程，而不是只停留在中间研究过程。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary">
+    <div class="container">
+      <article class="summary-block reveal">
+        <div class="section-kicker">Summary</div>
+        <h2 class="summary-title">这是一个把复杂研究流程整理成可持续交付平台的项目。</h2>
+        <p>
+          用最简洁的话说，它的价值在于：把大量分散信息整合为更清晰的候选方案，
+          并通过结构化输出帮助团队更快进入下一步判断和验证。
+        </p>
+        <div class="footnote">
+          本页为 HR 阅读版，刻意省略了大部分技术实现细节，只保留项目定位、价值和成熟度层面的表达。
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.14 });
+
+    document.querySelectorAll('.reveal').forEach((node) => observer.observe(node));
+  </script>
+</body>
+</html>

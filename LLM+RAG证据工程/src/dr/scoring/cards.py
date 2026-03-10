@@ -48,6 +48,7 @@ class HypothesisCard:
     novelty_score: float = 0.0
     uncertainty_score: float = 0.0
     endpoint_type: str = "OTHER"
+    safety_blacklist_hit: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -66,6 +67,7 @@ class HypothesisCard:
             "novelty_score": round(float(self.novelty_score), 4),
             "uncertainty_score": round(float(self.uncertainty_score), 4),
             "endpoint_type": self.endpoint_type,
+            "safety_blacklist_hit": self.safety_blacklist_hit,
         }
 
     def to_markdown(self) -> str:
@@ -230,6 +232,7 @@ class HypothesisCardBuilder:
             novelty_score=float(getattr(gating_decision, "novelty_score", 0.0) or 0.0),
             uncertainty_score=float(getattr(gating_decision, "uncertainty_score", 0.0) or 0.0),
             endpoint_type=str(dossier.get("endpoint_type", "OTHER") or "OTHER"),
+            safety_blacklist_hit=bool(scores.get("safety_blacklist_hit", False)),
         )
 
         return card

@@ -1,0 +1,156 @@
+# Drug Repurposing Benchmark Definition
+# Each disease has positive (should be found) and negative (should be rejected) drugs
+# drug names must match canonical_name or chembl_pref_name (case-insensitive)
+
+rheumatoid_arthritis:
+  disease_id: EFO_0000685
+  positives:
+    - name: methotrexate
+      target: DHFR
+      evidence_level: approved_first_line
+      aliases: [methotrexate sodium]
+    - name: tofacitinib
+      target: JAK3
+      evidence_level: approved
+      aliases: [tofacitinib citrate]
+    - name: baricitinib
+      target: JAK1/JAK2
+      evidence_level: approved
+      aliases: []
+    - name: rituximab
+      target: CD20
+      evidence_level: approved
+      modality: biologic
+      aliases: []
+    - name: tocilizumab
+      target: IL-6R
+      evidence_level: approved
+      modality: biologic
+      aliases: []
+    - name: leflunomide
+      target: DHODH
+      evidence_level: approved
+      aliases: []
+    - name: abatacept
+      target: CD80/CD86
+      evidence_level: approved
+      modality: biologic
+      aliases: []
+    - name: hydroxychloroquine
+      target: TLR7
+      evidence_level: approved
+      aliases: [hydroxychloroquine sulfate]
+  negatives:
+    - name: omeprazole
+      reason: PPI, no RA mechanism
+      aliases: [esomeprazole, esomeprazole magnesium]
+    - name: atorvastatin
+      reason: statin, no RA mechanism
+      aliases: []
+    - name: metformin
+      reason: diabetes drug, no RA mechanism
+      aliases: []
+    - name: sertraline
+      reason: SSRI, no RA mechanism
+      aliases: []
+    - name: gabapentin
+      reason: pain drug, symptomatic only
+      aliases: [pregabalin]
+    - name: cycloheximide
+      reason: lab reagent, not a real drug
+      aliases: []
+
+atherosclerosis:
+  disease_id: EFO_0003914
+  positives:
+    - name: atorvastatin
+      target: HMG-CoA reductase
+      evidence_level: approved_first_line
+      aliases: [rosuvastatin, simvastatin, pravastatin]
+    - name: ezetimibe
+      target: NPC1L1
+      evidence_level: approved
+      aliases: []
+    - name: evolocumab
+      target: PCSK9
+      evidence_level: approved
+      modality: biologic
+      aliases: [alirocumab]
+    - name: clopidogrel
+      target: P2Y12
+      evidence_level: approved
+      aliases: [ticagrelor, prasugrel]
+    - name: rivaroxaban
+      target: Factor Xa
+      evidence_level: approved_low_dose
+      aliases: [apixaban]
+    - name: colchicine
+      target: tubulin
+      evidence_level: approved_recent
+      aliases: []
+  negatives:
+    - name: metformin
+      reason: diabetes, no direct ASCVD mechanism
+      aliases: []
+    - name: gabapentin
+      reason: pain drug
+      aliases: [pregabalin]
+    - name: omeprazole
+      reason: PPI
+      aliases: [esomeprazole]
+    - name: sertraline
+      reason: SSRI
+      aliases: []
+    - name: allopurinol
+      reason: gout, no ASCVD mechanism
+      aliases: []
+    - name: methotrexate
+      reason: CIRT trial negative
+      aliases: []
+
+heart_failure:
+  disease_id: EFO_0003144
+  positives:
+    - name: sacubitril
+      target: neprilysin
+      evidence_level: approved
+      aliases: []
+    - name: empagliflozin
+      target: SGLT2
+      evidence_level: approved
+      aliases: [dapagliflozin]
+    - name: carvedilol
+      target: beta-adrenoceptor
+      evidence_level: approved
+      aliases: [metoprolol, bisoprolol]
+    - name: spironolactone
+      target: mineralocorticoid receptor
+      evidence_level: approved
+      aliases: [eplerenone]
+    - name: enalapril
+      target: ACE
+      evidence_level: approved
+      aliases: [ramipril, lisinopril]
+    - name: ivabradine
+      target: HCN channel
+      evidence_level: approved
+      aliases: []
+  negatives:
+    - name: methotrexate
+      reason: no HF mechanism
+      aliases: []
+    - name: gabapentin
+      reason: pain drug
+      aliases: [pregabalin]
+    - name: omeprazole
+      reason: PPI
+      aliases: [esomeprazole]
+    - name: celecoxib
+      reason: COX-2, actually harmful in HF
+      aliases: []
+    - name: sertraline
+      reason: SSRI
+      aliases: []
+    - name: sildenafil
+      reason: PDE5, not for HF
+      aliases: []

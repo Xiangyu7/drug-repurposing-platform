@@ -1,0 +1,125 @@
+{
+  "disease": "atherosclerosis",
+  "total_ranked_drugs": 22,
+  "n_positives": 6,
+  "n_negatives": 6,
+  "positives_found": 0,
+  "recall": {
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "recall@50": 0.0,
+    "recall@all": 0.0
+  },
+  "mrr": 0.0,
+  "negative_rejection": {
+    "neg_rejection@10": 1.0,
+    "neg_rejection@20": 1.0,
+    "neg_rejection@50": 1.0
+  },
+  "positive_details": [
+    {
+      "benchmark_name": "atorvastatin",
+      "target": "HMG-CoA reductase",
+      "evidence_level": "approved_first_line",
+      "modality": "small_molecule",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "ezetimibe",
+      "target": "NPC1L1",
+      "evidence_level": "approved",
+      "modality": "small_molecule",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "evolocumab",
+      "target": "PCSK9",
+      "evidence_level": "approved",
+      "modality": "biologic",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "clopidogrel",
+      "target": "P2Y12",
+      "evidence_level": "approved",
+      "modality": "small_molecule",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "rivaroxaban",
+      "target": "Factor Xa",
+      "evidence_level": "approved_low_dose",
+      "modality": "small_molecule",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "colchicine",
+      "target": "tubulin",
+      "evidence_level": "approved_recent",
+      "modality": "small_molecule",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    }
+  ],
+  "negative_details": [
+    {
+      "benchmark_name": "metformin",
+      "reason": "diabetes, no direct ASCVD mechanism",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "gabapentin",
+      "reason": "pain drug",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "omeprazole",
+      "reason": "PPI",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "sertraline",
+      "reason": "SSRI",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "allopurinol",
+      "reason": "gout, no ASCVD mechanism",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "methotrexate",
+      "reason": "CIRT trial negative",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    }
+  ]
+}

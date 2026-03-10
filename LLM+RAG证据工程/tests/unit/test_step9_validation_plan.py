@@ -57,6 +57,7 @@ class TestStep9ValidationPlan:
                     "docking_policy_version": "v1",
                     "mechanism_score": 4.2,
                     "reversal_score": -7.5,
+                    "drug_class": "small_molecule",
                     "contract_version": STEP8_SHORTLIST_VERSION,
                 },
                 {
@@ -88,6 +89,7 @@ class TestStep9ValidationPlan:
                     "docking_policy_version": "v1",
                     "mechanism_score": 0.0,
                     "reversal_score": 0.0,
+                    "drug_class": "",
                     "contract_version": STEP8_SHORTLIST_VERSION,
                 },
             ]

@@ -182,19 +182,19 @@ TOPN_POLICY_PY="${ROOT_DIR}/ops/internal/topn_policy.py"
 apply_topn_profile_defaults() {
   case "${TOPN_PROFILE}" in
     stable)
-      TOPN_CAP_ORIGIN=24;  TOPN_CAP_CROSS=32
-      TOPN_STAGE1_MIN_ORIGIN=14; TOPN_STAGE1_MAX_ORIGIN=18
-      TOPN_STAGE1_MIN_CROSS=22;  TOPN_STAGE1_MAX_CROSS=28
+      TOPN_CAP_ORIGIN=40;  TOPN_CAP_CROSS=52
+      TOPN_STAGE1_MIN_ORIGIN=22; TOPN_STAGE1_MAX_ORIGIN=30
+      TOPN_STAGE1_MIN_CROSS=35;  TOPN_STAGE1_MAX_CROSS=45
       ;;
     balanced)
-      TOPN_CAP_ORIGIN=30;  TOPN_CAP_CROSS=36
-      TOPN_STAGE1_MIN_ORIGIN=18; TOPN_STAGE1_MAX_ORIGIN=24
-      TOPN_STAGE1_MIN_CROSS=26;  TOPN_STAGE1_MAX_CROSS=32
+      TOPN_CAP_ORIGIN=48;  TOPN_CAP_CROSS=58
+      TOPN_STAGE1_MIN_ORIGIN=28; TOPN_STAGE1_MAX_ORIGIN=38
+      TOPN_STAGE1_MIN_CROSS=40;  TOPN_STAGE1_MAX_CROSS=52
       ;;
     recall)
-      TOPN_CAP_ORIGIN=40;  TOPN_CAP_CROSS=48
-      TOPN_STAGE1_MIN_ORIGIN=20; TOPN_STAGE1_MAX_ORIGIN=32
-      TOPN_STAGE1_MIN_CROSS=30;  TOPN_STAGE1_MAX_CROSS=40
+      TOPN_CAP_ORIGIN=64;  TOPN_CAP_CROSS=80
+      TOPN_STAGE1_MIN_ORIGIN=32; TOPN_STAGE1_MAX_ORIGIN=52
+      TOPN_STAGE1_MIN_CROSS=48;  TOPN_STAGE1_MAX_CROSS=66
       ;;
     *)
       printf '[WARN] Unknown TOPN_PROFILE=%s, fallback to stable\n' "${TOPN_PROFILE}" >&2
@@ -1917,6 +1917,29 @@ if len(obj.get('up',[])) == 0 and len(obj.get('down',[])) == 0:
       ds_status="fail"; ds_detail="磁盘不足 (需 ≥${DSMETA_DISK_MIN_GB:-8}GB)"; return 1
     fi
     if run_cmd "Cross: dsmeta (${disease_key})" --timeout "${TIMEOUT_CROSS_DSMETA}" run_in_dir "${DSMETA_DIR}" "${DSMETA_PY}" run.py --config "${dsmeta_cfg}"; then
+      # P1: Check gene count — if too few, treat as failure and let fallback take over
+      local _ds_sig_check="${DSMETA_DIR}/outputs/${disease_key}/signature/sigreverse_input.json"
+      if [[ ! -f "${_ds_sig_check}" ]]; then
+        _ds_sig_check="${DSMETA_DIR}/outputs/signature/sigreverse_input.json"
+      fi
+      local _ds_min_genes="${DSMETA_MIN_GENES:-3}"
+      if [[ -f "${_ds_sig_check}" ]]; then
+        local _ds_gene_counts
+        _ds_gene_counts="$(count_json_genes "${_ds_sig_check}")"
+        local _ds_n_up="${_ds_gene_counts%%/*}"
+        local _ds_n_down="${_ds_gene_counts##*/}"
+        local _ds_total=$(( _ds_n_up + _ds_n_down ))
+        if [[ "${_ds_total}" -lt "${_ds_min_genes}" ]]; then
+          ds_status="fail"; ds_detail="基因数不足 (${_ds_n_up}up+${_ds_n_down}down=${_ds_total} < ${_ds_min_genes})"
+          log "[WARN] Cross: dsmeta 签名基因太少 (${_ds_total} < ${_ds_min_genes}), 视为失败"
+          cleanup_dsmeta_workdir "${disease_key}"
+          return 1
+        fi
+      else
+        ds_status="fail"; ds_detail="无输出文件"
+        cleanup_dsmeta_workdir "${disease_key}"
+        return 1
+      fi
       ds_status="ok"
       signature_built=1; signature_built_by="dsmeta"
       cleanup_dsmeta_workdir "${disease_key}"
@@ -2031,12 +2054,12 @@ print(len(obj.get('up_genes', [])), len(obj.get('down_genes', [])))
 
   next_step "${disease_key}" "Cross: KG ranking (signature mode)"
 
-  local _sigreverse_rank_arg=""
   local _sigreverse_rank_csv="${sig_out_dir}/drug_reversal_rank.csv"
+  local -a _kg_sig_cmd=("${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source signature --signature-path "${CROSS_SIGNATURE_META}" --max-drugs "${KG_MAX_DRUGS_SIGNATURE:-200}")
   if [[ -f "${_sigreverse_rank_csv}" ]]; then
-    _sigreverse_rank_arg="--sigreverse-rank ${_sigreverse_rank_csv}"
+    _kg_sig_cmd+=(--sigreverse-rank "${_sigreverse_rank_csv}")
   fi
-  if ! run_cmd "Cross: kg signature" --timeout "${TIMEOUT_CROSS_KG_SIGNATURE}" run_in_dir "${KG_DIR}" "${KG_PY}" -m src.kg_explain.cli pipeline --disease "${disease_key}" --version v5 --drug-source signature --signature-path "${CROSS_SIGNATURE_META}" --max-drugs "${KG_MAX_DRUGS_SIGNATURE:-200}" ${_sigreverse_rank_arg}; then
+  if ! run_cmd "Cross: kg signature" --timeout "${TIMEOUT_CROSS_KG_SIGNATURE}" run_in_dir "${KG_DIR}" "${_kg_sig_cmd[@]}"; then
     log "[ERROR] Cross: kg signature pipeline failed"
     return 1
   fi

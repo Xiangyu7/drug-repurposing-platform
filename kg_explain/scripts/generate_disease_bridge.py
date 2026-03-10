@@ -273,8 +273,10 @@ def build_bridge(
     )
     logger.info("After per-drug MAX aggregation: %d drugs", len(drug_agg))
 
-    # 4. Load ChEMBL pref_name mapping
+    # 4. Load ChEMBL pref_name mapping + drug class (small_molecule vs biologic)
     chembl_map: Dict[str, str] = {}
+    drug_class_map: Dict[str, str] = {}   # canonical → "small_molecule" | "biologic"
+    molecule_type_map: Dict[str, str] = {}  # canonical → raw ChEMBL molecule_type
     cp = Path(chembl_path)
     if cp.exists():
         cm = pd.read_csv(cp, dtype=str)
@@ -283,6 +285,13 @@ def build_bridge(
             pref = str(r.get("chembl_pref_name", "")).strip()
             if canon and pref and pref != "nan":
                 chembl_map[canon] = pref
+            dc = str(r.get("drug_class", "")).strip()
+            mt = str(r.get("molecule_type", "")).strip()
+            if canon:
+                if dc and dc != "nan":
+                    drug_class_map[canon] = dc
+                if mt and mt != "nan":
+                    molecule_type_map[canon] = mt
 
     # 4b. Load drug → target mapping for molecular docking readiness
     if data_dir:
@@ -369,6 +378,8 @@ def build_bridge(
         condition = str(r.get("example_condition", "")) if "example_condition" in r.index else ""
 
         targets = drug_target_map.get(drug, [])
+        dc = drug_class_map.get(drug, "")
+        mt = molecule_type_map.get(drug, "")
         bridge_rows.append({
             "drug_id": _stable_drug_id(drug),
             "canonical_name": drug,
@@ -389,6 +400,8 @@ def build_bridge(
             "confidence_tier": assign_confidence_tier(ci_result["ci_width"]),
             "n_evidence_paths": ci_result.get("n_paths", len(scores)),
             "source": "kg",
+            "molecule_type": mt,
+            "drug_class": dc,
             "targets": _format_target_summary(targets) if targets else "",
             "target_details": json.dumps(targets, ensure_ascii=False) if targets else "",
         })
@@ -406,6 +419,8 @@ def build_bridge(
                     row["source"] = "kg+literature"
             continue
         inj_targets = drug_target_map.get(name, [])
+        inj_dc = drug_class_map.get(name, inj.get("drug_class", ""))
+        inj_mt = molecule_type_map.get(name, inj.get("molecule_type", ""))
         bridge_rows.append({
             "drug_id": _stable_drug_id(name),
             "canonical_name": name,
@@ -426,6 +441,8 @@ def build_bridge(
             "confidence_tier": "LOW",
             "n_evidence_paths": 0,
             "source": "literature",
+            "molecule_type": inj_mt,
+            "drug_class": inj_dc,
             "targets": _format_target_summary(inj_targets) if inj_targets else "",
             "target_details": json.dumps(inj_targets, ensure_ascii=False) if inj_targets else "",
         })

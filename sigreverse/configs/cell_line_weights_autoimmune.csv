@@ -1,0 +1,30 @@
+cell_line,tissue,relevance_weight,notes
+JURKAT,t_cell,1.00,T cell lymphoma — most relevant for autoimmune/inflammatory diseases (JAK-STAT signaling)
+THP1,monocyte,0.95,Monocyte/macrophage line — innate immunity and cytokine signaling
+U937,monocyte,0.90,Monocytic cell line — inflammation and NF-kB pathway model
+HL60,promyelocytic,0.80,Promyelocytic leukemia — granulocyte differentiation and immune response
+NOMO1,monocytic,0.80,Monocytic leukemia — myeloid immune cell model
+SKB,skeletal,0.50,Skeletal — synovial inflammation overlap for RA
+HT29,colon,0.45,Colon epithelial — relevant for IBD (Crohn's/colitis)
+ASC,adipose,0.40,Adipose stromal cells — limited immune relevance
+HEPG2,liver,0.30,Hepatocyte — metabolic effects; low immune relevance
+HUH7,liver,0.30,Hepatocyte — limited immune relevance
+HA1E,kidney,0.30,Kidney — limited immune relevance
+HUVEC,endothelial,0.35,Endothelial — vasculitis overlap but not primary immune cell
+A549,lung,0.25,Lung epithelial — cancer cell line; JAK inhibition has opposite effects vs immune cells
+MCF7,breast,0.25,Breast cancer — cancer cell line; opposite transcriptomic response to immunomodulators
+PC3,prostate,0.25,Prostate cancer — cancer cell line; not immune-relevant
+VCAP,prostate,0.25,Prostate cancer — cancer cell line; not immune-relevant
+A375,skin,0.25,Melanoma — cancer cell line; limited immune relevance
+HCC515,lung,0.25,Lung cancer — cancer cell line; not immune-relevant
+NPC,neural_progenitor,0.25,Neural progenitor — not immune-relevant
+YAPC,pancreatic,0.25,Pancreatic cancer — cancer cell line; not immune-relevant
+MCF10A,breast_epithelial,0.35,Normal breast epithelial — non-tumorigenic but not immune-relevant
+U2OS,bone,0.25,Osteosarcoma — cancer cell line; not immune-relevant
+HELA,cervical,0.25,Cervical cancer — cancer cell line; not immune-relevant
+SW480,colon,0.30,Colon cancer — some GI immune overlap
+LNCAP,prostate,0.25,Prostate cancer — cancer cell line; not immune-relevant
+BT20,breast,0.25,Breast cancer — cancer cell line; not immune-relevant
+SKMEL5,skin,0.25,Melanoma — cancer cell line; limited immune relevance
+AGS,gastric,0.30,Gastric cancer — some GI immune overlap
+MDAMB231,breast,0.25,Breast cancer — triple-negative; not immune-relevant

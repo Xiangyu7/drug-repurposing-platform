@@ -57,6 +57,97 @@ logger = logging.getLogger("sigreverse.run")
 
 
 # ---------------------------------------------------------------------------
+# Disease-type auto-routing for cell-line weights
+# ---------------------------------------------------------------------------
+
+# Keywords that indicate autoimmune/inflammatory diseases.
+# When detected, the pipeline uses immune-relevant cell-line weights
+# (upweighting Jurkat/THP-1, downweighting cancer lines like A549/MCF7/PC3)
+# to correct for LINCS L1000's cancer-cell-line bias.
+AUTOIMMUNE_KEYWORDS = [
+    "rheumatoid", "lupus", "psoriasis", "psoriatic", "crohn", "colitis",
+    "arthritis", "spondylitis", "dermatitis", "scleroderma", "vasculitis",
+    "myasthenia", "sjogren", "inflammatory_bowel", "ibd", "multiple_sclerosis",
+    "ankylosing", "autoimmune", "inflammatory", "celiac", "pemphigus",
+    "uveitis", "alopecia_areata", "vitiligo", "sarcoidosis",
+    "graft_versus_host", "gvhd",
+]
+
+ATHEROSCLEROSIS_KEYWORDS = [
+    "atherosclerosis", "atherosclerotic", "atherogenesis",
+    "coronary_artery_disease", "carotid_stenosis",
+]
+
+
+def detect_disease_type(disease_name: str) -> str:
+    """Auto-detect disease type from disease name for cell-line weight routing.
+
+    Returns:
+        'autoimmune' | 'atherosclerosis' | 'general'
+    """
+    if not disease_name:
+        return "general"
+
+    name_lower = disease_name.lower().replace(" ", "_").replace("-", "_")
+
+    for kw in AUTOIMMUNE_KEYWORDS:
+        if kw in name_lower:
+            return "autoimmune"
+
+    for kw in ATHEROSCLEROSIS_KEYWORDS:
+        if kw in name_lower:
+            return "atherosclerosis"
+
+    return "general"
+
+
+def resolve_cell_line_weights_path(
+    disease_type: str,
+    config_dir: str,
+    explicit_path: str | None = None,
+) -> str | None:
+    """Resolve the cell-line weights CSV path based on disease type.
+
+    Priority:
+        1. Explicit path from config/CLI (if already set, respect it)
+        2. Auto-routed path based on disease type
+        3. None (equal weights for all cell lines)
+
+    Args:
+        disease_type: 'autoimmune', 'atherosclerosis', or 'general'.
+        config_dir: Directory containing weight CSV files.
+        explicit_path: Path already specified in config (takes priority).
+
+    Returns:
+        Path to cell-line weights CSV, or None for equal weights.
+    """
+    if explicit_path:
+        return explicit_path
+
+    type_to_file = {
+        "autoimmune": "cell_line_weights_autoimmune.csv",
+        "atherosclerosis": "cell_line_weights_atherosclerosis.csv",
+    }
+
+    filename = type_to_file.get(disease_type)
+    if filename is None:
+        return None
+
+    candidate = os.path.join(config_dir, filename)
+    if os.path.exists(candidate):
+        logger.info(
+            f"Auto-routed cell-line weights: disease_type={disease_type} -> {candidate}"
+        )
+        return candidate
+    else:
+        logger.warning(
+            f"Auto-routing: expected {candidate} for disease_type={disease_type}, "
+            f"but file not found. Falling back to equal weights."
+        )
+        return None
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -351,6 +442,9 @@ def step_drug_aggregation(df_detail, robustness_cfg) -> pd.DataFrame:
         aggregation_mode=robustness_cfg.get("aggregation_mode", "weighted_median"),
         n_factor_mode=robustness_cfg.get("n_factor_mode", "log"),
         cl_diversity_bonus=float(robustness_cfg.get("cl_diversity_bonus", 0.1)),
+        mimicker_rescue=bool(robustness_cfg.get("mimicker_rescue", False)),
+        mimicker_rescue_threshold=float(robustness_cfg.get("mimicker_rescue_threshold", 2.0)),
+        mimicker_rescue_penalty=float(robustness_cfg.get("mimicker_rescue_penalty", 0.3)),
     )
     return df_drug
 
@@ -441,6 +535,10 @@ def step_write_outputs(
             "cl_diversity_bonus": float(cfg.get("robustness", {}).get("cl_diversity_bonus", 0.1)),
             "min_signatures": int(cfg.get("robustness", {}).get("min_signatures", 1)),
             "aggregation_mode": cfg.get("robustness", {}).get("aggregation_mode", "weighted_median"),
+            "cell_line_weights_path": cfg.get("robustness", {}).get("cell_line_weights_path"),
+            "mimicker_rescue": bool(cfg.get("robustness", {}).get("mimicker_rescue", False)),
+            "mimicker_rescue_threshold": float(cfg.get("robustness", {}).get("mimicker_rescue_threshold", 2.0)),
+            "mimicker_rescue_penalty": float(cfg.get("robustness", {}).get("mimicker_rescue_penalty", 0.3)),
         },
         "cmap_pipeline": {
             "ncs_method": cfg.get("cmap_pipeline", {}).get("ncs_method", "cell_line_null"),
@@ -683,6 +781,20 @@ def main():
     ap.add_argument("--no-dr", action="store_true", help="skip dose-response analysis")
     ap.add_argument("--top-n", type=int, default=200,
                     help="genes per direction when using --fetch (default: 200)")
+    ap.add_argument("--disease-type", dest="disease_type", default=None,
+                    choices=["autoimmune", "atherosclerosis", "general"],
+                    help="Disease type for cell-line weight routing. "
+                         "Auto-detected from disease name if not specified. "
+                         "autoimmune: upweight immune cell lines (Jurkat, THP-1), "
+                         "downweight cancer lines (A549, MCF7). "
+                         "atherosclerosis: upweight endothelial/smooth muscle. "
+                         "general: equal weights.")
+    ap.add_argument("--mimicker-rescue", dest="mimicker_rescue", action="store_true",
+                    default=False,
+                    help="Enable mimicker rescue: give strong mimickers a penalized "
+                         "positive score instead of zeroing them out. "
+                         "Useful for autoimmune diseases where JAK inhibitors show as "
+                         "mimickers in cancer cell lines.")
     args = ap.parse_args()
 
     # If --fetch, auto-download signature from CREEDS
@@ -785,6 +897,27 @@ def main():
     step_timings.append(timing)
 
     robustness_cfg = cfg.get("robustness", {})
+
+    # --- Disease-type auto-routing: select cell-line weights based on disease ---
+    disease_name = sig.get("name", "")
+    disease_type = args.disease_type or detect_disease_type(disease_name)
+    config_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "configs")
+    explicit_cl_path = robustness_cfg.get("cell_line_weights_path")
+    auto_cl_path = resolve_cell_line_weights_path(disease_type, config_dir, explicit_cl_path)
+    if auto_cl_path and not explicit_cl_path:
+        robustness_cfg["cell_line_weights_path"] = auto_cl_path
+        logger.info(f"Disease type '{disease_type}' detected for '{disease_name}' "
+                     f"-> cell_line_weights: {auto_cl_path}")
+
+    # --- Mimicker rescue: enable from CLI flag or config ---
+    if args.mimicker_rescue:
+        robustness_cfg["mimicker_rescue"] = True
+    # Also enable mimicker rescue automatically for autoimmune diseases
+    # (can be overridden by setting mimicker_rescue: false in config)
+    if disease_type == "autoimmune" and "mimicker_rescue" not in robustness_cfg:
+        robustness_cfg["mimicker_rescue"] = True
+        logger.info("Mimicker rescue auto-enabled for autoimmune disease type")
+
     df_drug, timing = _timed_step(6, total_steps, "Aggregate to drug-level with robustness weighting",
                                    step_drug_aggregation, df_detail, robustness_cfg)
     step_timings.append(timing)
@@ -836,6 +969,13 @@ def main():
     step_timings.append(timing)
     if len(df_fusion) > 0:
         write_csv(os.path.join(args.out_dir, "fusion_ranking.csv"), df_fusion)
+
+    # Record disease type routing in config for manifest traceability
+    cfg.setdefault("disease_routing", {})
+    cfg["disease_routing"]["disease_type"] = disease_type
+    cfg["disease_routing"]["auto_detected"] = (args.disease_type is None)
+    cfg["disease_routing"]["cell_line_weights_path"] = robustness_cfg.get("cell_line_weights_path")
+    cfg["disease_routing"]["mimicker_rescue_enabled"] = bool(robustness_cfg.get("mimicker_rescue", False))
 
     # Step 13: Write outputs
     logger.info(f"Step 13/{total_steps}: Writing output files...")

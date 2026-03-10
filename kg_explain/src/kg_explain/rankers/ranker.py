@@ -201,7 +201,7 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
     ae_df = None
     has_prr = False
     ae_path = data_dir / "edge_drug_ae_faers.csv"
-    if ae_path.exists():
+    if ae_path.exists() and ae_path.stat().st_size > 10:
         ae_df = read_csv(ae_path, dtype=str)
         ae_df["report_count"] = pd.to_numeric(ae_df["report_count"], errors="coerce").fillna(0)
         if "prr" in ae_df.columns:
@@ -622,9 +622,11 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
     )
 
     bridge_rows = []
-    # Load chembl_pref_name mapping (better for PubMed queries)
+    # Load chembl_pref_name mapping + drug class (better for PubMed queries)
     chembl_path = data_dir / "drug_chembl_map.csv"
     chembl_map = {}
+    drug_class_map = {}       # canonical → "small_molecule" | "biologic"
+    molecule_type_map = {}    # canonical → raw ChEMBL molecule_type
     if chembl_path.exists():
         cm = read_csv(chembl_path, dtype=str)
         for _, r in cm.iterrows():
@@ -632,6 +634,13 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
             pref = safe_str(r.get("chembl_pref_name"))
             if canon and pref:
                 chembl_map[canon] = pref
+            dc = safe_str(r.get("drug_class"))
+            mt = safe_str(r.get("molecule_type"))
+            if canon:
+                if dc:
+                    drug_class_map[canon] = dc
+                if mt:
+                    molecule_type_map[canon] = mt
 
     # Load drug → target mapping for molecular docking readiness
     drug_target_map = _build_drug_target_map(data_dir)
@@ -648,6 +657,8 @@ def run_ranker(cfg: Config) -> dict[str, Path]:
             "top_disease": safe_str(r.get("diseaseName")),
             "top_disease_match": has_target_evidence,
             "final_score": round(float(r.get("final_score", 0)), 4),
+            "molecule_type": molecule_type_map.get(drug, ""),
+            "drug_class": drug_class_map.get(drug, ""),
             "n_trials": r.get("n_trials", ""),
             "trial_statuses": r.get("trial_statuses", ""),
             "trial_source": r.get("trial_source", ""),

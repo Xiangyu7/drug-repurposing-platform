@@ -10,6 +10,8 @@ Scores drugs on 5 dimensions based on Step6 dossier evidence:
 Total: 0-100 points
 """
 
+import math
+import re
 from dataclasses import dataclass
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -110,7 +112,7 @@ class DrugScorer:
         evidence_score = self._score_evidence_strength(dossier)
         mechanism_score = self._score_mechanism_plausibility(dossier)
         translatability_score = self._score_translatability(dossier)
-        safety_score = self._score_safety_fit(dossier, canonical)
+        safety_score, blacklist_hit = self._score_safety_fit(dossier, canonical)
         practicality_score = self._score_practicality(dossier)
 
         total = (
@@ -127,7 +129,8 @@ class DrugScorer:
             "translatability_0_20": round(translatability_score, 1),
             "safety_fit_0_20": round(safety_score, 1),
             "practicality_0_10": round(practicality_score, 1),
-            "total_score_0_100": round(total, 1)
+            "total_score_0_100": round(total, 1),
+            "safety_blacklist_hit": blacklist_hit,
         }
 
         logger.debug("Scores for %s: total=%.1f (evidence=%.1f, mechanism=%.1f, trans=%.1f, safety=%.1f, pract=%.1f)",
@@ -191,11 +194,11 @@ class DrugScorer:
     def _score_mechanism_plausibility(self, dossier: Dict[str, Any]) -> float:
         """Score mechanism plausibility (0-20 points)
 
-        v2: Based on mechanistic evidence quality, not just PMID count.
+        v3: Incorporates KG genetic/pathway evidence alongside LLM extraction.
+        - KG mechanism_score: genetic association between drug target and disease
         - Whether proposed mechanisms exist in LLM extraction
         - KG-derived target information (drug has known targets)
         - Benefit/total ratio (consistency of evidence direction)
-        - Penalty-free for low-literature drugs (novel candidates)
 
         Args:
             dossier: Drug dossier
@@ -239,13 +242,26 @@ class DrugScorer:
         # --- Component 3: Evidence volume (0-4 pts, log-capped) ---
         # Modest credit for having more evidence, but log-capped to avoid
         # dominating the score for well-studied drugs
-        import math
         if total_all > 0:
             volume_bonus = min(4.0, math.log1p(total_all) * 1.2)
         else:
             volume_bonus = 0.0
 
-        final_score = min(20.0, mechanism_base + consistency_bonus + volume_bonus)
+        # --- Component 4: KG genetic/pathway evidence (0-8 pts, additive) ---
+        # mechanism_score from OpenTargets: GWAS, pathway analysis, genetic association.
+        # This is the hardest mechanistic evidence — a drug targeting a GWAS gene
+        # for the disease has strong causal rationale even without PubMed literature.
+        # Added on top of existing components; cap at 20 handles overflow.
+        #
+        # log1p compression: mechanism_score scale varies hugely across diseases
+        # (RA ~0.3-1.5, cardiovascular ~1-13). Linear scaling saturates for
+        # high-score diseases, destroying differentiation. log1p compresses
+        # the range while preserving ordering.
+        kg_scores = dossier.get("kg_scores") or {}
+        kg_mech = float(kg_scores.get("mechanism_score", 0) or 0)
+        kg_bonus = min(8.0, math.log1p(kg_mech) * 4.5)
+
+        final_score = min(20.0, mechanism_base + consistency_bonus + volume_bonus + kg_bonus)
         return final_score
 
     def _score_translatability(self, dossier: Dict[str, Any]) -> float:
@@ -301,7 +317,6 @@ class DrugScorer:
         # --- Component 3: Evidence diversity bonus (0-6 pts) ---
         # Multiple independent benefit sources = stronger signal
         # Uses log to avoid penalizing low-literature drugs too heavily
-        import math
         if benefit >= 5:
             diversity_score = 6.0
         elif benefit >= 3:
@@ -329,8 +344,6 @@ class DrugScorer:
         Returns:
             Score from 0-20
         """
-        import re
-
         evidence_count = dossier.get("evidence_count", {})
         benefit = evidence_count.get("benefit", 0)
         harm = evidence_count.get("harm", 0)
@@ -366,7 +379,7 @@ class DrugScorer:
 
         final_score = max(0.0, min(20.0, base_score))
 
-        return final_score
+        return final_score, blacklist_hit
 
     def _score_practicality(self, dossier: Dict[str, Any]) -> float:
         """Score practicality of implementation (0-10 points)
@@ -423,3 +436,4 @@ class DrugScorer:
 
         final_score = min(10.0, availability_score + mechanism_score + safety_feasibility)
         return final_score
+

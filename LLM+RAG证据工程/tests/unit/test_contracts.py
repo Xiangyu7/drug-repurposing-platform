@@ -130,6 +130,7 @@ class TestContracts:
             "docking_policy_version",
             "mechanism_score",
             "reversal_score",
+            "drug_class",
             "contract_version",
         }
         assert (

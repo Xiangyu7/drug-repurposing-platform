@@ -1,0 +1,145 @@
+{
+  "disease": "rheumatoid_arthritis",
+  "total_ranked_drugs": 140,
+  "n_positives": 8,
+  "n_negatives": 6,
+  "positives_found": 5,
+  "recall": {
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "recall@50": 0.25,
+    "recall@all": 0.625
+  },
+  "mrr": 0.0109,
+  "negative_rejection": {
+    "neg_rejection@10": 1.0,
+    "neg_rejection@20": 1.0,
+    "neg_rejection@50": 1.0
+  },
+  "positive_details": [
+    {
+      "benchmark_name": "methotrexate",
+      "target": "DHFR",
+      "evidence_level": "approved_first_line",
+      "modality": "small_molecule",
+      "found": true,
+      "rank": 98,
+      "matched_as": "methotrexate",
+      "score": 0.5451
+    },
+    {
+      "benchmark_name": "tofacitinib",
+      "target": "JAK3",
+      "evidence_level": "approved",
+      "modality": "small_molecule",
+      "found": true,
+      "rank": 31,
+      "matched_as": "tofacitinib citrate",
+      "score": 0.9012
+    },
+    {
+      "benchmark_name": "baricitinib",
+      "target": "JAK1/JAK2",
+      "evidence_level": "approved",
+      "modality": "small_molecule",
+      "found": true,
+      "rank": 80,
+      "matched_as": "baricitinib",
+      "score": 0.7085
+    },
+    {
+      "benchmark_name": "rituximab",
+      "target": "CD20",
+      "evidence_level": "approved",
+      "modality": "biologic",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "tocilizumab",
+      "target": "IL-6R",
+      "evidence_level": "approved",
+      "modality": "biologic",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "leflunomide",
+      "target": "DHODH",
+      "evidence_level": "approved",
+      "modality": "small_molecule",
+      "found": false,
+      "rank": null,
+      "matched_as": null,
+      "score": null
+    },
+    {
+      "benchmark_name": "abatacept",
+      "target": "CD80/CD86",
+      "evidence_level": "approved",
+      "modality": "biologic",
+      "found": true,
+      "rank": 45,
+      "matched_as": "abatacept",
+      "score": 0.8136
+    },
+    {
+      "benchmark_name": "hydroxychloroquine",
+      "target": "TLR7",
+      "evidence_level": "approved",
+      "modality": "small_molecule",
+      "found": true,
+      "rank": 97,
+      "matched_as": "hydroxychloroquine sulfate",
+      "score": 0.5465
+    }
+  ],
+  "negative_details": [
+    {
+      "benchmark_name": "omeprazole",
+      "reason": "PPI, no RA mechanism",
+      "found": true,
+      "rank": 132,
+      "matched_as": "omeprazole"
+    },
+    {
+      "benchmark_name": "atorvastatin",
+      "reason": "statin, no RA mechanism",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "metformin",
+      "reason": "diabetes drug, no RA mechanism",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "sertraline",
+      "reason": "SSRI, no RA mechanism",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "gabapentin",
+      "reason": "pain drug, symptomatic only",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    },
+    {
+      "benchmark_name": "cycloheximide",
+      "reason": "lab reagent, not a real drug",
+      "found": false,
+      "rank": null,
+      "matched_as": null
+    }
+  ]
+}

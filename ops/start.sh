@@ -81,7 +81,7 @@ Options:
   --report-json <path>    环境报告输出路径
 
 Environment Variables:
-  SIG_PRIORITY=dsmeta|archs4   签名优先级 (默认: dsmeta)
+  SIG_PRIORITY=archs4|dsmeta   签名优先级 (默认: archs4)
   SKIP_LLM=1                   跳过 LLM 步骤 (测试用)
 
 Examples:
@@ -348,7 +348,7 @@ launch_pipeline() {
         TOPN_STAGE2_ENABLE="${TOPN_STAGE2_ENABLE:-1}" \
         STRICT_CONTRACT="${STRICT_CONTRACT:-1}" \
         RETENTION_DAYS="${RETENTION_DAYS:-7}" \
-        SIG_PRIORITY="${SIG_PRIORITY:-dsmeta}" \
+        SIG_PRIORITY="${SIG_PRIORITY:-archs4}" \
         DSMETA_PY="${runtime_dsmeta}" \
         SIG_PY="${runtime_sig}" \
         KG_PY="${runtime_kg}" \
@@ -463,7 +463,7 @@ run_single_disease() {
         TOPN_STAGE2_ENABLE="${TOPN_STAGE2_ENABLE:-1}" \
         STRICT_CONTRACT="${STRICT_CONTRACT:-1}" \
         DSMETA_CLEANUP="${DSMETA_CLEANUP:-1}" \
-        SIG_PRIORITY="${SIG_PRIORITY:-dsmeta}" \
+        SIG_PRIORITY="${SIG_PRIORITY:-archs4}" \
         DSMETA_PY="${runtime_dsmeta}" \
         SIG_PY="${runtime_sig}" \
         KG_PY="${runtime_kg}" \

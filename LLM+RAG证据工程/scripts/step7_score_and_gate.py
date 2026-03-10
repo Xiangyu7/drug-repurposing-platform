@@ -182,8 +182,8 @@ def run_pipeline(args: argparse.Namespace) -> None:
     # Initialize Phase 4 components
     logger.info("-" * 60)
     logger.info("Initializing Phase 4 components...")
-    scorer = DrugScorer(config=ScoringConfig())
-    gating_engine = GatingEngine(config=GatingConfig())
+    scorer = DrugScorer()
+    gating_engine = GatingEngine()
     card_builder = HypothesisCardBuilder()
     validation_planner = ValidationPlanner()
     enforcer = ContractEnforcer(strict=bool(args.strict_contract))
@@ -264,6 +264,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
             "decision_channel": getattr(decision, "decision_channel", "exploit"),
             "gate_reasons": "; ".join(decision.gate_reasons) if decision.gate_reasons else "",
             "total_score": decision.scores.get("total_score_0_100", 0),
+            "safety_score": decision.scores.get("safety_fit_0_20", 0.0),
             "benefit": decision.metrics.get("benefit", 0),
             "harm": decision.metrics.get("harm", 0),
             "neutral": decision.metrics.get("neutral", 0),

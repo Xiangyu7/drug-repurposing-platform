@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>药物重定位平台 — 计算药物发现</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   BASE & RESET
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --dark:    #1a1a2e;
+  --blue:    #0066cc;
+  --blue-d:  #004fa3;
+  --blue-l:  #e8f0fe;
+  --gray-1:  #f8f9fa;
+  --gray-2:  #e9ecef;
+  --gray-3:  #adb5bd;
+  --gray-4:  #6c757d;
+  --gray-5:  #495057;
+  --white:   #ffffff;
+  --shadow:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-m:0 4px 12px rgba(0,0,0,.08);
+  --radius:  8px;
+  --serif:   'Noto Serif SC', Georgia, '宋体', serif;
+  --sans:    'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --max-w:   1140px;
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--sans);
+  color: var(--dark);
+  background: var(--white);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--blue); text-decoration: none; }
+a:hover { color: var(--blue-d); }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+section { padding: 80px 0; }
+section:nth-child(even) { background: var(--gray-1); }
+
+.section-label {
+  font-family: var(--sans);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 16px;
+  color: var(--dark);
+}
+
+.section-subtitle {
+  font-size: 1.05rem;
+  color: var(--gray-4);
+  max-width: 640px;
+  line-height: 1.8;
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-2);
+  transition: box-shadow .3s;
+}
+nav.scrolled { box-shadow: var(--shadow); }
+
+.nav-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.nav-links { display: flex; gap: 24px; align-items: center; }
+.nav-links a {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--gray-5);
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--blue); }
+
+.lang-btn {
+  font-size: .78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border: 1px solid var(--gray-2);
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--white);
+  color: var(--gray-5);
+  transition: all .2s;
+}
+.lang-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 4px;
+}
+.nav-hamburger span {
+  width: 22px; height: 2px;
+  background: var(--dark);
+  border-radius: 2px;
+  transition: all .3s;
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    position: fixed; top: 56px; right: -100%; width: 240px;
+    height: calc(100vh - 56px);
+    flex-direction: column;
+    background: var(--white);
+    padding: 32px 24px;
+    gap: 20px;
+    transition: right .3s;
+    border-left: 1px solid var(--gray-2);
+  }
+  .nav-links.open { right: 0; }
+  .nav-hamburger { display: flex; }
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  padding: 140px 0 80px;
+  text-align: center;
+  background: linear-gradient(180deg, var(--white) 0%, var(--gray-1) 100%);
+}
+
+.hero-badge {
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--blue);
+  background: var(--blue-l);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 20px;
+  color: var(--dark);
+}
+
+.hero-desc {
+  font-size: 1.1rem;
+  color: var(--gray-4);
+  max-width: 620px;
+  margin: 0 auto 48px;
+  line-height: 1.8;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.hero-stat { text-align: center; }
+
+.hero-stat-num {
+  font-family: var(--serif);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.1;
+}
+
+.hero-stat-label {
+  font-size: .78rem;
+  font-weight: 500;
+  color: var(--gray-4);
+  margin-top: 4px;
+}
+
+/* ============================================================
+   PROBLEM & SOLUTION
+   ============================================================ */
+.ps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-top: 48px;
+}
+
+@media (max-width: 768px) { .ps-grid { grid-template-columns: 1fr; gap: 32px; } }
+
+.ps-card {
+  padding: 32px;
+  border-radius: var(--radius);
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+}
+
+.ps-card h3 {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: var(--dark);
+}
+
+.ps-card ul { list-style: none; }
+
+.ps-card li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 10px;
+  font-size: .92rem;
+  color: var(--gray-5);
+  line-height: 1.7;
+}
+
+.ps-card li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 11px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.ps-card.problem li::before { background: #c0392b; }
+
+/* ============================================================
+   ARCHITECTURE
+   ============================================================ */
+.arch-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 48px 0 32px;
+}
+
+.arch-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  min-width: 140px;
+  max-width: 180px;
+  box-shadow: var(--shadow);
+  transition: transform .2s, box-shadow .2s;
+}
+.arch-step:hover { transform: translateY(-2px); box-shadow: var(--shadow-m); }
+
+.arch-step-num {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+
+.arch-step-title {
+  font-family: var(--serif);
+  font-size: .95rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--dark);
+}
+
+.arch-step-desc {
+  font-size: .75rem;
+  color: var(--gray-4);
+  line-height: 1.5;
+}
+
+.arch-arrow {
+  font-size: 1.4rem;
+  color: var(--gray-3);
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .arch-flow { flex-direction: column; }
+  .arch-arrow { transform: rotate(90deg); padding: 4px 0; }
+  .arch-step { min-width: 200px; }
+}
+
+.route-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 40px;
+}
+@media (max-width: 768px) { .route-compare { grid-template-columns: 1fr; } }
+
+.route-card {
+  padding: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-2);
+  background: var(--white);
+}
+
+.route-card h4 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: var(--dark);
+}
+
+.route-tag {
+  display: inline-block;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  padding: 2px 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+.route-tag.a { background: #e8f0fe; color: var(--blue); }
+.route-tag.b { background: #f0e8fe; color: #6a3ebd; }
+
+.route-card p {
+  font-size: .88rem;
+  color: var(--gray-5);
+  line-height: 1.7;
+}
+
+/* ============================================================
+   PIPELINE
+   ============================================================ */
+.pipe-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.pipe-card {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 24px;
+  padding: 28px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  transition: box-shadow .2s;
+}
+.pipe-card:hover { box-shadow: var(--shadow-m); }
+
+.pipe-card-num {
+  width: 56px; height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--blue);
+  background: var(--blue-l);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.pipe-card-body h3 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+  color: var(--dark);
+}
+
+.pipe-mono {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: .72rem;
+  color: var(--gray-4);
+  margin-bottom: 10px;
+}
+
+.pipe-card-body p {
+  font-size: .88rem;
+  color: var(--gray-5);
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+
+.pipe-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.pipe-meta-item { font-size: .78rem; }
+
+.pipe-meta-label {
+  font-weight: 600;
+  color: var(--gray-4);
+  letter-spacing: .06em;
+  font-size: .65rem;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.pipe-meta-val { color: var(--gray-5); }
+
+.cmap-stages {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.cmap-stage {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: .68rem;
+  padding: 4px 10px;
+  background: var(--blue-l);
+  color: var(--blue);
+  border-radius: 4px;
+  font-weight: 600;
+}
+.cmap-arrow {
+  font-size: .85rem;
+  color: var(--gray-3);
+  padding: 0 4px;
+}
+
+@media (max-width: 600px) {
+  .pipe-card { grid-template-columns: 1fr; }
+  .pipe-card-num { width: 40px; height: 40px; font-size: 1rem; }
+}
+
+/* ============================================================
+   SCORING
+   ============================================================ */
+.formula-box {
+  background: var(--dark);
+  color: #e0e0e0;
+  padding: 28px 32px;
+  border-radius: var(--radius);
+  margin: 40px 0 36px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: .85rem;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+.formula-box .hl { color: #6ec6ff; }
+.formula-box .op { color: #f0a500; }
+.formula-box .cm { color: #6c757d; }
+
+.score-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+@media (max-width: 900px) { .score-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .score-cards { grid-template-columns: 1fr; } }
+
+.score-card {
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  text-align: center;
+  transition: transform .2s, box-shadow .2s;
+}
+.score-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-m); }
+
+.score-icon {
+  width: 48px; height: 48px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 1.3rem;
+}
+.score-icon.mech  { background: #e8f0fe; color: var(--blue); }
+.score-icon.safe  { background: #fde8e8; color: #c0392b; }
+.score-icon.trial { background: #fef3e0; color: #e67e22; }
+.score-icon.pheno { background: #e8fee8; color: #27ae60; }
+
+.score-card h4 {
+  font-family: var(--serif);
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: var(--dark);
+}
+
+.score-card p {
+  font-size: .82rem;
+  color: var(--gray-4);
+  line-height: 1.6;
+}
+
+/* 5D */
+.five-d-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+@media (max-width: 900px) { .five-d-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 500px) { .five-d-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.five-d-item {
+  text-align: center;
+  padding: 18px 10px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+}
+.five-d-score {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.five-d-score.s1 { color: var(--blue); }
+.five-d-score.s2 { color: #6a3ebd; }
+.five-d-score.s3 { color: #e67e22; }
+.five-d-score.s4 { color: #c0392b; }
+.five-d-score.s5 { color: #27ae60; }
+
+.five-d-item h5 {
+  font-family: var(--sans);
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 2px;
+}
+.five-d-item span {
+  font-size: .65rem;
+  color: var(--gray-4);
+}
+
+/* ============================================================
+   SCIENTIFIC RIGOR
+   ============================================================ */
+.rigor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+@media (max-width: 768px) { .rigor-grid { grid-template-columns: 1fr; } }
+
+.rigor-card {
+  padding: 28px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--blue);
+  transition: box-shadow .2s;
+}
+.rigor-card:hover { box-shadow: var(--shadow-m); }
+
+.rigor-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rigor-card-icon {
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-l);
+  color: var(--blue);
+  border-radius: 50%;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.rigor-card h4 {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--dark);
+}
+
+.rigor-card p {
+  font-size: .85rem;
+  color: var(--gray-5);
+  line-height: 1.75;
+  margin-bottom: 10px;
+}
+
+.rigor-detail {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: .72rem;
+  color: var(--gray-4);
+  background: var(--gray-1);
+  padding: 8px 12px;
+  border-radius: 4px;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   DISEASE COVERAGE
+   ============================================================ */
+.disease-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.disease-group {
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+}
+
+.disease-group h4 {
+  font-family: var(--serif);
+  font-size: .95rem;
+  margin-bottom: 10px;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.disease-group .count {
+  font-family: var(--sans);
+  font-size: .65rem;
+  font-weight: 600;
+  background: var(--blue-l);
+  color: var(--blue);
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.disease-group ul { list-style: none; }
+
+.disease-group li {
+  font-size: .8rem;
+  color: var(--gray-5);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--gray-1);
+  line-height: 1.5;
+}
+.disease-group li:last-child { border-bottom: none; }
+
+/* ============================================================
+   TECH HIGHLIGHTS
+   ============================================================ */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 48px;
+}
+@media (max-width: 900px) { .tech-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .tech-grid { grid-template-columns: 1fr; } }
+
+.tech-card {
+  padding: 24px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  transition: transform .2s, box-shadow .2s;
+}
+.tech-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-m); }
+
+.tech-card-icon {
+  width: 40px; height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-l);
+  color: var(--blue);
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+}
+
+.tech-card h4 {
+  font-family: var(--serif);
+  font-size: .95rem;
+  margin-bottom: 6px;
+  color: var(--dark);
+}
+
+.tech-card p {
+  font-size: .82rem;
+  color: var(--gray-4);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   QA
+   ============================================================ */
+.qa-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 48px;
+}
+@media (max-width: 900px) { .qa-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .qa-grid { grid-template-columns: 1fr; } }
+
+.qa-card {
+  text-align: center;
+  padding: 28px 20px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+}
+
+.qa-num {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--blue);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.qa-card h4 {
+  font-family: var(--serif);
+  font-size: .95rem;
+  margin-bottom: 8px;
+  color: var(--dark);
+}
+
+.qa-card p {
+  font-size: .82rem;
+  color: var(--gray-4);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  padding: 40px 0;
+  text-align: center;
+  border-top: 1px solid var(--gray-2);
+  background: var(--white);
+}
+footer p { font-size: .82rem; color: var(--gray-4); }
+footer a { color: var(--gray-4); }
+footer a:hover { color: var(--blue); }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- ======================== NAV ======================== -->
+<nav id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">药物重定位平台</div>
+    <div class="nav-links" id="navLinks">
+      <a href="#architecture">架构</a>
+      <a href="#pipeline">管道</a>
+      <a href="#scoring">评分</a>
+      <a href="#rigor">严谨性</a>
+      <a href="#diseases">疾病</a>
+      <a href="#tech">技术</a>
+      <a href="index.html" class="lang-btn">EN</a>
+    </div>
+    <div class="nav-hamburger" id="hamburger">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- ======================== HERO ======================== -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-badge">计算药物发现平台</div>
+    <h1>药物重定位平台</h1>
+    <p class="hero-desc">一个端到端的计算平台，通过转录组特征逆转、知识图谱推理和 AI 驱动的证据综合，系统性发现已有药物的新治疗用途。</p>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">66</div>
+        <div class="hero-stat-label">覆盖疾病</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">5</div>
+        <div class="hero-stat-label">子管道</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">1189+</div>
+        <div class="hero-stat-label">自动化测试</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">2</div>
+        <div class="hero-stat-label">独立路线</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">100</div>
+        <div class="hero-stat-label">五维评分</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">1000</div>
+        <div class="hero-stat-label">Bootstrap 重采样</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== PROBLEM & SOLUTION ======================== -->
+<section id="problem">
+  <div class="container">
+    <div class="section-label">MOTIVATION</div>
+    <h2 class="section-title">问题与方案</h2>
+
+    <div class="ps-grid reveal">
+      <div class="ps-card problem">
+        <h3>药物研发的困境</h3>
+        <ul>
+          <li>单个药物平均研发周期超过 <strong>10 年</strong></li>
+          <li>临床试验失败率高达 <strong>90%</strong></li>
+          <li>每个获批药物成本超过 <strong>26 亿美元</strong></li>
+          <li>罕见病和复杂疾病长期缺乏有效治疗手段</li>
+        </ul>
+      </div>
+      <div class="ps-card">
+        <h3>药物重定位的方案</h3>
+        <ul>
+          <li>利用<strong>已有安全性数据</strong>，可跳过 I 期临床试验</li>
+          <li>融合转录组学、知识图谱与大语言模型推理</li>
+          <li>从疾病特征到候选药物排名的<strong>全自动化管线</strong></li>
+          <li>为每个药物–疾病预测提供<strong>可解释的证据包</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== ARCHITECTURE ======================== -->
+<section id="architecture" style="background:var(--gray-1);">
+  <div class="container">
+    <div class="section-label">SYSTEM DESIGN</div>
+    <h2 class="section-title">架构总览</h2>
+    <p class="section-subtitle">五个专用管道依次衔接，将原始转录组数据转化为临床可行的候选药物。</p>
+
+    <div class="arch-flow reveal">
+      <div class="arch-step">
+        <div class="arch-step-num">步骤 1</div>
+        <div class="arch-step-title">dsmeta</div>
+        <div class="arch-step-desc">疾病特征元分析</div>
+      </div>
+      <div class="arch-arrow">&#8594;</div>
+      <div class="arch-step">
+        <div class="arch-step-num">步骤 2</div>
+        <div class="arch-step-title">ARCHS4</div>
+        <div class="arch-step-desc">表达特征提取</div>
+      </div>
+      <div class="arch-arrow">&#8594;</div>
+      <div class="arch-step">
+        <div class="arch-step-num">步骤 3</div>
+        <div class="arch-step-title">SigReverse</div>
+        <div class="arch-step-desc">特征逆转匹配</div>
+      </div>
+      <div class="arch-arrow">&#8594;</div>
+      <div class="arch-step">
+        <div class="arch-step-num">步骤 4</div>
+        <div class="arch-step-title">KG Explain</div>
+        <div class="arch-step-desc">知识图谱推理</div>
+      </div>
+      <div class="arch-arrow">&#8594;</div>
+      <div class="arch-step">
+        <div class="arch-step-num">步骤 5</div>
+        <div class="arch-step-title">LLM + RAG</div>
+        <div class="arch-step-desc">证据综合与评分</div>
+      </div>
+    </div>
+
+    <div class="route-compare reveal">
+      <div class="route-card">
+        <span class="route-tag a">方向 A</span>
+        <h4>跨疾病迁移</h4>
+        <p>发现已批准用于疾病 X 的药物可能通过逆转疾病 Y 的转录组特征来治疗 Y。利用不同疾病间的共享分子通路，实现跨适应症的药物发现。</p>
+      </div>
+      <div class="route-card">
+        <span class="route-tag b">方向 B</span>
+        <h4>原适应症重评估</h4>
+        <p>使用更新的安全性数据、试验结果和新机制发现，在药物原始治疗领域内重新评估，发现被忽视的候选药物。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== PIPELINE DEEP DIVE ======================== -->
+<section id="pipeline">
+  <div class="container">
+    <div class="section-label">PIPELINE DETAILS</div>
+    <h2 class="section-title">管道详解</h2>
+
+    <div class="pipe-cards">
+      <!-- 1 dsmeta -->
+      <div class="pipe-card reveal">
+        <div class="pipe-card-num">1</div>
+        <div class="pipe-card-body">
+          <h3>疾病特征元分析</h3>
+          <div class="pipe-mono">dsmeta_signature</div>
+          <p>从 GEO 数据库整理和统一疾病基因表达数据集。执行差异表达分析，应用 FDR 门控（q &lt; 0.05），生成一致性疾病特征（上调/下调基因集）。支持多数据集的 meta-analysis 和加权特征融合。</p>
+          <div class="pipe-meta">
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输入</span><span class="pipe-meta-val">GEO Series IDs</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输出</span><span class="pipe-meta-val">DEG Signature (UP/DN)</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">核心方法</span><span class="pipe-meta-val">Limma + FDR &lt; 0.05</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 archs4 -->
+      <div class="pipe-card reveal">
+        <div class="pipe-card-num">2</div>
+        <div class="pipe-card-body">
+          <h3>ARCHS4 表达特征提取</h3>
+          <div class="pipe-mono">archs4_signature</div>
+          <p>查询 ARCHS4 大规模基因表达数据库。从 OpenTargets 疾病同义词自动生成搜索关键词，并添加领域特异性补充（EXTRA_KEYWORDS）。在无可用 GEO 数据集时作为自动回退方案提取表达特征。</p>
+          <div class="pipe-meta">
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输入</span><span class="pipe-meta-val">疾病关键词</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输出</span><span class="pipe-meta-val">DEG Signature (UP/DN)</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">核心方法</span><span class="pipe-meta-val">ARCHS4 API + 自动回退</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 sigreverse -->
+      <div class="pipe-card reveal">
+        <div class="pipe-card-num">3</div>
+        <div class="pipe-card-body">
+          <h3>特征逆转匹配</h3>
+          <div class="pipe-mono">sigreverse</div>
+          <p>实现完整的 CMap 四阶段评分管道：ES（富集） &rarr; WTCS（加权方向性） &rarr; NCS（归一化） &rarr; Tau（百分位）。跨细胞系、剂量和时间点聚合，配合鲁棒性过滤（p_reverser &ge; 0.80）。包含剂量-反应单调性检查和毒性/应激混杂因子检测。</p>
+          <div class="cmap-stages">
+            <span class="cmap-stage">ES</span><span class="cmap-arrow">&rarr;</span>
+            <span class="cmap-stage">WTCS</span><span class="cmap-arrow">&rarr;</span>
+            <span class="cmap-stage">NCS</span><span class="cmap-arrow">&rarr;</span>
+            <span class="cmap-stage">Tau</span>
+          </div>
+          <div class="pipe-meta" style="margin-top:12px;">
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输入</span><span class="pipe-meta-val">DEG Signature</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输出</span><span class="pipe-meta-val">排名药物 + Tau 分数</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">核心方法</span><span class="pipe-meta-val">CMap 四阶段 + 鲁棒性聚合</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 kg_explain -->
+      <div class="pipe-card reveal">
+        <div class="pipe-card-num">4</div>
+        <div class="pipe-card-body">
+          <h3>知识图谱推理</h3>
+          <div class="pipe-mono">kg_explain</div>
+          <p>利用 OpenTargets、ChEMBL 和 FAERS 构建药物–基因–疾病知识图谱。通过 DTPD 四跳路径推理（Drug &rarr; Target &rarr; Pathway &rarr; Disease）生成机制解释，整合遗传关联、安全性信号和临床试验数据。高度连接节点（如激酶家族）施加 hub penalty 降低噪声。</p>
+          <div class="pipe-meta">
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输入</span><span class="pipe-meta-val">药物–疾病对 + DEGs</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输出</span><span class="pipe-meta-val">证据包 + KG 路径</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">核心方法</span><span class="pipe-meta-val">多源 KG + DTPD 路径推理</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 LLM+RAG -->
+      <div class="pipe-card reveal">
+        <div class="pipe-card-num">5</div>
+        <div class="pipe-card-body">
+          <h3>LLM + RAG 证据综合</h3>
+          <div class="pipe-mono">llm_rag_scoring</div>
+          <p>两阶段检索管道：PubMed E-utilities 的 BM25 广泛搜索，随后通过 Ollama 嵌入进行语义重排序。包含跨药物污染检测、ClinicalTrials.gov 负面证据提取和 LLM 幻觉检测与自动修复。输出 <strong>5 维 100 分制评分</strong>（证据 0-30 / 机制 0-20 / 可转化性 0-20 / 安全性 0-20 / 实用性 0-10）及自然语言理由。</p>
+          <div class="pipe-meta">
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输入</span><span class="pipe-meta-val">证据包</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">输出</span><span class="pipe-meta-val">5D 评分 + 理由</span></div>
+            <div class="pipe-meta-item"><span class="pipe-meta-label">核心方法</span><span class="pipe-meta-val">BM25 &rarr; 语义重排 &rarr; LLM 5D 评分</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== V5 SCORING ======================== -->
+<section id="scoring" style="background:var(--gray-1);">
+  <div class="container">
+    <div class="section-label">SCORING ENGINE</div>
+    <h2 class="section-title">V5 评分系统</h2>
+    <p class="section-subtitle">一个多维评分公式，平衡机制合理性与临床风险信号，融合多个独立数据源的排名。</p>
+
+    <div class="formula-box reveal">
+      <span class="cm">// V5 综合评分</span><br>
+      <span class="hl">final_score</span> <span class="op">=</span> <span class="hl">mechanism_score</span> <span class="op">&times;</span> <span class="hl">risk_decay</span> <span class="op">&times;</span> (<span class="op">1 +</span> <span class="hl">phenotype_boost</span>)<br><br>
+      <span class="cm">// 风险衰减</span><br>
+      <span class="hl">safety_penalty</span>&nbsp; <span class="op">=</span> tanh( log1p(PRR) / 5 <span class="op">&times;</span> confidence <span class="op">&times;</span> serious_weight )<br>
+      <span class="hl">trial_penalty</span>&nbsp;&nbsp; <span class="op">=</span> 0.1 <span class="op">&times;</span> log1p(safety_stops) <span class="op">+</span> 0.05 <span class="op">&times;</span> log1p(efficacy_stops)<br>
+      <span class="hl">risk_decay</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="op">=</span> (1 <span class="op">-</span> safety_penalty) <span class="op">&times;</span> (1 <span class="op">-</span> trial_penalty)<br><br>
+      <span class="cm">// 表型增强</span><br>
+      <span class="hl">phenotype_boost</span> <span class="op">=</span> avg_pheno_score <span class="op">&times;</span> log1p(n_phenotypes)
+    </div>
+
+    <div class="score-cards reveal">
+      <div class="score-card">
+        <div class="score-icon mech">&#9881;</div>
+        <h4>机制</h4>
+        <p>特征逆转强度与疾病关联基因的靶点重叠程度</p>
+      </div>
+      <div class="score-card">
+        <div class="score-icon safe">&#9888;</div>
+        <h4>安全性</h4>
+        <p>FAERS 不良事件信号 — PRR、置信区间与严重结局权重</p>
+      </div>
+      <div class="score-card">
+        <div class="score-icon trial">&#9878;</div>
+        <h4>试验历史</h4>
+        <p>既往临床试验失败 — 安全性终止和疗效终止按比例惩罚</p>
+      </div>
+      <div class="score-card">
+        <div class="score-icon pheno">&#10003;</div>
+        <h4>表型</h4>
+        <p>药物靶点与疾病关联基因在小鼠/人类表型上的重叠</p>
+      </div>
+    </div>
+
+    <!-- 5D 证据评分 -->
+    <div style="margin-top:56px;" class="reveal">
+      <h3 style="font-family:var(--serif);font-size:1.3rem;margin-bottom:8px;">五维证据评分</h3>
+      <p class="section-subtitle">每个药物–疾病对在五个正交维度上获得精细的 100 分制证据评分，支持透明的 GO / MAYBE / NO-GO 决策门控。</p>
+
+      <div class="five-d-grid">
+        <div class="five-d-item">
+          <div class="five-d-score s1">30</div>
+          <h5>证据强度</h5>
+          <span>有益文献、覆盖度、伤害惩罚</span>
+        </div>
+        <div class="five-d-item">
+          <div class="five-d-score s2">20</div>
+          <h5>机制合理性</h5>
+          <span>机制一致性、PMID 阈值</span>
+        </div>
+        <div class="five-d-item">
+          <div class="five-d-score s3">20</div>
+          <h5>可转化性</h5>
+          <span>临床试验可行性信号</span>
+        </div>
+        <div class="five-d-item">
+          <div class="five-d-score s4">20</div>
+          <h5>安全适配</h5>
+          <span>黑名单命中、不良事件信号</span>
+        </div>
+        <div class="five-d-item">
+          <div class="five-d-score s5">10</div>
+          <h5>实用性</h5>
+          <span>生产工艺、制剂可获性</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 融合排名 -->
+    <div style="margin-top:48px;" class="reveal">
+      <h3 style="font-family:var(--serif);font-size:1.3rem;margin-bottom:8px;">多源融合排名</h3>
+      <p class="section-subtitle">最终排名不依赖单一分数 — 将知识图谱机制推理、SigReverse 转录组逆转和 FAERS 安全性分析的独立信号融合为加权集成，通过排名相关性指标衡量来源间一致性。</p>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap;">
+        <div style="padding:10px 18px;background:var(--blue-l);border-radius:var(--radius);font-size:.82rem;font-weight:600;color:var(--blue);">KG 机制</div>
+        <span style="color:var(--gray-3);font-size:1.2rem;">+</span>
+        <div style="padding:10px 18px;background:#f0e8fe;border-radius:var(--radius);font-size:.82rem;font-weight:600;color:#6a3ebd;">SigReverse Tau</div>
+        <span style="color:var(--gray-3);font-size:1.2rem;">+</span>
+        <div style="padding:10px 18px;background:#fde8e8;border-radius:var(--radius);font-size:.82rem;font-weight:600;color:#c0392b;">FAERS 安全性</div>
+        <span style="color:var(--gray-3);font-size:1.2rem;">&rarr;</span>
+        <div style="padding:10px 18px;background:var(--dark);border-radius:var(--radius);font-size:.82rem;font-weight:600;color:var(--white);">融合排名</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== SCIENTIFIC RIGOR ======================== -->
+<section id="rigor">
+  <div class="container">
+    <div class="section-label">VALIDATION</div>
+    <h2 class="section-title">科学严谨性</h2>
+    <p class="section-subtitle">药物重定位预测只有在值得信赖时才有价值。本平台实施了多层统计验证和偏差检测，这在计算药物发现领域极为罕见。</p>
+
+    <div class="rigor-grid reveal">
+      <div class="rigor-card">
+        <div class="rigor-card-header">
+          <div class="rigor-card-icon">CI</div>
+          <h4>Bootstrap 置信区间</h4>
+        </div>
+        <p>每个药物–疾病评分都通过 <strong>1,000 次 bootstrap 重采样</strong>进行不确定性量化。预测按置信度分层 — 高（CI 宽度 &lt;0.10）、中（&lt;0.25）、低（&ge;0.25）— 让下游用户准确了解每个预测的可靠程度。</p>
+        <div class="rigor-detail">ci_lower | ci_upper | ci_width | confidence_tier: HIGH / MEDIUM / LOW</div>
+      </div>
+
+      <div class="rigor-card">
+        <div class="rigor-card-header">
+          <div class="rigor-card-icon">&#128274;</div>
+          <h4>数据泄露审计</h4>
+        </div>
+        <p>三层泄露检测：<strong>药物级</strong>（训练/测试中的相同药物）、<strong>疾病级</strong>（相同疾病）和<strong>精确对级</strong>（药物-疾病对重叠）。还能检测通过共享靶点的转导泄露 — 防止测试药物使用训练药物的靶点信息。</p>
+        <div class="rigor-detail">Drug-level &#10003; | Disease-level &#10003; | Pair-level &#10003; | Transductive &#10003;</div>
+      </div>
+
+      <div class="rigor-card">
+        <div class="rigor-card-header">
+          <div class="rigor-card-icon">A+B</div>
+          <h4>双路线交叉验证</h4>
+        </div>
+        <p>方向 A（跨疾病）和方向 B（原适应症重评估）<strong>完全独立</strong>运行，然后通过 <code>compare_ab_routes.py</code> 交叉验证。两条路线共同发现的药物获得适度置信度提升（2.0，刻意避免赢家通吃偏差），重叠集代表最高置信度预测。</p>
+        <div class="rigor-detail">A+B 重叠 &rarr; 最高置信度 | A_only | B_only &rarr; 分类标记</div>
+      </div>
+
+      <div class="rigor-card">
+        <div class="rigor-card-header">
+          <div class="rigor-card-icon">&#8986;</div>
+          <h4>时序分割验证</h4>
+        </div>
+        <p>数据集按发表年份自动分割以保持<strong>时间因果性</strong> — 模型无法通过在训练中看到未来证据来"作弊"。集成的时序基准在分割内部包含泄露审计，防止来自未来出版物的信息污染测试集。</p>
+        <div class="rigor-detail">按年份训练/测试分割 | 未来泄露阻断 | 时间因果性保证</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== DISEASE COVERAGE ======================== -->
+<section id="diseases" style="background:var(--gray-1);">
+  <div class="container">
+    <div class="section-label">COVERAGE</div>
+    <h2 class="section-title">疾病覆盖</h2>
+    <p class="section-subtitle">覆盖 14 个治疗领域的 66 种疾病，通过自动化引入持续扩展。新疾病入驻仅需不到 5 分钟。</p>
+
+    <div class="disease-grid reveal">
+      <div class="disease-group">
+        <h4>心血管 <span class="count">21</span></h4>
+        <ul>
+          <li>动脉粥样硬化 Atherosclerosis</li>
+          <li>心肌病 Cardiomyopathy</li>
+          <li>心力衰竭 Heart Failure</li>
+          <li>心肌梗死 Myocardial Infarction</li>
+          <li>冠状动脉疾病 CAD</li>
+          <li>肺动脉高压 PAH</li>
+          <li>腹主动脉瘤 AAA</li>
+          <li>房颤 Atrial Fibrillation</li>
+          <li>高血压 Hypertension</li>
+          <li>脑卒中 Stroke</li>
+          <li>深静脉血栓 DVT</li>
+          <li>静脉血栓栓塞 VTE</li>
+          <li>心绞痛 Angina Pectoris</li>
+          <li>心肌炎 Myocarditis</li>
+          <li>肺栓塞 Pulmonary Embolism</li>
+          <li>心内膜炎 Endocarditis</li>
+          <li>心包炎 Pericarditis</li>
+          <li>心律失常 Cardiac Arrhythmia</li>
+          <li>主动脉瓣狭窄 Aortic Stenosis</li>
+          <li>外周动脉疾病 PAD</li>
+          <li>胸主动脉瘤 TAA</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>肿瘤 <span class="count">8</span></h4>
+        <ul>
+          <li>胰腺癌 Pancreatic Cancer</li>
+          <li>胶质母细胞瘤 Glioblastoma</li>
+          <li>结直肠癌 Colorectal Cancer</li>
+          <li>肝细胞癌 HCC</li>
+          <li>非小细胞肺癌 NSCLC</li>
+          <li>卵巢癌 Ovarian Cancer</li>
+          <li>前列腺癌 Prostate Cancer</li>
+          <li>三阴性乳腺癌 TNBC</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>自身免疫/炎症 <span class="count">7</span></h4>
+        <ul>
+          <li>类风湿关节炎 RA</li>
+          <li>系统性红斑狼疮 SLE</li>
+          <li>克罗恩病 Crohn's Disease</li>
+          <li>炎症性肠病 IBD</li>
+          <li>强直性脊柱炎 AS</li>
+          <li>银屑病 Psoriasis</li>
+          <li>多发性硬化 MS</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>神经退行性 <span class="count">4</span></h4>
+        <ul>
+          <li>阿尔茨海默病 Alzheimer's</li>
+          <li>帕金森病 Parkinson's</li>
+          <li>肌萎缩侧索硬化 ALS</li>
+          <li>亨廷顿病 Huntington's</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>精神/CNS <span class="count">4</span></h4>
+        <ul>
+          <li>重度抑郁症 MDD</li>
+          <li>双相障碍 Bipolar Disorder</li>
+          <li>精神分裂症 Schizophrenia</li>
+          <li>注意缺陷多动障碍 ADHD</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>代谢/内分泌 <span class="count">4</span></h4>
+        <ul>
+          <li>非酒精性脂肪肝 NAFLD</li>
+          <li>非酒精性脂肪性肝炎 NASH</li>
+          <li>2 型糖尿病 T2D</li>
+          <li>代谢综合征 MetS</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>纤维化 <span class="count">3</span></h4>
+        <ul>
+          <li>特发性肺纤维化 IPF</li>
+          <li>肝纤维化 Liver Fibrosis</li>
+          <li>肾纤维化 Renal Fibrosis</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>呼吸 <span class="count">3</span></h4>
+        <ul>
+          <li>慢阻肺 COPD</li>
+          <li>哮喘 Asthma</li>
+          <li>支气管扩张 Bronchiectasis</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>皮肤 <span class="count">3</span></h4>
+        <ul>
+          <li>特应性皮炎 Atopic Dermatitis</li>
+          <li>斑秃 Alopecia Areata</li>
+          <li>白癜风 Vitiligo</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>血液/罕见病 <span class="count">3</span></h4>
+        <ul>
+          <li>镰状细胞病 SCD</li>
+          <li>骨髓纤维化 Myelofibrosis</li>
+          <li>杜氏肌营养不良 DMD</li>
+        </ul>
+      </div>
+      <div class="disease-group">
+        <h4>血管炎/其他 <span class="count">6</span></h4>
+        <ul>
+          <li>血管炎 Vasculitis</li>
+          <li>川崎病 Kawasaki Disease</li>
+          <li>风湿性心脏病 RHD</li>
+          <li>心脏性猝死 SCD</li>
+          <li>应激性心肌病 Takotsubo</li>
+          <li>脑动脉瘤 Brain Aneurysm</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== TECH HIGHLIGHTS ======================== -->
+<section id="tech">
+  <div class="container">
+    <div class="section-label">INNOVATION</div>
+    <h2 class="section-title">技术亮点</h2>
+
+    <div class="tech-grid reveal">
+      <div class="tech-card">
+        <div class="tech-card-icon">&#916;</div>
+        <h4>FDR 门控差异基因</h4>
+        <p>严格的 FDR 控制（q &lt; 0.05）确保只有统计显著的基因特征进入管道，从源头保证信号质量。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#8644;</div>
+        <h4>双路线独立验证</h4>
+        <p>跨疾病和原适应症路线独立运行后交叉验证，两路线重叠的药物代表最高置信度预测。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#128269;</div>
+        <h4>可解释人工智能</h4>
+        <p>每个预测都包含结构化证据包：机制解释、PMID 文献支持和知识图谱路径，全程可溯源。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#9878;</div>
+        <h4>分子对接就绪</h4>
+        <p>输出包含 SMILES、ChEMBL ID、PDB/AlphaFold 结构 ID 和靶点选择评分 — 可直接用于下游分子对接。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#9889;</div>
+        <h4>三级自动回退</h4>
+        <p>GEO 特征提取失败 &rarr; 自动切换 ARCHS4 &rarr; 再失败回退 OpenTargets-only，无需人工干预即可保证覆盖。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#9851;</div>
+        <h4>盐型 &rarr; 母体解析</h4>
+        <p>通过 ChEMBL 分子层级结构自动将药物盐型解析为母体分子，防止重复条目和评分偏差。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#8734;</div>
+        <h4>24/7 持续运行器</h4>
+        <p>Ops 运行器持续处理疾病批次，配备状态追踪、自动重启、失败隔离和审计日志。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#9733;</div>
+        <h4>多源知识图谱</h4>
+        <p>将 OpenTargets、ChEMBL、FAERS 和表型数据库整合为统一知识图谱，DTPD 四跳路径推理。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#127981;</div>
+        <h4>GEO 自动发现</h4>
+        <p>自动搜索 NCBI GEO 表达数据集，规则检测病例/对照组，质量评分研究 — 新疾病引入不到 5 分钟。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#129516;</div>
+        <h4>AlphaFold + PDB 双标注</h4>
+        <p>每个靶点同时标注实验 PDB 和 AlphaFold 预测结构，按可用性分层，配有对接可行性标志和备选靶点。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#127919;</div>
+        <h4>动态 Top-N 策略</h4>
+        <p>根据评分分布质量（N50 指标）自动调整候选池大小，三种可调配置：稳定、平衡和召回。告别武断截断。</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">&#128302;</div>
+        <h4>幻觉检测与修复</h4>
+        <p>LLM 输出经过模式验证、跨药物污染过滤和自动幻觉检测修复管道，确保证据真实可靠。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== QUALITY ASSURANCE ======================== -->
+<section id="qa" style="background:var(--gray-1);">
+  <div class="container">
+    <div class="section-label">RELIABILITY</div>
+    <h2 class="section-title">质量保障</h2>
+    <p class="section-subtitle">严格的测试和验证确保每个阶段的结果可复现、可信赖。</p>
+
+    <div class="qa-grid reveal">
+      <div class="qa-card">
+        <div class="qa-num">1189+</div>
+        <h4>自动化测试</h4>
+        <p>全面的测试套件，覆盖全部 5 个管道的单元、集成和契约测试。</p>
+      </div>
+      <div class="qa-card">
+        <div class="qa-num">&#10003;</div>
+        <h4>契约执行</h4>
+        <p>管道间的模式契约确保每个数据交接点的完整性，配合版本追踪。</p>
+      </div>
+      <div class="qa-card">
+        <div class="qa-num">&#128220;</div>
+        <h4>审计日志</h4>
+        <p>每次运行均记录时间戳、参数、配置哈希和结果，确保完全可复现。</p>
+      </div>
+      <div class="qa-card">
+        <div class="qa-num">&#128101;</div>
+        <h4>人工审查</h4>
+        <p>顶级候选药物经专家结合证据包审查，配合评审者间一致性追踪（Cohen's Kappa &ge; 0.6）。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FOOTER ======================== -->
+<footer>
+  <div class="container">
+    <p>&copy; 2026 药物重定位平台&ensp;&middot;&ensp;基于计算生物学与人工智能构建</p>
+  </div>
+</footer>
+
+<!-- ======================== JAVASCRIPT ======================== -->
+<script>
+(function() {
+  'use strict';
+
+  // Mobile nav
+  var hamburger = document.getElementById('hamburger');
+  var navLinks = document.getElementById('navLinks');
+  hamburger.addEventListener('click', function() { navLinks.classList.toggle('open'); });
+  navLinks.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() { navLinks.classList.remove('open'); });
+  });
+
+  // Nav shadow
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function() {
+    nav.classList.toggle('scrolled', window.scrollY > 10);
+  }, { passive: true });
+
+  // Scroll reveal
+  var reveals = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  reveals.forEach(function(el) { observer.observe(el); });
+
+  // Counter animation
+  function animateCounters() {
+    document.querySelectorAll('.hero-stat-num').forEach(function(el) {
+      var text = el.textContent.trim();
+      var suffix = text.replace(/[\d.]/g, '');
+      var target = parseFloat(text);
+      if (isNaN(target)) return;
+      var duration = 1200, start = performance.now();
+      function step(now) {
+        var p = Math.min((now - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  var heroObs = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) { animateCounters(); heroObs.disconnect(); }
+  }, { threshold: 0.3 });
+  heroObs.observe(document.getElementById('hero'));
+})();
+</script>
+
+</body>
+</html>

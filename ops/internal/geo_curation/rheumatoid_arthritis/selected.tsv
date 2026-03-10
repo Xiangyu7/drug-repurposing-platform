@@ -1,0 +1,5 @@
+disease_key	gse_id	platform	case_n	control_n	case_rule	control_rule	status	note
+rheumatoid_arthritis	GSE90081	11154	12	12	patient	control|healthy	auto_selected	Discovery of new candidate genes for rheumatoid arthritis th, score=77.0, conf=high
+rheumatoid_arthritis	GSE71370	16268	18	8	patient	control|healthy	auto_selected	Profiling of CD14+ monocytes from paired rheumatoid arthriti, score=65.9, conf=high
+rheumatoid_arthritis	GSE68689	20171	16	5	patient	healthy	auto_selected	Gene expression from the whole blood of rheumatoid arthritis, score=63.2, conf=high
+rheumatoid_arthritis	GSE23561	10775	6	9	disease	control	auto_selected	Peripheral blood gene expression profiles in metabolic syndr, score=47.3, conf=low

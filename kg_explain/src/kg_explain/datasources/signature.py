@@ -38,6 +38,9 @@ logger = logging.getLogger(__name__)
 CHEMBL_API = "https://www.ebi.ac.uk/chembl/api/data"
 UNIPROT_API = "https://rest.uniprot.org/uniprotkb/search"
 
+# Import drug classification from chembl module (single source of truth)
+from .chembl import _classify_drug
+
 
 # ──────────────────────────────────────────────
 #  Step A: Gene Symbol → UniProt accession
@@ -410,6 +413,7 @@ def fetch_drugs_from_signature(
             continue
         info = mol_info.get(mol_id, {})
         pref_name = info.get("pref_name", "")
+        mol_type = info.get("molecule_type", "")
         sig_rows.append({
             "drug_raw": pref_name.lower(),
             "canonical_name": pref_name.lower(),
@@ -422,6 +426,8 @@ def fetch_drugs_from_signature(
             "gene_weight": row["gene_weight"],
             "max_phase": info.get("max_phase", 0),
             "first_approval": info.get("first_approval"),
+            "molecule_type": mol_type,
+            "drug_class": _classify_drug(mol_type),
         })
 
     sig_df = pd.DataFrame(sig_rows)
@@ -431,6 +437,7 @@ def fetch_drugs_from_signature(
             "drug_raw", "canonical_name", "chembl_id", "chembl_pref_name",
             "target_chembl_id", "mechanism_of_action", "signature_gene",
             "gene_direction", "gene_weight", "max_phase", "first_approval",
+            "molecule_type", "drug_class",
         ])
 
     sig_out = data_dir / "drug_from_signature.csv"
@@ -442,13 +449,16 @@ def fetch_drugs_from_signature(
 
     # (b) drug_chembl_map.csv - 兼容 Step 4 格式
     if not sig_df.empty:
-        chembl_map_df = sig_df[["drug_raw", "canonical_name", "chembl_id", "chembl_pref_name"]].drop_duplicates(
+        chembl_map_df = sig_df[["drug_raw", "canonical_name", "chembl_id", "chembl_pref_name",
+                                 "molecule_type", "drug_class"]].drop_duplicates(
             subset=["canonical_name"]
         )
         # 加 rxnorm_term 列 (空值, signature模式不需要)
         chembl_map_df["rxnorm_term"] = ""
     else:
-        chembl_map_df = pd.DataFrame(columns=["drug_raw", "canonical_name", "rxnorm_term", "chembl_id", "chembl_pref_name"])
+        chembl_map_df = pd.DataFrame(columns=["drug_raw", "canonical_name", "rxnorm_term",
+                                               "chembl_id", "chembl_pref_name",
+                                               "molecule_type", "drug_class"])
 
     chembl_map_out = data_dir / "drug_chembl_map.csv"
     chembl_map_df.to_csv(chembl_map_out, index=False)

@@ -9,6 +9,7 @@ Gates:
 - Explore track: Keeps high-novelty candidates in MAYBE instead of hard filtering
 """
 
+import math
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Tuple
 from enum import Enum
@@ -66,7 +67,7 @@ class GatingConfig:
     enable_explore_track: bool = True
     explore_min_total_pmids: int = 1
     explore_min_benefit: int = 0   # relaxed: 0 benefit OK for explore (mechanism-only candidates)
-    explore_min_novelty_score: float = 0.30  # relaxed from 0.45
+    explore_min_novelty_score: float = 0.20  # recalibrated for log1p: log1p(1.0)*0.30=0.208≈0.20
     explore_max_harm_ratio: float = 0.70     # relaxed from 0.60
     explore_maybe_floor: float = 15.0        # relaxed from 25.0
 
@@ -154,6 +155,7 @@ class GatingEngine:
         novelty_score = self._compute_novelty_score(dossier, benefit, harm, neutral, unknown, total_pmids, total_score)
         uncertainty_score = self._compute_uncertainty_score(benefit, harm, neutral, unknown, total_pmids)
         harm_ratio = self._harm_ratio(benefit, harm, neutral)
+        kg_mech_score = float((dossier.get("kg_scores") or {}).get("mechanism_score", 0) or 0)
 
         # Collect metrics
         metrics = {
@@ -183,6 +185,7 @@ class GatingEngine:
                 harm_ratio=harm_ratio,
                 total_pmids=total_pmids,
                 novelty_score=novelty_score,
+                kg_mechanism_score=kg_mech_score,
             ):
                 reasons = hard_gate_reasons + ["explore_track_override"]
                 logger.info("MAYBE (explore override): %s - %s", canonical, "; ".join(reasons))
@@ -223,6 +226,7 @@ class GatingEngine:
                 harm_ratio=harm_ratio,
                 total_pmids=total_pmids,
                 novelty_score=novelty_score,
+                kg_mechanism_score=kg_mech_score,
             )
         ):
             soft_gate_result = GateDecision.MAYBE
@@ -353,11 +357,13 @@ class GatingEngine:
         novelty += min(0.25, float(cross_disease_hits) * 0.08)
         novelty += min(0.20, len(mechanisms) / 8.0 * 0.20)
 
-        # Reward "not fully proven yet" candidates to avoid precision-only collapse.
-        if benefit >= 1 and total_score < self.config.go_threshold:
-            novelty += 0.10
-        if total_pmids <= 3 and (benefit + harm + neutral + unknown) > 0:
-            novelty += 0.05
+        # KG genetic/pathway evidence: a drug targeting a GWAS-associated gene
+        # for the disease is worth exploring even without PubMed literature.
+        # log1p: mechanism_score ranges vary across diseases (RA ~0.3-1.5,
+        # cardiovascular ~1-13); log1p prevents saturation.
+        kg_scores = dossier.get("kg_scores") or {}
+        kg_mech = float(kg_scores.get("mechanism_score", 0) or 0)
+        novelty += min(0.30, math.log1p(kg_mech) * 0.30)
 
         return max(0.0, min(1.0, novelty))
 
@@ -383,12 +389,18 @@ class GatingEngine:
         harm_ratio: float,
         total_pmids: int,
         novelty_score: float,
+        kg_mechanism_score: float = 0.0,
     ) -> bool:
         if not self.config.enable_explore_track:
             return False
         if novelty_score < self.config.explore_min_novelty_score:
             return False
-        if total_pmids < self.config.explore_min_total_pmids:
+        # Waive PMID requirement if KG genetic evidence is strong (GWAS-level).
+        # Drug repurposing targets drugs with NO existing literature for the new
+        # indication — requiring PMIDs would systematically kill novel candidates.
+        # log1p threshold 0.8 ≈ raw mechanism_score 1.23 (e^0.8 - 1),
+        # consistent with log1p compression used in scorer and novelty.
+        if total_pmids < self.config.explore_min_total_pmids and math.log1p(kg_mechanism_score) < 0.6:
             return False
         if benefit < self.config.explore_min_benefit:
             return False

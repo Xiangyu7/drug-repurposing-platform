@@ -97,6 +97,53 @@ def canonicalize_name(x: str) -> str:
     return joined
 
 
+# 常见药用盐形式后缀（按长度降序排列，优先匹配长的）
+SALT_SUFFIXES = sorted([
+    "sodium", "potassium", "calcium", "magnesium", "aluminum",
+    "hydrochloride", "dihydrochloride", "hcl",
+    "sulfate", "sulphate", "bisulfate",
+    "citrate", "maleate", "fumarate", "succinate", "tartrate",
+    "phosphate", "acetate", "benzoate", "mesylate", "besylate",
+    "tosylate", "lactate", "gluconate", "carbonate", "nitrate",
+    "bromide", "chloride", "iodide",
+    "disodium", "dipotassium", "tromethamine",
+    "hemifumarate", "esylate", "xinafoate",
+    # hydrate / solvate forms (crystal packing descriptors, never in literature)
+    "hemihydrate", "monohydrate", "dihydrate", "trihydrate",
+    "sesquihydrate", "hydrate", "anhydrous",
+], key=len, reverse=True)
+
+_SALT_PATTERN = re.compile(
+    r"\b(" + "|".join(re.escape(s) for s in SALT_SUFFIXES) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def strip_salt_form(name: str) -> str:
+    """去除药物名称中的盐形式后缀，返回母体药物名。
+
+    Args:
+        name: 药物名（如 'tofacitinib citrate', 'methotrexate sodium'）
+
+    Returns:
+        母体名（如 'tofacitinib', 'methotrexate'）
+
+    Example:
+        >>> strip_salt_form('tofacitinib citrate')
+        'tofacitinib'
+        >>> strip_salt_form('esomeprazole magnesium')
+        'esomeprazole'
+        >>> strip_salt_form('methotrexate sodium')
+        'methotrexate'
+        >>> strip_salt_form('aspirin')
+        'aspirin'
+    """
+    s = str(name).strip().lower()
+    s = _SALT_PATTERN.sub("", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
 def safe_filename(s: str, max_len: int = 80) -> str:
     """转换为安全的文件名（用于缓存路径、dossier文件名）
 

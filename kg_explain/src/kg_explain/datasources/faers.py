@@ -20,6 +20,7 @@ PRR (Proportional Reporting Ratio):
 """
 from __future__ import annotations
 import logging
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -28,6 +29,41 @@ from ..cache import HTTPCache, cached_get_json
 from ..utils import concurrent_map
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Salt-form stripping (lightweight local copy; canonical version lives in
+# dr.common.text but kg_explain is a separate package)
+# ---------------------------------------------------------------------------
+_SALT_SUFFIXES = sorted([
+    "sodium", "potassium", "calcium", "magnesium", "aluminum",
+    "hydrochloride", "dihydrochloride", "hcl",
+    "sulfate", "sulphate", "bisulfate",
+    "citrate", "maleate", "fumarate", "succinate", "tartrate",
+    "phosphate", "acetate", "benzoate", "mesylate", "besylate",
+    "tosylate", "lactate", "gluconate", "carbonate", "nitrate",
+    "bromide", "chloride", "iodide",
+    "disodium", "dipotassium", "tromethamine",
+    "hemifumarate", "esylate", "xinafoate",
+    "hemihydrate", "monohydrate", "dihydrate", "trihydrate",
+    "sesquihydrate", "hydrate", "anhydrous",
+], key=len, reverse=True)
+
+_SALT_RE = re.compile(
+    r"\b(" + "|".join(re.escape(s) for s in _SALT_SUFFIXES) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _strip_salt_form(name: str) -> str:
+    """Remove salt-form suffixes from a drug name.
+
+    >>> _strip_salt_form("tofacitinib citrate")
+    'tofacitinib'
+    >>> _strip_salt_form("aspirin")
+    'aspirin'
+    """
+    s = _SALT_RE.sub("", str(name).strip())
+    return re.sub(r"\s+", " ", s).strip()
 
 # openFDA API端点
 FAERS_API = "https://api.fda.gov/drug/event.json"
@@ -84,21 +120,42 @@ def _calc_prr(a: int, drug_total: int, bg_ae_count: int, bg_total: int) -> float
     return p_drug / p_other
 
 
-def _faers_drug_ae(cache: HTTPCache, drug_name: str, limit: int = 100) -> list[dict]:
-    """查询单个药物的不良事件"""
-    # 搜索品牌名或通用名
-    search = f'(patient.drug.openfda.brand_name:"{drug_name}"+patient.drug.openfda.generic_name:"{drug_name}")'
+def _faers_query(cache: HTTPCache, name: str, limit: int) -> list[dict]:
+    """Raw openFDA AE query for a single drug name string."""
+    search = f'(patient.drug.openfda.brand_name:"{name}"+patient.drug.openfda.generic_name:"{name}")'
     params = {
         "search": search,
         "count": "patient.reaction.reactionmeddrapt.exact",
         "limit": limit,
     }
+    js = cached_get_json(cache, FAERS_API, params=params, timeout=30)
+    return js.get("results") or []
+
+
+def _faers_drug_ae(cache: HTTPCache, drug_name: str, limit: int = 100) -> list[dict]:
+    """查询单个药物的不良事件 (with salt-form fallback)"""
+    # 1. Try original name first
     try:
-        js = cached_get_json(cache, FAERS_API, params=params, timeout=30)
-        return js.get("results") or []
+        results = _faers_query(cache, drug_name, limit)
+        if results:
+            return results
     except Exception as e:
         logger.debug("FAERS 查询无结果, drug=%s: %s", drug_name, e)
-        return []
+
+    # 2. Fallback: strip salt form and retry (only if name actually changed)
+    stripped = _strip_salt_form(drug_name)
+    if stripped and stripped.lower() != drug_name.lower().strip():
+        try:
+            results = _faers_query(cache, stripped, limit)
+            if results:
+                logger.info("FAERS salt-form fallback hit: '%s' → '%s' (%d AEs)",
+                            drug_name, stripped, len(results))
+                return results
+        except Exception as e:
+            logger.debug("FAERS salt-form fallback also empty, drug=%s→%s: %s",
+                         drug_name, stripped, e)
+
+    return []
 
 
 def fetch_drug_ae(

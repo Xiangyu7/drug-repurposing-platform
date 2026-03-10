@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人能力介绍 | HR版</title>
+  <meta name="description" content="面向 HR 的个人能力介绍页，聚焦能力画像、工作方式与岗位匹配，不展开具体技术细节。">
+  <style>
+    :root {
+      --bg: #f3ede4;
+      --paper: #fcfaf6;
+      --ink: #163046;
+      --ink-soft: #456076;
+      --line: rgba(22, 48, 70, 0.12);
+      --teal: #2d6f6b;
+      --clay: #c86c46;
+      --olive: #7c8d69;
+      --gold: #c9a567;
+      --mist: #dfe8e5;
+      --sand: #e9ddcc;
+      --shadow: 0 28px 80px rgba(22, 48, 70, 0.08);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --max: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(201, 165, 103, 0.16), transparent 26%),
+        radial-gradient(circle at bottom left, rgba(45, 111, 107, 0.12), transparent 24%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at center, black 35%, transparent 82%);
+      opacity: 0.35;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wrap {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 18px;
+      z-index: 20;
+      width: min(var(--max), calc(100% - 40px));
+      margin: 18px auto 0;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: rgba(252, 250, 246, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 999px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 12px 32px rgba(22, 48, 70, 0.08);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay), var(--gold));
+      box-shadow: 0 0 0 8px rgba(200, 108, 70, 0.12);
+    }
+
+    .nav {
+      display: flex;
+      gap: 18px;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+
+    .nav a {
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    .nav a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 180ms ease;
+      background: linear-gradient(90deg, var(--clay), var(--gold));
+    }
+
+    .nav a:hover::after {
+      transform: scaleX(1);
+    }
+
+    .hero {
+      padding: 76px 0 40px;
+    }
+
+    .hero-shell {
+      position: relative;
+      overflow: hidden;
+      padding: 54px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 36px;
+      background:
+        radial-gradient(circle at 88% 14%, rgba(255, 255, 255, 0.72), transparent 24%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(248, 242, 233, 0.94));
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 42px;
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .hero-shell::before,
+    .hero-shell::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      z-index: -1;
+    }
+
+    .hero-shell::before {
+      right: -120px;
+      top: -120px;
+      width: 360px;
+      height: 360px;
+      background: rgba(201, 165, 103, 0.14);
+    }
+
+    .hero-shell::after {
+      left: -80px;
+      bottom: -140px;
+      width: 300px;
+      height: 300px;
+      background: rgba(45, 111, 107, 0.12);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--clay);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hero h1,
+    .statement h2,
+    .section-title,
+    .highlight-title {
+      font-family: "Iowan Old Style", "Baskerville", "Songti SC", serif;
+      letter-spacing: -0.02em;
+      line-height: 1.06;
+    }
+
+    .hero h1 {
+      margin-top: 22px;
+      font-size: clamp(2.8rem, 7vw, 5.6rem);
+      max-width: 7ch;
+    }
+
+    .hero p {
+      margin-top: 26px;
+      max-width: 40rem;
+      font-size: 1.08rem;
+      color: var(--ink-soft);
+    }
+
+    .hero-note {
+      margin-top: 24px;
+      padding-left: 18px;
+      border-left: 3px solid rgba(200, 108, 70, 0.7);
+      color: var(--ink);
+      font-size: 0.98rem;
+    }
+
+    .hero-tags {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tag {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(22, 48, 70, 0.08);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 18px;
+      align-content: center;
+    }
+
+    .signal-card,
+    .panel,
+    .capability-card,
+    .value-card,
+    .fit-card,
+    .summary-card {
+      background: rgba(252, 250, 246, 0.86);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 18px 50px rgba(22, 48, 70, 0.06);
+    }
+
+    .signal-card {
+      padding: 24px 24px 22px;
+    }
+
+    .signal-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1.18rem;
+      color: var(--ink);
+    }
+
+    .signal-card span {
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    .signal-1 strong { color: var(--teal); }
+    .signal-2 strong { color: var(--clay); }
+    .signal-3 strong { color: var(--olive); }
+
+    section {
+      padding: 92px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .section-kicker {
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--clay);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      max-width: 10ch;
+    }
+
+    .section-copy {
+      max-width: 34rem;
+      color: var(--ink-soft);
+      font-size: 1rem;
+    }
+
+    .panel {
+      padding: 32px;
+    }
+
+    .capability-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .capability-card {
+      position: relative;
+      overflow: hidden;
+      padding: 28px 24px 24px;
+      min-height: 230px;
+    }
+
+    .capability-card::before {
+      content: attr(data-index);
+      position: absolute;
+      right: 18px;
+      top: 12px;
+      font-size: 4.8rem;
+      line-height: 1;
+      color: rgba(22, 48, 70, 0.06);
+      font-weight: 700;
+      letter-spacing: -0.08em;
+    }
+
+    .capability-card h3 {
+      font-size: 1.22rem;
+      margin-bottom: 14px;
+    }
+
+    .capability-card p {
+      color: var(--ink-soft);
+      font-size: 0.96rem;
+    }
+
+    .capability-tone-1 { background: linear-gradient(180deg, rgba(223, 232, 229, 0.9), rgba(252, 250, 246, 0.84)); }
+    .capability-tone-2 { background: linear-gradient(180deg, rgba(233, 221, 204, 0.9), rgba(252, 250, 246, 0.84)); }
+    .capability-tone-3 { background: linear-gradient(180deg, rgba(240, 233, 220, 0.94), rgba(252, 250, 246, 0.84)); }
+    .capability-tone-4 { background: linear-gradient(180deg, rgba(226, 234, 219, 0.88), rgba(252, 250, 246, 0.84)); }
+
+    .flow-shell {
+      position: relative;
+      padding: 34px;
+      overflow: hidden;
+    }
+
+    .flow-shell::before {
+      content: "";
+      position: absolute;
+      left: 64px;
+      right: 64px;
+      top: 92px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(22, 48, 70, 0.16), rgba(22, 48, 70, 0.08));
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .flow-step {
+      position: relative;
+      padding-top: 8px;
+    }
+
+    .flow-dot {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(22, 48, 70, 0.15);
+    }
+
+    .flow-step:nth-child(1) .flow-dot,
+    .flow-step:nth-child(5) .flow-dot { background: var(--teal); }
+    .flow-step:nth-child(2) .flow-dot { background: var(--clay); }
+    .flow-step:nth-child(3) .flow-dot { background: var(--gold); }
+    .flow-step:nth-child(4) .flow-dot { background: var(--olive); }
+
+    .flow-step h3 {
+      margin-bottom: 10px;
+      font-size: 1.08rem;
+    }
+
+    .flow-step p {
+      color: var(--ink-soft);
+      font-size: 0.94rem;
+    }
+
+    .value-layout {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 22px;
+    }
+
+    .statement {
+      padding: 38px;
+      background: linear-gradient(160deg, rgba(252, 250, 246, 0.94), rgba(242, 235, 226, 0.95));
+      border-radius: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      box-shadow: var(--shadow);
+    }
+
+    .statement h2 {
+      font-size: clamp(2.1rem, 3.8vw, 3.5rem);
+      max-width: 10ch;
+      margin-bottom: 18px;
+    }
+
+    .statement p {
+      color: var(--ink-soft);
+      font-size: 1rem;
+      max-width: 28rem;
+    }
+
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .value-card {
+      padding: 26px;
+    }
+
+    .value-card h3 {
+      margin-bottom: 12px;
+      font-size: 1.18rem;
+    }
+
+    .value-card p {
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    .value-card .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 92px;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .pill-teal { background: var(--teal); }
+    .pill-clay { background: var(--clay); }
+    .pill-gold { background: var(--gold); }
+    .pill-olive { background: var(--olive); }
+
+    .fit-layout {
+      display: grid;
+      grid-template-columns: 1.06fr 0.94fr;
+      gap: 22px;
+    }
+
+    .fit-card {
+      padding: 34px;
+    }
+
+    .fit-card h3 {
+      margin-bottom: 18px;
+      font-size: 1.5rem;
+    }
+
+    .role-cloud {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .role-chip {
+      padding: 18px 20px;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(22, 48, 70, 0.08);
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .fit-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .fit-list li {
+      list-style: none;
+      position: relative;
+      padding: 16px 18px 16px 52px;
+      border-radius: 20px;
+      background: rgba(223, 232, 229, 0.62);
+      color: var(--ink-soft);
+    }
+
+    .fit-list li::before {
+      content: "";
+      position: absolute;
+      left: 20px;
+      top: 22px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay), var(--gold));
+      box-shadow: 0 0 0 8px rgba(200, 108, 70, 0.12);
+    }
+
+    .summary-card {
+      padding: 44px;
+      background:
+        radial-gradient(circle at right top, rgba(201, 165, 103, 0.12), transparent 26%),
+        linear-gradient(135deg, rgba(252, 250, 246, 0.95), rgba(240, 233, 220, 0.94));
+    }
+
+    .highlight-title {
+      max-width: 12ch;
+      font-size: clamp(2.3rem, 4.2vw, 4rem);
+      margin-bottom: 16px;
+    }
+
+    .summary-card p {
+      max-width: 40rem;
+      font-size: 1.02rem;
+      color: var(--ink-soft);
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      font-size: 0.92rem;
+      color: var(--ink-soft);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity 560ms ease, transform 560ms ease;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1040px) {
+      .hero-shell,
+      .value-layout,
+      .fit-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .capability-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .flow-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-shell::before {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        background:
+          radial-gradient(circle at top right, rgba(201, 165, 103, 0.16), transparent 32%),
+          radial-gradient(circle at bottom left, rgba(45, 111, 107, 0.12), transparent 30%),
+          var(--bg);
+      }
+
+      .topbar {
+        width: calc(100% - 24px);
+        padding: 12px 16px;
+      }
+
+      .nav {
+        display: none;
+      }
+
+      .hero-shell,
+      .panel,
+      .statement,
+      .fit-card,
+      .summary-card {
+        padding: 28px 22px;
+      }
+
+      .hero {
+        padding-top: 54px;
+      }
+
+      .hero h1 {
+        max-width: none;
+      }
+
+      .capability-grid,
+      .value-grid,
+      .role-cloud {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      body::before,
+      .topbar {
+        display: none;
+      }
+
+      section,
+      .hero {
+        padding: 30px 0;
+      }
+
+      .hero-shell,
+      .panel,
+      .statement,
+      .fit-card,
+      .summary-card {
+        box-shadow: none;
+        border: 1px solid #d8d3cb;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>HR Profile</span>
+    </div>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#capability">能力</a>
+      <a href="#workflow">方式</a>
+      <a href="#value">价值</a>
+      <a href="#fit">匹配</a>
+      <a href="#summary">总结</a>
+    </nav>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-shell reveal">
+        <div>
+          <div class="eyebrow">HR Reading Version</div>
+          <h1>把复杂的事情，做成清晰结果。</h1>
+          <p>
+            这份介绍刻意不展开具体技术背景，只聚焦能力画像、工作方式和岗位适配。
+            更适合 HR 在较短时间里快速判断：我擅长什么、适合什么场景、能为团队带来什么。
+          </p>
+          <div class="hero-note">
+            我的优势不是单一技能本身，而是从判断、推进到交付的完整闭环能力。
+          </div>
+          <div class="hero-tags" aria-label="关键词">
+            <span class="tag">系统化判断</span>
+            <span class="tag">持续推进</span>
+            <span class="tag">高标准交付</span>
+            <span class="tag">跨角色协同</span>
+            <span class="tag">可复盘沉淀</span>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <article class="signal-card signal-1">
+            <strong>看清问题</strong>
+            <span>先抓核心，再区分哪些是真正影响结果的关键点。</span>
+          </article>
+          <article class="signal-card signal-2">
+            <strong>搭出路径</strong>
+            <span>把模糊任务拆成步骤、节点、标准和优先级。</span>
+          </article>
+          <article class="signal-card signal-3">
+            <strong>推动落地</strong>
+            <span>持续推进直到形成可交付、可复盘、可继续使用的结果。</span>
+          </article>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="capability">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">Core Capability</div>
+          <h2 class="section-title">我更像“复合型推进者”，而不是单点执行者。</h2>
+        </div>
+        <p class="section-copy">
+          能力的核心不在于做一个点做得多深，而在于面对复杂任务时，能把目标看清、路径搭好、过程控稳，并最终交付结果。
+        </p>
+      </div>
+
+      <div class="capability-grid">
+        <article class="capability-card capability-tone-1 reveal" data-index="01">
+          <h3>结构化思考</h3>
+          <p>能快速理解问题本质，把复杂事项拆成阶段、节点、依赖和优先级，避免团队陷入无序推进。</p>
+        </article>
+        <article class="capability-card capability-tone-2 reveal" data-index="02">
+          <h3>推进与落地</h3>
+          <p>不只停留在思路层面，更注重把事情真正推动起来，直到形成清晰、稳定、可交付的结果。</p>
+        </article>
+        <article class="capability-card capability-tone-3 reveal" data-index="03">
+          <h3>质量与判断</h3>
+          <p>重视边界、标准和风险控制，对关键环节保持敏感，习惯提前设置检查点和复核机制。</p>
+        </article>
+        <article class="capability-card capability-tone-4 reveal" data-index="04">
+          <h3>协同与表达</h3>
+          <p>能在不同角色之间建立共同语言，把复杂内容讲清楚，让协作基于同一判断高效推进。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="workflow">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">Work Pattern</div>
+          <h2 class="section-title">我的工作方式更像经营一个闭环。</h2>
+        </div>
+        <p class="section-copy">
+          不是完成一个动作就结束，而是从目标澄清、过程推进到结果复盘，尽量把一次性工作变成可重复使用的方法。
+        </p>
+      </div>
+
+      <div class="panel flow-shell reveal">
+        <div class="flow-grid">
+          <article class="flow-step">
+            <div class="flow-dot">1</div>
+            <h3>厘清目标</h3>
+            <p>先定义问题，确认真正要达成的结果，而不是直接进入执行。</p>
+          </article>
+          <article class="flow-step">
+            <div class="flow-dot">2</div>
+            <h3>拆解任务</h3>
+            <p>把复杂目标拆成可执行的步骤、责任和里程碑。</p>
+          </article>
+          <article class="flow-step">
+            <div class="flow-dot">3</div>
+            <h3>排序优先级</h3>
+            <p>优先处理真正影响结果的部分，避免平均用力。</p>
+          </article>
+          <article class="flow-step">
+            <div class="flow-dot">4</div>
+            <h3>推进协同</h3>
+            <p>让不同角色围绕同一判断工作，减少沟通损耗和返工。</p>
+          </article>
+          <article class="flow-step">
+            <div class="flow-dot">5</div>
+            <h3>复盘沉淀</h3>
+            <p>结果出来后形成经验和方法，为后续任务打基础。</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="value">
+    <div class="wrap">
+      <div class="value-layout">
+        <article class="statement reveal">
+          <div class="section-kicker">Team Value</div>
+          <h2>我能给团队带来的，不只是执行力。</h2>
+          <p>
+            更重要的是把事情做得更清楚、更稳定、更可信。
+            在变化多、信息不完整、协同复杂的环境里，这类能力通常更能直接拉开差距。
+          </p>
+        </article>
+
+        <div class="value-grid">
+          <article class="value-card reveal">
+            <span class="pill pill-teal">Clarity</span>
+            <h3>让方向更清楚</h3>
+            <p>把模糊想法转成清晰目标和判断依据，帮助团队更快进入有效执行。</p>
+          </article>
+          <article class="value-card reveal">
+            <span class="pill pill-clay">Rhythm</span>
+            <h3>让协作更顺畅</h3>
+            <p>能在不同角色之间建立一致理解，减少沟通摩擦和反复对齐成本。</p>
+          </article>
+          <article class="value-card reveal">
+            <span class="pill pill-gold">Control</span>
+            <h3>让执行更稳定</h3>
+            <p>通过节点、边界和标准控制节奏，避免项目在中途失速或失焦。</p>
+          </article>
+          <article class="value-card reveal">
+            <span class="pill pill-olive">Trust</span>
+            <h3>让结果更可信</h3>
+            <p>输出不仅完成任务本身，也能经得起回看、比较、复盘和继续使用。</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="fit">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="section-kicker">Role Fit</div>
+          <h2 class="section-title">我更适合承担这些角色与场景。</h2>
+        </div>
+        <p class="section-copy">
+          尤其适合复杂项目、跨团队事项、方向还不完全明确但又必须持续推进的工作。
+        </p>
+      </div>
+
+      <div class="fit-layout">
+        <article class="fit-card reveal">
+          <h3>角色标签</h3>
+          <div class="role-cloud">
+            <div class="role-chip">复杂项目负责人</div>
+            <div class="role-chip">关键推进者</div>
+            <div class="role-chip">桥梁型协同者</div>
+            <div class="role-chip">高标准交付者</div>
+          </div>
+        </article>
+
+        <article class="fit-card reveal">
+          <h3>高匹配场景</h3>
+          <ul class="fit-list">
+            <li>从 0 到 1 的探索型任务</li>
+            <li>跨团队、跨角色的复杂项目</li>
+            <li>需要持续推进和反复校准的工作</li>
+            <li>对节奏和结果质量要求都很高的事项</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary">
+    <div class="wrap">
+      <article class="summary-card reveal">
+        <div class="section-kicker">Summary</div>
+        <h2 class="highlight-title">我擅长的，不是做一个点，而是让一件复杂的事，从想法走到结果。</h2>
+        <p>
+          如果用 HR 更容易判断的语言来概括：我更偏向“能把复杂事情想清楚、推动起来、稳定落地”的人。
+          这也是我在岗位匹配上最稳定、最有辨识度的优势。
+        </p>
+        <div class="footer-note">本页为 HR 阅读版，刻意省略具体技术细节，只保留能力与工作方式层面的表达。</div>
+      </article>
+    </div>
+  </section>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.14 });
+
+    document.querySelectorAll('.reveal').forEach((node) => observer.observe(node));
+  </script>
+</body>
+</html>

@@ -485,10 +485,14 @@ def run_pipeline(args, cfg: Config, cache: HTTPCache):
 
                 faers_cfg = cfg.faers
                 drugs_df = read_csv(data_dir / "drug_chembl_map.csv", dtype=str)
-                # Prefer chembl_pref_name (INN/generic name) for FAERS matching,
-                # fallback to canonical_name then drug_raw
+                # Use canonical_name for FAERS: it matches drug_normalized in
+                # edge_drug_target / dtpd_rank, so the ranker's safety-penalty
+                # lookup will find the FAERS rows.  chembl_pref_name can contain
+                # salt forms (e.g. "TOFACITINIB CITRATE") that create a key
+                # mismatch.  faers.py already has salt-form fallback for the API
+                # query itself, so canonical_name gives best coverage + consistency.
                 drugs = []
-                for col in ["chembl_pref_name", "canonical_name", "drug_raw"]:
+                for col in ["canonical_name", "drug_raw"]:
                     if col in drugs_df.columns:
                         drugs = drugs_df[col].dropna().unique().tolist()
                         if drugs:
