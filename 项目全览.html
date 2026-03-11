@@ -50,7 +50,7 @@ code { background: #f5f5f7; padding: 1px 5px; border-radius: 4px; font-size: 11p
 <body>
 
 <h1>Drug Repurposing Platform</h1>
-<p class="subtitle">药物重定位平台 &middot; 项目全览<br>37+ 种疾病 &middot; 双签名源 (dsmeta / ARCHS4) &middot; 2026-03-02</p>
+<p class="subtitle">药物重定位平台 &middot; 项目全览<br>50+ 种疾病 (含 15 癌症) &middot; 6 层证据融合 &middot; 双签名源 (dsmeta / ARCHS4) &middot; 2026-03-11</p>
 
 <div class="toc">
   <b style="font-size:15px;">目录</b>
@@ -63,7 +63,8 @@ code { background: #f5f5f7; padding: 1px 5px; border-radius: 4px; font-size: 11p
   <a href="#dir-ab">7. 两条研究路线 (Direction A / B)</a>
   <a href="#scoring">8. 打分体系</a>
   <a href="#output">9. 输出文件</a>
-  <a href="#docs">10. 相关文档</a>
+  <a href="#diseases">10. 疾病覆盖</a>
+  <a href="#docs">11. 相关文档</a>
 </div>
 
 <!-- ==================== 1. 整体架构 ==================== -->
@@ -185,7 +186,8 @@ code { background: #f5f5f7; padding: 1px 5px; border-radius: 4px; font-size: 11p
   <div class="highlight">
     <b>签名源选择：</b><code>SIG_PRIORITY=dsmeta</code> (默认) 或 <code>archs4</code>，失败自动回退。<br>
     <b>关键词来源：</b>OpenTargets 同义词 (自动) + <code>EXTRA_KEYWORDS</code> 字典 (手动补 GEO 友好术语)。<br>
-    <b>质量门控：</b>total &lt; 30 或 min(up,down) &lt; 10 → 跳过 Cross。30-100 → cap 80 药物。&ge;100 → cap 200。
+    <b>质量门控：</b>total &lt; 30 或 min(up,down) &lt; 10 → 跳过 Cross。30-100 → cap 80 药物。&ge;100 → cap 200。<br>
+    <b>非编码 RNA 过滤 (2026-03-11 新增)：</b>在 top-N 选择前过滤假基因、lncRNA、IG/TCR 片段、snoRNA、ENSEMBL-only ID，防止非编码基因挤占可药物化靶点。
   </div>
 </div>
 
@@ -296,8 +298,9 @@ code { background: #f5f5f7; padding: 1px 5px; border-radius: 4px; font-size: 11p
     <span class="step-num" style="background:#af52de;">7</span><span class="step-title">5 维打分 + GO/MAYBE/NO-GO 门控</span>
     <p class="step-desc">
       证据强度(30) + 机制合理性(20) + 可转化性(20) + 安全性(20) + 可行性(10) = 满分 100<br>
-      硬门控：benefit&lt;2 / 文献&lt;3 / 危害&gt;50% → NO-GO<br>
-      软门控：&ge;60→GO / 40-60→MAYBE / &lt;40→NO-GO
+      硬门控：benefit&lt;1 / 文献&lt;2 / 危害&gt;50% → NO-GO<br>
+      软门控：&ge;60→GO / 40-60→MAYBE / &lt;40→NO-GO<br>
+      <b>Explore track：</b>高新颖性候选药 (novelty &ge; 0.20) 从 NO-GO 救回 MAYBE。当 KG 遗传证据足够强 (log1p(mechanism_score) &ge; 0.6) 时，可豁免 PMID 要求。
     </p>
     <p class="io">OUT: step7_gating_decision.csv + step7_hypothesis_cards.md</p>
   </div>
@@ -413,9 +416,51 @@ kg_explain/output/&lt;disease&gt;/
   </table>
 </div>
 
-<!-- ==================== 10. 相关文档 ==================== -->
+<!-- ==================== 10. 疾病覆盖 ==================== -->
+<div id="diseases"></div>
+<h2 class="green">10. 疾病覆盖 (50+ 种)</h2>
+<div class="card">
+  <p class="section-intro">覆盖 6 大治疗领域，按 LINCS L1000 细胞系匹配度和数据可用性分层。</p>
+
+  <h3>心血管 (20 种) — 主力疾病</h3>
+  <p style="font-size:12px;color:#424245;">动脉粥样硬化、冠状动脉疾病、心力衰竭、高血压、心肌梗死、中风、心肌病、心肌炎、腹主动脉瘤、肺动脉高压、房颤、深静脉血栓、静脉血栓栓塞、心绞痛、心内膜炎等。</p>
+  <p style="font-size:11px;color:#86868b;margin-top:4px;">细胞系匹配: HUVEC (内皮) + THP1 (单核) | 配置: cell_line_weights_atherosclerosis.csv</p>
+
+  <h3>肿瘤 (15 种) — LINCS 最佳匹配</h3>
+  <table>
+    <tr><th>优先级</th><th>癌种</th><th>LINCS 细胞系</th><th>预期信号</th></tr>
+    <tr><td style="color:#2e7d32;font-weight:600;">T1</td><td>TNBC、NSCLC、黑色素瘤、前列腺癌</td><td>MCF7、A549、A375、PC3</td><td>最佳</td></tr>
+    <tr><td style="color:#1565c0;font-weight:600;">T2</td><td>肝癌 (HCC)、结直肠癌、AML</td><td>HEPG2、HT29、HL60</td><td>良好</td></tr>
+    <tr><td style="color:#e65100;font-weight:600;">T3</td><td>胶质母细胞瘤、胰腺癌、卵巢癌</td><td>间接匹配</td><td>中等</td></tr>
+    <tr><td style="color:#424245;font-weight:600;">T4</td><td>肾癌、胃癌、头颈癌、多发性骨髓瘤、胆管癌</td><td>—</td><td>靠 KG + 文献</td></tr>
+  </table>
+  <p style="font-size:11px;color:#86868b;margin-top:4px;">疾病列表: ops/disease_list_oncology.txt | LINCS 是肿瘤研究主场，信号最强</p>
+
+  <h3>自免疫 / 炎症 (7+ 种)</h3>
+  <p style="font-size:12px;color:#424245;">类风湿关节炎 (Benchmark)、系统性红斑狼疮、银屑病、克罗恩病、强直性脊柱炎、溃疡性结肠炎等。</p>
+  <p style="font-size:11px;color:#86868b;margin-top:4px;">细胞系匹配: JURKAT (T 细胞) + THP1 (单核) | 配置: cell_line_weights_autoimmune.csv + mimicker rescue</p>
+
+  <h3>代谢 / 肝脏 (3 种)</h3>
+  <p style="font-size:12px;color:#424245;">NASH、NAFLD、代谢综合征</p>
+  <p style="font-size:11px;color:#86868b;margin-top:4px;">LINCS 覆盖较弱 (HEPG2 ~500 sigs) | 代谢酶靶点为 signature 方法盲区</p>
+
+  <h3>神经退行 (4 种)</h3>
+  <p style="font-size:12px;color:#424245;">阿尔茨海默病、帕金森病、ALS、亨廷顿病</p>
+  <p style="font-size:11px;color:#86868b;margin-top:4px;">LINCS 覆盖很弱 (SHSY5Y ~50 sigs) | 需更多依赖 KG + 文献证据</p>
+
+  <h3>纤维化 (3 种)</h3>
+  <p style="font-size:12px;color:#424245;">特发性肺纤维化 (IPF)、肝纤维化、肾纤维化</p>
+  <p style="font-size:11px;color:#86868b;margin-top:4px;">LINCS 覆盖极弱 (WI-38 &lt;20 sigs) | 建议主要依赖 KG pathway 路线</p>
+
+  <div class="highlight">
+    <b>LINCS 适用性排序：</b>肿瘤 ★★★★★ &gt; 自免疫 ★★★☆ &gt; 心血管 ★★★ &gt; 代谢 ★★ &gt; 神经 ★☆ &gt; 纤维化 ★<br>
+    <b>LINCS 弱的疾病：</b>更多依赖 KG Explain 机制路径 + LLM 文献证据 (Explore track + KG waiver)
+  </div>
+</div>
+
+<!-- ==================== 11. 相关文档 ==================== -->
 <div id="docs"></div>
-<h2 class="gray">10. 相关文档</h2>
+<h2 class="gray">11. 相关文档</h2>
 <div class="card">
   <table>
     <tr><th>文档</th><th>定位</th></tr>
@@ -436,7 +481,7 @@ kg_explain/output/&lt;disease&gt;/
 </div>
 
 <div style="text-align:center; color:#86868b; font-size:12px; margin-top:24px;">
-  Drug Repurposing Platform &middot; 项目全览 v9 &middot; 2026-03-02
+  Drug Repurposing Platform &middot; 项目全览 v10 &middot; 2026-03-11
 </div>
 
 </body>
