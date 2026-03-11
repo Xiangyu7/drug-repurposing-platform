@@ -27,7 +27,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-A_ROUTE_CHECK_IDS = {"env.sig", "env.dsmeta", "env.dsmeta_r", "net.sigcom"}
+A_ROUTE_CHECK_IDS = {"env.sig", "env.dsmeta", "env.dsmeta_r", "env.archs4", "data.archs4_h5", "net.sigcom"}
 
 CRAN_PACKAGES = [
     "data.table",
@@ -42,8 +42,9 @@ BIOC_PACKAGES = ["limma", "GEOquery", "fgsea", "Biobase", "affy"]
 
 KG_IMPORTS = ["pandas", "yaml", "requests", "networkx"]
 SIG_IMPORTS = ["pandas", "yaml", "requests", "numpy"]
-LLM_IMPORTS = ["pandas", "yaml", "requests", "openpyxl"]
+LLM_IMPORTS = ["pandas", "yaml", "requests", "openpyxl", "scipy"]
 DSMETA_IMPORTS = ["pandas", "numpy", "scipy", "yaml", "requests"]
+ARCHS4_IMPORTS = ["pandas", "numpy", "h5py", "yaml", "requests"]
 
 
 def command_exists(cmd: str) -> bool:
@@ -209,6 +210,7 @@ class EnvGuard:
         self.sig_dir = root_dir / "sigreverse"
         self.dsmeta_dir = root_dir / "dsmeta_signature_pipeline"
         self.llm_dir = root_dir / "LLM+RAG证据工程"
+        self.archs4_dir = root_dir / "archs4_signature_pipeline"
         self.state_dir = root_dir / "runtime" / "state"
         self.state_dir.mkdir(parents=True, exist_ok=True)
 
@@ -377,7 +379,7 @@ class EnvGuard:
         )
 
     def _check_repo_layout(self) -> None:
-        required = [self.dsmeta_dir, self.sig_dir, self.kg_dir, self.llm_dir]
+        required = [self.dsmeta_dir, self.sig_dir, self.kg_dir, self.llm_dir, self.archs4_dir]
         missing = [str(p) for p in required if not p.exists()]
         self._add_check(
             "repo.layout",
@@ -500,6 +502,45 @@ class EnvGuard:
             },
         )
 
+    def _check_env_archs4(self) -> None:
+        """Check ARCHS4 pipeline Python environment (h5py, pandas, numpy, yaml)."""
+        archs4_venv_py = self.archs4_dir / ".venv" / "bin" / "python3"
+        # ARCHS4 scripts can run with any available Python that has the deps
+        # Try archs4 venv first, fall back to kg venv (shares most deps), then system
+        if archs4_venv_py.exists() and os.access(archs4_venv_py, os.X_OK):
+            py = str(archs4_venv_py)
+            src = "venv"
+        else:
+            py = self.resolved_runtime["kg"]["python"]
+            src = "kg_fallback"
+        smoke_ok, smoke_msg = self._python_smoke(py)
+        import_ok, import_msg = self._python_imports(py, ARCHS4_IMPORTS, cwd=self.archs4_dir)
+        ok = smoke_ok and import_ok
+        self._add_check(
+            "env.archs4",
+            "env",
+            ok,
+            message="ARCHS4 runtime ready" if ok else "ARCHS4 runtime/import check failed (need h5py)",
+            repairable=True,
+            detail={"python": py, "source": src, "smoke": smoke_msg, "imports": import_msg},
+        )
+
+    def _check_archs4_h5(self) -> None:
+        """Check ARCHS4 H5 data file exists (43GB, needed for Direction A)."""
+        # Check both v2.4 and v2.5 — either is fine
+        h5_dir = self.archs4_dir / "data" / "archs4"
+        candidates = list(h5_dir.glob("human_gene_v2.*.h5")) if h5_dir.exists() else []
+        found = len(candidates) > 0
+        sizes = {str(p.name): round(p.stat().st_size / (1024**3), 2) for p in candidates} if found else {}
+        self._add_check(
+            "data.archs4_h5",
+            "data",
+            found,
+            message=f"ARCHS4 H5 found: {', '.join(sizes.keys())}" if found else "ARCHS4 H5 not found (needed for Direction A)",
+            repairable=False,
+            detail={"path": str(h5_dir), "files": sizes},
+        )
+
     def _check_ollama(self) -> None:
         info = self.resolved_runtime["ollama"]
         host = info["host"]
@@ -564,6 +605,7 @@ class EnvGuard:
             ("net.reactome", "https://reactome.org/ContentService/data/database/version", "GET", None, None),
             ("net.rxnorm", "https://rxnav.nlm.nih.gov/REST/version.json", "GET", None, None),
             ("net.sigcom", "https://maayanlab.cloud/sigcom-lincs/metadata-api/", "GET", None, None),
+            ("net.openfda", "https://api.fda.gov/drug/event.json?limit=1", "GET", None, None),
         ]
 
         for check_id, url, method, data, headers in checks:
@@ -693,6 +735,8 @@ class EnvGuard:
         self._check_env_dsmeta()
         self._check_env_dsmeta_r()
         self._check_env_llm()
+        self._check_env_archs4()
+        self._check_archs4_h5()
         self._check_ollama()
         self._check_network()
         self._check_cfg_disease_lists()
