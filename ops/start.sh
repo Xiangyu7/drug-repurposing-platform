@@ -509,11 +509,9 @@ case "${ACTION}" in
         setup_venvs
         ;;
     run)
-        ensure_environment_ready
         launch_pipeline
         ;;
     single)
-        ensure_environment_ready
         run_single_disease
         ;;
 esac
