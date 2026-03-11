@@ -1,0 +1,37 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Oncology Pipeline — 15 cancer types for drug repurposing
+# Prioritised by LINCS L1000 cell line coverage
+# All IDs verified against OpenTargets API (2026-03-11)
+#
+# ============================================================
+# Tier 1: Core LINCS cell line match (strongest signal)
+# MCF7=breast, A549=lung, A375=melanoma, PC3=prostate
+# ============================================================
+triple_negative_breast_cancer|triple negative breast cancer|EFO_0005537|
+nsclc|non-small cell lung carcinoma|EFO_0003060|
+melanoma|cutaneous melanoma|EFO_0000389|
+prostate_cancer|prostate carcinoma|EFO_0001663|
+#
+# ============================================================
+# Tier 2: Secondary LINCS cell line match (good signal)
+# HEPG2=liver, HT29=colon, HL60=AML
+# ============================================================
+hepatocellular_carcinoma|hepatocellular carcinoma|EFO_0000182|
+colorectal_cancer|colorectal cancer|MONDO_0005575|
+aml|acute myeloid leukemia|EFO_0000222|
+#
+# ============================================================
+# Tier 3: Indirect LINCS match (viable but noisier)
+# ============================================================
+glioblastoma|glioblastoma multiforme|EFO_0000519|
+pancreatic_cancer|pancreatic ductal adenocarcinoma|MONDO_0005184|
+ovarian_cancer|high grade ovarian serous adenocarcinoma|EFO_1001958|
+#
+# ============================================================
+# Tier 4: No direct LINCS cell line (KG + literature driven)
+# ============================================================
+renal_cell_carcinoma|clear cell renal carcinoma|EFO_0000349|
+gastric_cancer|gastric adenocarcinoma|EFO_0000503|
+head_neck_cancer|head and neck squamous cell carcinoma|EFO_0000181|
+multiple_myeloma|multiple myeloma|EFO_0001378|
+cholangiocarcinoma|cholangiocarcinoma|EFO_0005221|
