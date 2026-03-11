@@ -1,6 +1,6 @@
 # Drug Repurposing Platform - 操作手册
 
-更新：2026-03-03 | 37+ 种疾病 | 双签名源 (dsmeta / ARCHS4)
+更新：2026-03-11 | 50+ 种疾病 | 双签名源 (dsmeta / ARCHS4) | 含 15 癌症 Oncology list
 
 ---
 
@@ -73,6 +73,7 @@ bash ops/start.sh results atherosclerosis
 
 | 文件 | 内容 |
 |------|------|
+| `ops/disease_list_oncology.txt` | 15 个癌症（按 LINCS 细胞系匹配度分 T1-T4） |
 | `ops/disease_list_commercial.txt` | 17 个商业疾病（代谢/自免/神经/纤维化/肿瘤） |
 | `ops/internal/disease_list_day1_dual.txt` | 7 个心血管疾病（A+B 双路线） |
 | `ops/internal/disease_list_day1_origin.txt` | 15 个心血管疾病（B 路线） |
