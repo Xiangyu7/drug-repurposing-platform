@@ -241,6 +241,7 @@ setup_venvs() {
     local -a guard_args
     guard_args=(
         repair
+        --verbose
         --mode "${RUN_MODE}"
         --scope "${CHECK_SCOPE}"
         --report-json "${report_file}"

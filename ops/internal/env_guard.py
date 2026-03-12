@@ -57,15 +57,18 @@ def run_command(
     cwd: Optional[Path] = None,
     timeout: int = 120,
     check: bool = False,
+    verbose: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     cp = subprocess.run(
         list(cmd),
         cwd=str(cwd) if cwd else None,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=None if verbose else subprocess.PIPE,
+        stderr=None if verbose else subprocess.PIPE,
         timeout=timeout,
     )
+    if verbose:
+        cp = subprocess.CompletedProcess(cmd, cp.returncode, stdout="", stderr="")
     if check and cp.returncode != 0:
         raise subprocess.CalledProcessError(cp.returncode, cmd, cp.stdout, cp.stderr)
     return cp
@@ -200,11 +203,12 @@ class CheckResult:
 
 
 class EnvGuard:
-    def __init__(self, root_dir: Path, mode: str, scope: str, single_disease: Optional[str]):
+    def __init__(self, root_dir: Path, mode: str, scope: str, single_disease: Optional[str], *, verbose: bool = False):
         self.root_dir = root_dir
         self.mode = mode
         self.scope = scope
         self.single_disease = (single_disease or "").strip() or None
+        self._verbose = verbose
         self.ops_dir = root_dir / "ops"
         self.kg_dir = root_dir / "kg_explain"
         self.sig_dir = root_dir / "sigreverse"
@@ -217,6 +221,11 @@ class EnvGuard:
         self.dotenv = parse_dotenv(self.llm_dir / ".env")
         self.resolved_runtime = self._resolve_runtime()
         self._checks: List[CheckResult] = []
+
+    @staticmethod
+    def _log(msg: str) -> None:
+        sys.stderr.write(f"{msg}\n")
+        sys.stderr.flush()
 
     def _resolve_runtime(self) -> Dict[str, Dict[str, Any]]:
         def _resolve_generic(
@@ -859,21 +868,24 @@ class EnvGuard:
 
         venv = module_dir / ".venv"
         py = venv / "bin" / "python3"
-        pip = venv / "bin" / "pip"
+        verbose = self._verbose
 
         created = False
         if not py.exists():
+            self._log(f"    creating venv: {venv}")
             cp = run_command(["python3", "-m", "venv", str(venv)], timeout=600)
             if cp.returncode != 0:
                 return {"status": "fail", "message": "failed to create venv", "detail": {"stderr": cp.stderr.strip()}}
             created = True
 
-        cp_up = run_command([str(py), "-m", "pip", "install", "--upgrade", "pip"], timeout=1800)
+        self._log("    upgrading pip...")
+        cp_up = run_command([str(py), "-m", "pip", "install", "--upgrade", "pip"], timeout=1800, verbose=verbose)
         if cp_up.returncode != 0:
             return {"status": "fail", "message": "failed to upgrade pip", "detail": {"stderr": cp_up.stderr.strip()}}
 
         if requirements.exists():
-            cp_req = run_command([str(pip), "install", "-r", str(requirements)], timeout=7200)
+            self._log(f"    pip install -r {requirements.name} ...")
+            cp_req = run_command([str(py), "-m", "pip", "install", "-r", str(requirements)], timeout=7200, verbose=verbose)
             if cp_req.returncode != 0:
                 return {"status": "fail", "message": "failed to install requirements", "detail": {"stderr": cp_req.stderr.strip()}}
 
@@ -887,12 +899,13 @@ class EnvGuard:
         py = self.sig_dir / ".venv" / "bin" / "python3"
         if not py.exists():
             py = Path(shutil.which("python3") or "python3")
-        cp = run_command([str(py), "-m", "pip", "install", "-e", "."], cwd=self.sig_dir, timeout=7200)
+        self._log("    pip install -e . (sigreverse editable)...")
+        cp = run_command([str(py), "-m", "pip", "install", "-e", "."], cwd=self.sig_dir, timeout=7200, verbose=self._verbose)
         return {
             "step": "sig_editable",
             "status": "pass" if cp.returncode == 0 else "fail",
             "message": "sigreverse editable install done" if cp.returncode == 0 else "sigreverse editable install failed",
-            "detail": {"stderr": cp.stderr.strip()},
+            "detail": {"stderr": cp.stderr.strip() if not self._verbose else ""},
         }
 
     def _repair_dsmeta_conda_or_venv(self) -> Dict[str, Any]:
@@ -908,9 +921,11 @@ class EnvGuard:
                     names = []
 
             if "dsmeta" in names:
-                cp = run_command(["conda", "env", "update", "-n", "dsmeta", "-f", str(env_yml), "--prune"], timeout=14400)
+                self._log("    conda env update dsmeta ...")
+                cp = run_command(["conda", "env", "update", "-n", "dsmeta", "-f", str(env_yml), "--prune"], timeout=14400, verbose=self._verbose)
             else:
-                cp = run_command(["conda", "env", "create", "-n", "dsmeta", "-f", str(env_yml)], timeout=14400)
+                self._log("    conda env create dsmeta (Python + R + Bioconductor, 可能 10-20 分钟)...")
+                cp = run_command(["conda", "env", "create", "-n", "dsmeta", "-f", str(env_yml)], timeout=14400, verbose=self._verbose)
             if cp.returncode == 0:
                 return {
                     "step": "dsmeta_runtime",
@@ -918,6 +933,7 @@ class EnvGuard:
                     "message": "dsmeta conda env ready",
                     "detail": {"strategy": "conda"},
                 }
+            self._log("    conda failed, falling back to venv...")
 
         venv_result = self._ensure_venv(self.dsmeta_dir, self.dsmeta_dir / "requirements.txt")
         return {
@@ -956,8 +972,10 @@ class EnvGuard:
             "if(length(miss2)){cat(paste(miss2,collapse=',')); quit(status=1)}"
         )
 
-        cp1 = run_command(rscript_cmd + ["-e", code_cran], timeout=10800)
-        cp2 = run_command(rscript_cmd + ["-e", code_bioc], timeout=10800)
+        self._log("    installing CRAN packages (data.table, metafor, ggplot2, ...)...")
+        cp1 = run_command(rscript_cmd + ["-e", code_cran], timeout=10800, verbose=self._verbose)
+        self._log("    installing Bioconductor packages (limma, GEOquery, fgsea, ...)...")
+        cp2 = run_command(rscript_cmd + ["-e", code_bioc], timeout=10800, verbose=self._verbose)
         ok = cp1.returncode == 0 and cp2.returncode == 0
         return {
             "step": "r_packages",
@@ -977,21 +995,40 @@ class EnvGuard:
         return {"step": "llm_env", "status": "pass", "message": "copied .env from .env.example"}
 
     def run_repair(self) -> Dict[str, Any]:
+        import time as _time
+
+        REPAIR_STEPS = [
+            ("1/8", "System packages (python3, R, gcc)",       "_repair_system_packages",  None),
+            ("2/8", "venv: kg_explain",                        "_ensure_venv",             (lambda s: (s.kg_dir, s.kg_dir / "requirements.txt"))),
+            ("3/8", "venv: sigreverse",                        "_ensure_venv",             (lambda s: (s.sig_dir, s.sig_dir / "requirements.txt"))),
+            ("4/8", "venv: LLM+RAG",                           "_ensure_venv",             (lambda s: (s.llm_dir, s.llm_dir / "requirements.txt"))),
+            ("5/8", "sigreverse editable install",             "_repair_sig_editable",     None),
+            ("6/8", "dsmeta runtime (conda or venv)",          "_repair_dsmeta_conda_or_venv", None),
+            ("7/8", "R packages (CRAN + Bioconductor)",        "_repair_r_packages",       None),
+            ("8/8", "LLM .env file",                           "_repair_llm_env_file",     None),
+        ]
+
         actions: List[Dict[str, Any]] = []
-        actions.append(self._repair_system_packages())
+        total_start = _time.monotonic()
 
-        for module, req in [
-            (self.kg_dir, self.kg_dir / "requirements.txt"),
-            (self.sig_dir, self.sig_dir / "requirements.txt"),
-            (self.llm_dir, self.llm_dir / "requirements.txt"),
-        ]:
-            result = self._ensure_venv(module, req)
-            actions.append({"step": f"venv:{module.name}", **result})
+        for num, label, method_name, args_fn in REPAIR_STEPS:
+            self._log(f"\n[{num}] {label}")
+            step_start = _time.monotonic()
 
-        actions.append(self._repair_sig_editable())
-        actions.append(self._repair_dsmeta_conda_or_venv())
-        actions.append(self._repair_r_packages())
-        actions.append(self._repair_llm_env_file())
+            if args_fn is not None:
+                args = args_fn(self)
+                result = getattr(self, method_name)(*args)
+                result = {"step": f"venv:{args[0].name}", **result}
+            else:
+                result = getattr(self, method_name)()
+
+            elapsed = _time.monotonic() - step_start
+            status_icon = "✓" if result.get("status") == "pass" else ("⚠" if result.get("status") == "warn" else "✗")
+            self._log(f"  {status_icon} {result.get('message', '')}  ({elapsed:.1f}s)")
+            actions.append(result)
+
+        total_elapsed = _time.monotonic() - total_start
+        self._log(f"\n── Repair done ({total_elapsed:.0f}s total), running final checks...\n")
 
         # refresh runtime after repair
         self.dotenv = parse_dotenv(self.llm_dir / ".env")
@@ -999,6 +1036,7 @@ class EnvGuard:
 
         report = self.run_checks()
         report["repair_actions"] = actions
+        report["repair_elapsed_seconds"] = round(total_elapsed, 1)
         return report
 
 
@@ -1051,6 +1089,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         sp.add_argument("--report-json", default="")
         sp.add_argument("--resolved-env", default="")
         sp.add_argument("--root-dir", default="")
+        sp.add_argument("--verbose", "-v", action="store_true", default=False, help="Show pip/conda/R install output in real-time")
 
     add_common(sub.add_parser("check", help="Read-only environment checks"))
     add_common(sub.add_parser("repair", help="Repair environment then run strict checks"))
@@ -1060,7 +1099,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     root = Path(args.root_dir).resolve() if args.root_dir else Path(__file__).resolve().parents[1]
-    guard = EnvGuard(root, mode=args.mode, scope=args.scope, single_disease=args.single_disease)
+    guard = EnvGuard(root, mode=args.mode, scope=args.scope, single_disease=args.single_disease, verbose=getattr(args, "verbose", False))
 
     report_path, resolved_env_path = report_paths(
         guard.state_dir,
