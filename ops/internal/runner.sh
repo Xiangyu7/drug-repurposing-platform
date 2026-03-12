@@ -121,8 +121,15 @@ resolve_runtime_python() {
   printf 'python3'
 }
 
-DSMETA_PY="$(resolve_runtime_python "${DSMETA_PY:-}" "${DSMETA_DIR}/.venv/bin/python3")"
-ARCHS4_PY="$(resolve_runtime_python "${ARCHS4_PY:-}" "${ARCHS4_DIR}/.venv/bin/python3")"
+# dsmeta & archs4 need R (Rscript) alongside Python — prefer conda dsmeta env
+# which bundles both, then fall back to local .venv, then system python3.
+_conda_dsmeta_py=""
+if command -v conda >/dev/null 2>&1; then
+  _conda_dsmeta_py="$(conda run -n dsmeta python -c 'import sys; print(sys.executable)' 2>/dev/null | tail -1)" || true
+  if [[ -n "${_conda_dsmeta_py}" && ! -x "${_conda_dsmeta_py}" ]]; then _conda_dsmeta_py=""; fi
+fi
+DSMETA_PY="$(resolve_runtime_python "${DSMETA_PY:-}" "${_conda_dsmeta_py:-${DSMETA_DIR}/.venv/bin/python3}")"
+ARCHS4_PY="$(resolve_runtime_python "${ARCHS4_PY:-}" "${_conda_dsmeta_py:-${ARCHS4_DIR}/.venv/bin/python3}")"
 SIG_PY="$(resolve_runtime_python "${SIG_PY:-}" "${SIG_DIR}/.venv/bin/python3")"
 KG_PY="$(resolve_runtime_python "${KG_PY:-}" "${KG_DIR}/.venv/bin/python3")"
 LLM_PY="$(resolve_runtime_python "${LLM_PY:-}" "${LLM_DIR}/.venv/bin/python3")"
