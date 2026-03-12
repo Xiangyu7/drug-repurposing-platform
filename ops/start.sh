@@ -338,10 +338,10 @@ launch_pipeline() {
     info ""
 
     apply_resolved_runtime_env
-    local runtime_dsmeta="${DSMETA_PY:-python3}"
-    local runtime_sig="${SIG_PY:-python3}"
-    local runtime_kg="${KG_PY:-python3}"
-    local runtime_llm="${LLM_PY:-python3}"
+    local runtime_dsmeta="${DSMETA_PY:-}"
+    local runtime_sig="${SIG_PY:-}"
+    local runtime_kg="${KG_PY:-}"
+    local runtime_llm="${LLM_PY:-}"
 
     nohup env \
         RUN_MODE="${RUN_MODE}" \
@@ -453,10 +453,10 @@ run_single_disease() {
     info ""
 
     apply_resolved_runtime_env
-    local runtime_dsmeta="${DSMETA_PY:-python3}"
-    local runtime_sig="${SIG_PY:-python3}"
-    local runtime_kg="${KG_PY:-python3}"
-    local runtime_llm="${LLM_PY:-python3}"
+    local runtime_dsmeta="${DSMETA_PY:-}"
+    local runtime_sig="${SIG_PY:-}"
+    local runtime_kg="${KG_PY:-}"
+    local runtime_llm="${LLM_PY:-}"
 
     env \
         RUN_MODE="${RUN_MODE}" \

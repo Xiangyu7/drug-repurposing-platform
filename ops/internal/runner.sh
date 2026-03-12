@@ -123,10 +123,16 @@ resolve_runtime_python() {
 
 # dsmeta & archs4 need R (Rscript) alongside Python — prefer conda dsmeta env
 # which bundles both, then fall back to local .venv, then system python3.
+# NOTE: avoid `conda run` — it mixes diagnostic output into stdout on many setups.
+#       Instead, find the env prefix directly and construct the python path.
 _conda_dsmeta_py=""
 if command -v conda >/dev/null 2>&1; then
-  _conda_dsmeta_py="$(conda run -n dsmeta python -c 'import sys; print(sys.executable)' 2>/dev/null | tail -1)" || true
-  if [[ -n "${_conda_dsmeta_py}" && ! -x "${_conda_dsmeta_py}" ]]; then _conda_dsmeta_py=""; fi
+  _conda_prefix="$(conda env list 2>/dev/null | awk '$1=="dsmeta"{print $NF}')" || true
+  if [[ -n "${_conda_prefix}" && -x "${_conda_prefix}/bin/python3" ]]; then
+    _conda_dsmeta_py="${_conda_prefix}/bin/python3"
+  elif [[ -n "${_conda_prefix}" && -x "${_conda_prefix}/bin/python" ]]; then
+    _conda_dsmeta_py="${_conda_prefix}/bin/python"
+  fi
 fi
 DSMETA_PY="$(resolve_runtime_python "${DSMETA_PY:-}" "${_conda_dsmeta_py:-${DSMETA_DIR}/.venv/bin/python3}")"
 ARCHS4_PY="$(resolve_runtime_python "${ARCHS4_PY:-}" "${_conda_dsmeta_py:-${ARCHS4_DIR}/.venv/bin/python3}")"
