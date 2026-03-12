@@ -801,6 +801,11 @@ class EnvGuard:
                 missing.append("python3-venv")
         if not command_exists("Rscript"):
             missing.extend(["r-base", "r-base-dev"])
+        else:
+            # Rscript exists but may be broken (missing libblas, ldpaths, etc.)
+            cp = run_command(["Rscript", "-e", "cat('ok')"], timeout=30)
+            if cp.returncode != 0:
+                missing.append("r-libs-broken")
 
         if not missing:
             return {"step": "system_packages", "status": "pass", "message": "system packages already available"}
@@ -819,40 +824,59 @@ class EnvGuard:
                 "python3-venv",
                 "r-base",
                 "r-base-dev",
+                "libblas-dev",
+                "liblapack-dev",
                 "libcurl4-openssl-dev",
                 "libxml2-dev",
                 "libssl-dev",
+                "libfontconfig1-dev",
+                "libharfbuzz-dev",
+                "libfribidi-dev",
                 "build-essential",
+                "gfortran",
             ]
-            cp_u = run_command(prefix + ["apt-get", "update", "-qq"], timeout=1800)
-            cp_i = run_command(prefix + ["apt-get", "install", "-y"] + apt_pkgs, timeout=7200)
+            # Fix interrupted dpkg if needed
+            self._log("    dpkg --configure -a (fix interrupted installs)...")
+            run_command(prefix + ["dpkg", "--configure", "-a"], timeout=600, verbose=self._verbose)
+            self._log("    apt-get update...")
+            cp_u = run_command(prefix + ["apt-get", "update", "-qq"], timeout=1800, verbose=self._verbose)
+            self._log(f"    apt-get install {len(apt_pkgs)} packages...")
+            cp_i = run_command(prefix + ["apt-get", "install", "-y"] + apt_pkgs, timeout=7200, verbose=self._verbose)
             ok = cp_u.returncode == 0 and cp_i.returncode == 0
             return {
                 "step": "system_packages",
                 "status": "pass" if ok else "fail",
                 "message": "apt system package install completed" if ok else "apt system package install failed",
-                "detail": {"stderr": (cp_i.stderr or cp_u.stderr).strip()},
+                "detail": {"stderr": (cp_i.stderr or cp_u.stderr).strip() if not self._verbose else ""},
             }
 
         if command_exists("yum"):
             yum_pkgs = [
                 "python3",
-                "python3-venv",
+                "python3-devel",
                 "R",
                 "R-core-devel",
+                "blas-devel",
+                "lapack-devel",
                 "libcurl-devel",
                 "libxml2-devel",
                 "openssl-devel",
+                "fontconfig-devel",
+                "harfbuzz-devel",
+                "fribidi-devel",
                 "gcc-c++",
+                "gcc-gfortran",
                 "make",
             ]
-            cp_i = run_command(prefix + ["yum", "install", "-y"] + yum_pkgs, timeout=7200)
+            PM = "dnf" if command_exists("dnf") else "yum"
+            self._log(f"    {PM} install {len(yum_pkgs)} packages...")
+            cp_i = run_command(prefix + [PM, "install", "-y"] + yum_pkgs, timeout=7200, verbose=self._verbose)
             ok = cp_i.returncode == 0
             return {
                 "step": "system_packages",
                 "status": "pass" if ok else "fail",
-                "message": "yum system package install completed" if ok else "yum system package install failed",
-                "detail": {"stderr": cp_i.stderr.strip()},
+                "message": f"{PM} system package install completed" if ok else f"{PM} system package install failed",
+                "detail": {"stderr": cp_i.stderr.strip() if not self._verbose else ""},
             }
 
         return {
