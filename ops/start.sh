@@ -73,6 +73,9 @@ Commands:
   status                  查看运行状态 (等同 check_status.sh)
   results [disease]       查看结果 (等同 show_results.sh)
 
+First-time on a bare server? Run bootstrap first:
+  bash ops/bootstrap.sh           # Phase 0: system packages, R, Ollama, conda
+
 Options:
   --mode <mode>           dual | origin_only | cross_only (默认: dual)
   --list <file>           自定义疾病列表
