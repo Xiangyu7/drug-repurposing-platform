@@ -315,7 +315,7 @@ def main():
     # Validate H5 file
     if not Path(h5_path).exists():
         logger.error("ARCHS4 H5 file not found: %s", h5_path)
-        logger.error("Download from: https://archs4.org/download/file/human_gene_v2.4.h5")
+        logger.error("Download from: https://archs4.org/download/file/human_gene_v2.5.h5")
         raise SystemExit(1)
 
     # Open H5 and search

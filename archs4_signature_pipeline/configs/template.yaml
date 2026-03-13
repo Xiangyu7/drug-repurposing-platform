@@ -13,7 +13,7 @@ disease:
   efo_id: ${EFO_ID}
 
 archs4:
-  h5_path: data/archs4/human_gene_v2.4.h5
+  h5_path: data/archs4/human_gene_v2.5.h5
   min_samples_per_group: 3
   max_samples_per_group: 50
   max_series: 5

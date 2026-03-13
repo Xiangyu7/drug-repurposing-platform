@@ -170,7 +170,7 @@ def build_keywords(disease_key: str, disease_name: str, efo_id: str) -> list[str
 
 
 def generate_config(disease_key: str, disease_name: str, efo_id: str,
-                    h5_path: str = "data/archs4/human_gene_v2.4.h5",
+                    h5_path: str = "data/archs4/human_gene_v2.5.h5",
                     case_keywords: list[str] | None = None) -> dict:
     """Generate a config dict for a single disease."""
     if case_keywords is None:
@@ -248,7 +248,7 @@ def main():
     ap.add_argument("--disease", help="Single disease key")
     ap.add_argument("--disease-name", help="Disease display name (with --disease)")
     ap.add_argument("--efo-id", help="EFO ID (with --disease)")
-    ap.add_argument("--h5-path", default="data/archs4/human_gene_v2.4.h5",
+    ap.add_argument("--h5-path", default="data/archs4/human_gene_v2.5.h5",
                     help="Path to ARCHS4 H5 file")
     ap.add_argument("--outdir", default="archs4_signature_pipeline/configs",
                     help="Output directory for config files")

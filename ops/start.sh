@@ -395,6 +395,8 @@ run_single_disease() {
     local tmp_list
     tmp_list=$(mktemp)
     trap '[[ -n "${tmp_list:-}" ]] && rm -f "${tmp_list}"' EXIT INT TERM
+    # Normalize: ensure key uses underscores, query uses spaces
+    SINGLE_DISEASE="${SINGLE_DISEASE// /_}"
     local disease_query="${SINGLE_DISEASE//_/ }"
 
     # Check if --list was provided and contains this disease

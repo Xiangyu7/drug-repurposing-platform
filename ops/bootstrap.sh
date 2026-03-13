@@ -197,7 +197,8 @@ install_debian() {
         r-base r-base-dev \
         libcurl4-openssl-dev libxml2-dev libssl-dev libfontconfig1-dev \
         libharfbuzz-dev libfribidi-dev libfreetype-dev libpng-dev libtiff-dev \
-        build-essential gfortran wget curl git bc
+        build-essential gfortran wget curl git bc \
+        pciutils lshw zstd
 }
 
 install_rhel() {
