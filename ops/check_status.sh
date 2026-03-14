@@ -128,17 +128,17 @@ except: print('?')
         origin_s="$(python3 -c "import json; d=json.load(open('${summary}')); print(d.get('origin_status','?'))" 2>/dev/null)"
 
         if [[ "${cross_s}" == "success" && "${origin_s}" == "success" ]]; then
-          latest_status="${GREEN}全部成功${NC}"; ((ok_total++))
+          latest_status="${GREEN}全部成功${NC}"; ok_total=$((ok_total + 1))
         elif [[ "${cross_s}" == "success" && "${origin_s}" == "skipped" ]]; then
-          latest_status="${GREEN}Cross成功${NC}"; ((ok_total++))
+          latest_status="${GREEN}Cross成功${NC}"; ok_total=$((ok_total + 1))
         elif [[ "${origin_s}" == "success" && "${cross_s}" == "skipped" ]]; then
-          latest_status="${GREEN}Origin成功${NC}"; ((ok_total++))
+          latest_status="${GREEN}Origin成功${NC}"; ok_total=$((ok_total + 1))
         elif [[ "${cross_s}" == "success" ]]; then
-          latest_status="${YELLOW}Cross✓ Origin✗${NC}"; ((ok_total++))
+          latest_status="${YELLOW}Cross✓ Origin✗${NC}"; ok_total=$((ok_total + 1))
         elif [[ "${origin_s}" == "success" ]]; then
-          latest_status="${YELLOW}Cross✗ Origin✓${NC}"; ((fail_total++))
+          latest_status="${YELLOW}Cross✗ Origin✓${NC}"; fail_total=$((fail_total + 1))
         else
-          latest_status="${RED}失败${NC}"; ((fail_total++))
+          latest_status="${RED}失败${NC}"; fail_total=$((fail_total + 1))
         fi
       fi
     fi
@@ -151,9 +151,9 @@ except: print('?')
 
     if [[ -z "${latest_status}" ]]; then
       if [[ "${q_count}" -gt 0 ]]; then
-        latest_status="${RED}失败(${q_count}次)${NC}"; ((fail_total++))
+        latest_status="${RED}失败(${q_count}次)${NC}"; fail_total=$((fail_total + 1))
       else
-        latest_status="未运行"; ((pending_total++))
+        latest_status="未运行"; pending_total=$((pending_total + 1))
       fi
     elif [[ "${q_count}" -gt 0 ]]; then
       latest_status="${latest_status} ${RED}(隔离${q_count})${NC}"
