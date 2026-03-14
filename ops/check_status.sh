@@ -50,15 +50,14 @@ info() { echo -e "  ${BLUE}ℹ️  $1${NC}"; }
 
 # ── 0. List filter helpers ─────────────────────────────────────────
 
-# Parse a disease list file → array of disease keys
+# Parse a disease list file → _PARSED_DISEASES array
 _parse_disease_list() {
   local file="$1"
-  local -n _out_arr=$2
-  _out_arr=()
+  _PARSED_DISEASES=()
   while IFS='|' read -r key rest; do
     key="$(echo "${key}" | xargs)"
     [[ -z "${key}" || "${key:0:1}" == "#" ]] && continue
-    _out_arr+=("${key}")
+    _PARSED_DISEASES+=("${key}")
   done < "${file}"
 }
 
@@ -90,14 +89,16 @@ show_overview() {
     # Default: show all diseases from origin list
     header "管线运行状态概览"
     if [[ -f "${ORIGIN_LIST}" ]]; then
-      _parse_disease_list "${ORIGIN_LIST}" show_diseases
+      _parse_disease_list "${ORIGIN_LIST}"
+      show_diseases=("${_PARSED_DISEASES[@]}")
     fi
   fi
 
   # Dual list for cross-check
   local dual_diseases=()
   if [[ -f "${DUAL_LIST}" ]]; then
-    _parse_disease_list "${DUAL_LIST}" dual_diseases
+    _parse_disease_list "${DUAL_LIST}"
+    dual_diseases=("${_PARSED_DISEASES[@]}")
   fi
 
   echo ""
@@ -564,7 +565,8 @@ main() {
           fail "List file not found: $2"
           exit 1
         fi
-        _parse_disease_list "${FILTER_LIST}" FILTER_DISEASES
+        _parse_disease_list "${FILTER_LIST}"
+        FILTER_DISEASES=("${_PARSED_DISEASES[@]}")
         shift 2
         ;;
       *)
