@@ -1000,8 +1000,8 @@ if not isinstance(obj.get(up_key), list) or not isinstance(obj.get(down_key), li
     print(f"{up_key}/{down_key} must be lists", file=sys.stderr); raise SystemExit(4)
 if len(obj[up_key]) == 0 and len(obj[down_key]) == 0:
     print(f"{label} has empty gene lists", file=sys.stderr); raise SystemExit(6)
-norm = lambda s: re.sub(r"[^a-z0-9]+", "", s.lower())
-if (kn := norm(disease_key)) and kn not in norm(str(obj.get("name", ""))):
+norm = lambda s: "".join(w.rstrip("s") for w in re.split(r"[^a-z0-9]+", s.lower()) if w)
+if (kn := norm(disease_key)) and kn not in norm(str(obj.get("name", ""))) and norm(str(obj.get("name", ""))) not in kn:
     print(f"{label} name mismatch: disease_key={disease_key}, name={obj.get('name')}", file=sys.stderr)
     raise SystemExit(5)
 PY
