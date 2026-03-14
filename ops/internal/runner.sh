@@ -1001,7 +1001,10 @@ if not isinstance(obj.get(up_key), list) or not isinstance(obj.get(down_key), li
 if len(obj[up_key]) == 0 and len(obj[down_key]) == 0:
     print(f"{label} has empty gene lists", file=sys.stderr); raise SystemExit(6)
 norm = lambda s: "".join(w.rstrip("s") for w in re.split(r"[^a-z0-9]+", s.lower()) if w)
-if (kn := norm(disease_key)) and kn not in norm(str(obj.get("name", ""))) and norm(str(obj.get("name", ""))) not in kn:
+kn = norm(disease_key)
+nn = norm(str(obj.get("name", "")))
+# Short keys (<=5 chars) are abbreviations (ipf, nash, nafld) — skip substring check
+if kn and len(kn) > 5 and kn not in nn and nn not in kn:
     print(f"{label} name mismatch: disease_key={disease_key}, name={obj.get('name')}", file=sys.stderr)
     raise SystemExit(5)
 PY
