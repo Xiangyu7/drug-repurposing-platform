@@ -117,15 +117,7 @@ if [[ $# -gt 0 ]]; then
         start)    ACTION="run"; shift ;;
         status)
             shift
-            # Forward --list and disease name to check_status.sh
-            local status_args=()
-            while [[ $# -gt 0 ]]; do
-                case "$1" in
-                    --list) status_args+=("--list" "$2"); shift 2 ;;
-                    *)      status_args+=("$1"); shift ;;
-                esac
-            done
-            exec bash "${OPS_DIR}/check_status.sh" "${status_args[@]}"
+            exec bash "${OPS_DIR}/check_status.sh" "$@"
             ;;
         results)
             shift
