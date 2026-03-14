@@ -70,7 +70,7 @@ Commands:
   check                   检查环境是否就绪
   run <disease>           跑单个疾病 (前台, 跑完退出)
   start                   启动批量管线 (后台常驻)
-  status                  查看运行状态 (等同 check_status.sh)
+  status                  查看运行状态 (支持 --list 过滤, 单个疾病名)
   results [disease]       查看结果 (等同 show_results.sh)
 
 First-time on a bare server? Run bootstrap first:
@@ -117,7 +117,15 @@ if [[ $# -gt 0 ]]; then
         start)    ACTION="run"; shift ;;
         status)
             shift
-            exec bash "${OPS_DIR}/check_status.sh" "$@"
+            # Forward --list and disease name to check_status.sh
+            local status_args=()
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --list) status_args+=("--list" "$2"); shift 2 ;;
+                    *)      status_args+=("$1"); shift ;;
+                esac
+            done
+            exec bash "${OPS_DIR}/check_status.sh" "${status_args[@]}"
             ;;
         results)
             shift

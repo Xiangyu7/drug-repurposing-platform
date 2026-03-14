@@ -5,6 +5,7 @@
 # 用法:
 #   bash ops/check_status.sh              # 全局概览
 #   bash ops/check_status.sh atherosclerosis  # 查看单个疾病详情
+#   bash ops/check_status.sh --list <file>   # 只看指定 list 中的疾病
 #   bash ops/check_status.sh --failures   # 只看失败的
 #   bash ops/check_status.sh --latest     # 只看最近一轮
 #   bash ops/check_status.sh --ollama     # 检查 Ollama 状态
@@ -24,6 +25,7 @@ DSMETA_DIR="${ROOT_DIR}/dsmeta_signature_pipeline"
 LLM_DIR="${ROOT_DIR}/LLM+RAG证据工程"
 DUAL_LIST="${ROOT_DIR}/ops/internal/disease_list_day1_dual.txt"
 ORIGIN_LIST="${ROOT_DIR}/ops/internal/disease_list_day1_origin.txt"
+FILTER_LIST=""  # --list filter: only show diseases in this file
 
 # Colors
 RED='\033[0;31m'
@@ -46,48 +48,71 @@ warn() { echo -e "  ${YELLOW}⚠️  $1${NC}"; }
 fail() { echo -e "  ${RED}❌ $1${NC}"; }
 info() { echo -e "  ${BLUE}ℹ️  $1${NC}"; }
 
+# ── 0. List filter helpers ─────────────────────────────────────────
+
+# Parse a disease list file → array of disease keys
+_parse_disease_list() {
+  local file="$1"
+  local -n _out_arr=$2
+  _out_arr=()
+  while IFS='|' read -r key rest; do
+    key="$(echo "${key}" | xargs)"
+    [[ -z "${key}" || "${key:0:1}" == "#" ]] && continue
+    _out_arr+=("${key}")
+  done < "${file}"
+}
+
+# Check if a disease is in FILTER_LIST (if set). Returns 0=include, 1=skip.
+_in_filter() {
+  local disease="$1"
+  [[ -z "${FILTER_LIST}" ]] && return 0  # no filter → include all
+  local k
+  for k in "${FILTER_DISEASES[@]}"; do
+    [[ "${k}" == "${disease}" ]] && return 0
+  done
+  return 1
+}
+
+# Populated when --list is given
+FILTER_DISEASES=()
+
 # ── 1. 全局概览 ──────────────────────────────────────────────────
 
 show_overview() {
-  header "管线运行状态概览"
+  # Determine which diseases to show
+  local show_diseases=()
 
-  # Dual list diseases
-  local dual_diseases=()
-  if [[ -f "${DUAL_LIST}" ]]; then
-    while IFS='|' read -r key rest; do
-      key="$(echo "${key}" | xargs)"
-      [[ -z "${key}" || "${key:0:1}" == "#" ]] && continue
-      dual_diseases+=("${key}")
-    done < "${DUAL_LIST}"
+  if [[ -n "${FILTER_LIST}" ]]; then
+    # --list mode: only show diseases from the specified file
+    header "管线运行状态 (筛选: $(basename "${FILTER_LIST}"))"
+    show_diseases=("${FILTER_DISEASES[@]}")
+  else
+    # Default: show all diseases from origin list
+    header "管线运行状态概览"
+    if [[ -f "${ORIGIN_LIST}" ]]; then
+      _parse_disease_list "${ORIGIN_LIST}" show_diseases
+    fi
   fi
 
-  # Origin list diseases
-  local origin_diseases=()
-  if [[ -f "${ORIGIN_LIST}" ]]; then
-    while IFS='|' read -r key rest; do
-      key="$(echo "${key}" | xargs)"
-      [[ -z "${key}" || "${key:0:1}" == "#" ]] && continue
-      origin_diseases+=("${key}")
-    done < "${ORIGIN_LIST}"
+  # Dual list for cross-check
+  local dual_diseases=()
+  if [[ -f "${DUAL_LIST}" ]]; then
+    _parse_disease_list "${DUAL_LIST}" dual_diseases
   fi
 
   echo ""
-  echo -e "${BOLD}  疾病                             │ A │ B │ 最近运行   │ 状态${NC}"
-  echo "  ─────────────────────────────────┼───┼───┼────────────┼──────"
+  echo -e "${BOLD}  疾病                             │ Cross │ Origin │ 最近运行   │ 状态${NC}"
+  echo "  ─────────────────────────────────┼───────┼────────┼────────────┼──────"
 
-  for disease in "${origin_diseases[@]}"; do
-    local in_dual="—"
-    for d in "${dual_diseases[@]}"; do
-      [[ "${d}" == "${disease}" ]] && in_dual="✅" && break
-    done
+  local ok_total=0 fail_total=0 pending_total=0
 
+  for disease in "${show_diseases[@]}"; do
     # Latest result
-    local latest_result=""
     local latest_status=""
     local latest_date="—"
+    local cross_s="—" origin_s="—"
 
     if [[ -d "${RESULTS_DIR}/${disease}" ]]; then
-      # Find most recent run_summary.json
       local summary
       summary="$(find "${RESULTS_DIR}/${disease}" -name "run_summary.json" -type f 2>/dev/null | sort -r | head -1)"
       if [[ -n "${summary}" ]]; then
@@ -98,22 +123,21 @@ try:
     print(d.get('run_date', d.get('timestamp','?')[:10]))
 except: print('?')
 " 2>/dev/null)"
-        local cross_s origin_s
         cross_s="$(python3 -c "import json; d=json.load(open('${summary}')); print(d.get('cross_status','?'))" 2>/dev/null)"
         origin_s="$(python3 -c "import json; d=json.load(open('${summary}')); print(d.get('origin_status','?'))" 2>/dev/null)"
 
         if [[ "${cross_s}" == "success" && "${origin_s}" == "success" ]]; then
-          latest_status="${GREEN}全部成功${NC}"
-        elif [[ "${origin_s}" == "success" ]]; then
-          if [[ "${cross_s}" == "skipped" || "${cross_s}" == "not_run" ]]; then
-            latest_status="${GREEN}B成功${NC}"
-          else
-            latest_status="${YELLOW}A失败 B成功${NC}"
-          fi
+          latest_status="${GREEN}全部成功${NC}"; ((ok_total++))
+        elif [[ "${cross_s}" == "success" && "${origin_s}" == "skipped" ]]; then
+          latest_status="${GREEN}Cross成功${NC}"; ((ok_total++))
+        elif [[ "${origin_s}" == "success" && "${cross_s}" == "skipped" ]]; then
+          latest_status="${GREEN}Origin成功${NC}"; ((ok_total++))
         elif [[ "${cross_s}" == "success" ]]; then
-          latest_status="${YELLOW}A成功 B失败${NC}"
+          latest_status="${YELLOW}Cross✓ Origin✗${NC}"; ((ok_total++))
+        elif [[ "${origin_s}" == "success" ]]; then
+          latest_status="${YELLOW}Cross✗ Origin✓${NC}"; ((fail_total++))
         else
-          latest_status="${RED}失败${NC}"
+          latest_status="${RED}失败${NC}"; ((fail_total++))
         fi
       fi
     fi
@@ -126,21 +150,32 @@ except: print('?')
 
     if [[ -z "${latest_status}" ]]; then
       if [[ "${q_count}" -gt 0 ]]; then
-        latest_status="${RED}失败(${q_count}次)${NC}"
+        latest_status="${RED}失败(${q_count}次)${NC}"; ((fail_total++))
       else
-        latest_status="未运行"
+        latest_status="未运行"; ((pending_total++))
       fi
     elif [[ "${q_count}" -gt 0 ]]; then
       latest_status="${latest_status} ${RED}(隔离${q_count})${NC}"
     fi
 
-    printf "  %-35s│ %-1s │ ✅ │ %-10s │ " "${disease}" "${in_dual}" "${latest_date}"
+    local cross_icon origin_icon
+    case "${cross_s}" in
+      success) cross_icon="✅" ;;
+      skipped) cross_icon="⏭️ " ;;
+      *)       cross_icon="❌" ;;
+    esac
+    case "${origin_s}" in
+      success) origin_icon="✅" ;;
+      skipped) origin_icon="⏭️ " ;;
+      *)       origin_icon="❌" ;;
+    esac
+
+    printf "  %-35s│ %s    │ %s     │ %-10s │ " "${disease}" "${cross_icon}" "${origin_icon}" "${latest_date}"
     echo -e "${latest_status}"
   done
 
   echo ""
-  info "Dual list: ${#dual_diseases[@]} 个疾病 (Direction A+B)"
-  info "Origin list: ${#origin_diseases[@]} 个疾病 (Direction B)"
+  info "共 ${#show_diseases[@]} 个疾病: ✅ ${ok_total} 成功, ❌ ${fail_total} 失败, ⏳ ${pending_total} 未运行"
 }
 
 # ── 2. 单个疾病详情 ──────────────────────────────────────────────
@@ -232,7 +267,11 @@ print(f'       {msg}')
 # ── 3. 只看失败 ──────────────────────────────────────────────────
 
 show_failures() {
-  header "所有失败记录"
+  if [[ -n "${FILTER_LIST}" ]]; then
+    header "失败记录 (筛选: $(basename "${FILTER_LIST}"))"
+  else
+    header "所有失败记录"
+  fi
 
   if [[ ! -d "${QUARANTINE_DIR}" ]]; then
     ok "无失败记录 (quarantine 目录不存在)"
@@ -244,6 +283,7 @@ show_failures() {
     [[ ! -d "${disease_dir}" ]] && continue
     local disease
     disease="$(basename "${disease_dir}")"
+    _in_filter "${disease}" || continue
     local failures
     failures="$(find "${disease_dir}" -name "FAILURE.json" -type f 2>/dev/null | sort -r)"
     [[ -z "${failures}" ]] && continue
@@ -415,26 +455,41 @@ check_disk() {
 # ── 6. 最近一轮 ──────────────────────────────────────────────────
 
 show_latest() {
-  header "最近一轮运行结果"
+  if [[ -n "${FILTER_LIST}" ]]; then
+    header "最近运行结果 (筛选: $(basename "${FILTER_LIST}"))"
+  else
+    header "最近一轮运行结果"
+  fi
 
   if [[ ! -d "${RESULTS_DIR}" ]]; then
     info "无运行记录"
     return
   fi
 
-  # Find all run_summary.json, sort by timestamp
+  # Build find paths: either filtered disease dirs or all
+  local find_paths=()
+  if [[ -n "${FILTER_LIST}" ]]; then
+    for d in "${FILTER_DISEASES[@]}"; do
+      [[ -d "${RESULTS_DIR}/${d}" ]] && find_paths+=("${RESULTS_DIR}/${d}")
+    done
+    if [[ ${#find_paths[@]} -eq 0 ]]; then
+      info "无运行记录 (指定疾病无结果)"
+      return
+    fi
+  else
+    find_paths=("${RESULTS_DIR}")
+  fi
+
   local summaries
-  summaries="$(find "${RESULTS_DIR}" -name "run_summary.json" -type f 2>/dev/null | sort -r | head -20)"
+  summaries="$(find "${find_paths[@]}" -name "run_summary.json" -type f 2>/dev/null | sort -r | head -20)"
 
   if [[ -z "${summaries}" ]]; then
     info "无运行记录"
     return
   fi
 
-  # Group by latest run_date
   python3 -c "
 import json, sys, os
-from collections import defaultdict
 
 files = '''${summaries}'''.strip().split('\n')
 records = []
@@ -459,8 +514,8 @@ latest_records = [r for r in records if r.get('run_date') == latest_date]
 print(f'  日期: {latest_date}')
 print(f'  运行数: {len(latest_records)}')
 print()
-print(f'  {\"疾病\":<28s} {\"Cross\":<10s} {\"Origin\":<10s} {\"模式\":<12s}')
-print(f'  {\"─\"*28} {\"─\"*10} {\"─\"*10} {\"─\"*12}')
+print(f'  {\"疾病\":<28s} {\"Cross\":<10s} {\"Origin\":<10s} {\"模式\":<12s} {\"耗时\":<8s}')
+print(f'  {\"─\"*28} {\"─\"*10} {\"─\"*10} {\"─\"*12} {\"─\"*8}')
 
 ok_count = 0
 fail_count = 0
@@ -469,16 +524,20 @@ for r in latest_records:
     cross = r.get('cross_status', '?')
     origin = r.get('origin_status', '?')
     mode = r.get('run_mode', '?')
+    duration = r.get('duration_display', r.get('total_duration', '?'))
 
     cross_icon = '✅' if cross == 'success' else ('⏭️' if cross in ('skipped','not_run') else '❌')
-    origin_icon = '✅' if origin == 'success' else '❌'
+    origin_icon = '✅' if origin == 'success' else ('⏭️' if origin in ('skipped','not_run') else '❌')
 
-    if origin == 'success' and cross in ('success', 'skipped', 'not_run'):
+    success = (cross in ('success', 'skipped', 'not_run') and
+               origin in ('success', 'skipped', 'not_run') and
+               not (cross in ('skipped','not_run') and origin in ('skipped','not_run')))
+    if success:
         ok_count += 1
     else:
         fail_count += 1
 
-    print(f'  {disease:<28s} {cross_icon} {cross:<8s} {origin_icon} {origin:<8s} {mode}')
+    print(f'  {disease:<28s} {cross_icon} {cross:<8s} {origin_icon} {origin:<8s} {mode:<12s} {duration}')
 
 print()
 print(f'  总计: ✅ {ok_count} 成功, ❌ {fail_count} 失败')
@@ -491,7 +550,32 @@ main() {
   echo -e "${BOLD}${CYAN}Drug Repurposing Pipeline Status Check${NC}"
   echo -e "时间: $(date '+%Y-%m-%d %H:%M:%S')"
 
-  case "${1:-}" in
+  # Pre-parse --list from anywhere in args
+  local args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --list)
+        FILTER_LIST="$2"
+        if [[ ! -f "${FILTER_LIST}" ]]; then
+          # Try relative to ROOT_DIR
+          [[ -f "${ROOT_DIR}/${FILTER_LIST}" ]] && FILTER_LIST="${ROOT_DIR}/${FILTER_LIST}"
+        fi
+        if [[ ! -f "${FILTER_LIST}" ]]; then
+          fail "List file not found: $2"
+          exit 1
+        fi
+        _parse_disease_list "${FILTER_LIST}" FILTER_DISEASES
+        shift 2
+        ;;
+      *)
+        args+=("$1"); shift
+        ;;
+    esac
+  done
+
+  local cmd="${args[0]:-}"
+
+  case "${cmd}" in
     --failures|-f)
       show_failures
       ;;
@@ -514,20 +598,26 @@ main() {
     --help|-h)
       echo ""
       echo "用法:"
-      echo "  bash ops/check_status.sh              # 全局概览"
-      echo "  bash ops/check_status.sh <disease>    # 单个疾病详情"
-      echo "  bash ops/check_status.sh --failures   # 只看失败"
-      echo "  bash ops/check_status.sh --latest     # 最近一轮结果"
-      echo "  bash ops/check_status.sh --ollama     # Ollama 状态"
-      echo "  bash ops/check_status.sh --disk       # 磁盘占用"
-      echo "  bash ops/check_status.sh --all        # 全部检查"
+      echo "  bash ops/check_status.sh                         # 全局概览"
+      echo "  bash ops/check_status.sh <disease>               # 单个疾病详情"
+      echo "  bash ops/check_status.sh --list <file>           # 只看指定 list 中的疾病"
+      echo "  bash ops/check_status.sh --list <file> --latest  # list + 最近结果"
+      echo "  bash ops/check_status.sh --failures              # 只看失败"
+      echo "  bash ops/check_status.sh --latest                # 最近一轮结果"
+      echo "  bash ops/check_status.sh --ollama                # Ollama 状态"
+      echo "  bash ops/check_status.sh --disk                  # 磁盘占用"
+      echo "  bash ops/check_status.sh --all                   # 全部检查"
       ;;
     "")
       show_overview
+      if [[ -n "${FILTER_LIST}" ]]; then
+        show_latest
+        show_failures
+      fi
       ;;
     *)
       # Treat as disease name
-      show_disease_detail "$1"
+      show_disease_detail "${cmd}"
       ;;
   esac
 }
