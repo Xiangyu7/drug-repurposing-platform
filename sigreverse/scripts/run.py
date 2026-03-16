@@ -71,6 +71,7 @@ AUTOIMMUNE_KEYWORDS = [
     "ankylosing", "autoimmune", "inflammatory", "celiac", "pemphigus",
     "uveitis", "alopecia_areata", "vitiligo", "sarcoidosis",
     "graft_versus_host", "gvhd",
+    "arteritis", "cholangitis", "eosinophilic",
 ]
 
 ATHEROSCLEROSIS_KEYWORDS = [

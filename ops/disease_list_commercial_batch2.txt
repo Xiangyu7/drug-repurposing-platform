@@ -1,43 +1,56 @@
 # disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
-# Commercial Pipeline Batch 2 — 5 therapeutic areas, 18 diseases
-# IDs need verification against OpenTargets API before running
-# Generated: 2026-03-05
+# Commercial Pipeline Batch 2 — 6 therapeutic areas, 18 diseases
+# All IDs verified against OpenTargets API (2026-03-16)
+# Revised: 2026-03-16
+# Principles: (1) tissue biopsy expression data available (2) immune/inflammatory
+#   signature clear (3) market size or orphan premium (4) platform methodology fit
 #
 # ============================================================
-# Batch 6: Respiratory (COPD/asthma = massive unmet need)
+# Batch 6: Respiratory (COPD/asthma = massive unmet need, GEO data rich)
+# Dropped bronchiectasis — insufficient GEO expression data, small market
 # ============================================================
 copd|chronic obstructive pulmonary disease|EFO_0000341|
 asthma|asthma|EFO_0000270|
-bronchiectasis|bronchiectasis|MONDO_0004822|
 #
 # ============================================================
-# Batch 7: Psychiatry / CNS (highest trial failure rate = rich Origin data)
-# Cross-disease repurposing potential very high
+# Batch 7: Autoimmune / Inflammatory expansion
+# Replaces Psychiatry — CNS lacks tissue biopsy transcriptomics,
+#   neurotransmitter-driven diseases are structural blind spot for signature reversal
 # ============================================================
-major_depression|major depressive disorder|EFO_0003900|
-schizophrenia|schizophrenia|EFO_0000692|
-bipolar_disorder|bipolar disorder|EFO_0000289|
-adhd|attention deficit hyperactivity disorder|EFO_0003888|
+ulcerative_colitis|ulcerative colitis|EFO_0000729|
+systemic_sclerosis|systemic scleroderma|EFO_0000717|
+giant_cell_arteritis|temporal arteritis|EFO_1001209|
+eosinophilic_esophagitis|eosinophilic esophagitis|EFO_0004232|
 #
 # ============================================================
 # Batch 8: Dermatology / Immune (biologic boom, JAK inhibitor crossover)
+# All 3 have excellent skin biopsy expression data + validated JAK/immune pathway
 # ============================================================
 atopic_dermatitis|atopic dermatitis|EFO_0000274|
 vitiligo|vitiligo|EFO_0002670|
 alopecia_areata|alopecia areata|EFO_0004540|
 #
 # ============================================================
-# Batch 9: Hematology / Rare (orphan drug premium, genetic basis strong)
+# Batch 9: Hematology-Oncology (orphan drug premium, strong transcriptomic signature)
+# Dropped sickle_cell (HBB single-gene) + DMD (dystrophin single-gene)
+#   — signature reversal cannot fix missing/mutant protein
 # ============================================================
-sickle_cell_disease|sickle cell disease|MONDO_0011382|
 myelofibrosis|myelofibrosis|EFO_0004582|
-duchenne_muscular_dystrophy|Duchenne muscular dystrophy|MONDO_0010679|
+multiple_myeloma|multiple myeloma|EFO_0001378|
 #
 # ============================================================
 # Batch 10: Oncology — solid tumors (supplement glioblastoma/TNBC/pancreatic)
+# Kept HCC (liver narrative with NASH/fibrosis), dropped prostate (too competitive)
 # ============================================================
 colorectal_cancer|colorectal cancer|EFO_0005842|
 hepatocellular_carcinoma|hepatocellular carcinoma|EFO_0000182|
 ovarian_cancer|ovarian cancer|EFO_0001071|
 nsclc|non-small cell lung cancer|EFO_0003060|
-prostate_cancer|prostate cancer|EFO_0001663|
+#
+# ============================================================
+# Batch 11: Kidney / Liver rare (complements batch1 fibrosis narrative, orphan pricing)
+# CKD = massive market; PBC + IgAN = orphan premium + clear immune signature
+# ============================================================
+chronic_kidney_disease|chronic kidney disease|EFO_0003884|
+primary_biliary_cholangitis|primary biliary cirrhosis|EFO_1001486|
+iga_nephropathy|IGA glomerulonephritis|EFO_0004194|

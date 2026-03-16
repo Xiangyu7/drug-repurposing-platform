@@ -64,21 +64,37 @@ EXTRA_KEYWORDS = {
     "multiple_myeloma": ["myeloma", "plasma cell neoplasm", "plasmacytoma", "MM"],
     "cholangiocarcinoma": ["bile duct cancer", "biliary tract cancer", "intrahepatic cholangiocarcinoma", "CCA"],
     # --- Respiratory ---
+    "copd": ["COPD", "emphysema", "chronic bronchitis", "airflow obstruction",
+             "chronic obstructive", "GOLD stage"],
     "asthma": ["bronchial asthma", "eosinophilic asthma", "airway hyperresponsiveness",
                "allergic asthma", "severe asthma"],
-    "bronchiectasis": ["non-cystic fibrosis bronchiectasis", "chronic suppurative lung disease",
-                       "bronchial dilatation"],
-    # --- Psychiatry / Neurology ---
-    "schizophrenia": ["schizophrenic", "psychosis", "antipsychotic",
-                      "first-episode psychosis"],
-    "bipolar_disorder": ["bipolar", "manic-depressive", "mania", "bipolar depression"],
+    # --- Autoimmune / Inflammatory (batch 2) ---
+    "ulcerative_colitis": ["ulcerative colitis", "colitis", "inflammatory bowel",
+                           "IBD", "proctitis", "pancolitis"],
+    "systemic_sclerosis": ["scleroderma", "SSc", "systemic sclerosis", "skin fibrosis",
+                           "Raynaud", "diffuse cutaneous"],
+    "giant_cell_arteritis": ["GCA", "temporal arteritis", "large vessel vasculitis",
+                             "giant cell", "cranial arteritis"],
+    "eosinophilic_esophagitis": ["EoE", "eosinophilic esophagitis", "esophageal eosinophilia",
+                                 "allergic esophagitis", "eosinophilic oesophagitis"],
     # --- Dermatology ---
+    "atopic_dermatitis": ["eczema", "atopic eczema", "atopic dermatitis",
+                          "skin inflammation", "allergic dermatitis"],
     "vitiligo": ["depigmentation", "melanocyte", "leukoderma", "repigmentation"],
+    "alopecia_areata": ["alopecia areata", "alopecia", "hair loss",
+                        "autoimmune alopecia", "patchy alopecia"],
     # --- Hematology / Oncology ---
     "myelofibrosis": ["primary myelofibrosis", "bone marrow fibrosis",
                       "myeloproliferative neoplasm", "post-polycythemia vera myelofibrosis"],
     "colorectal_cancer": ["colorectal carcinoma", "colon cancer", "rectal cancer",
                           "colorectal adenocarcinoma", "CRC"],
+    # --- Kidney / Liver rare (batch 2) ---
+    "chronic_kidney_disease": ["CKD", "chronic renal disease", "renal insufficiency",
+                               "kidney disease", "end-stage renal", "ESRD"],
+    "primary_biliary_cholangitis": ["PBC", "primary biliary cirrhosis", "biliary cholangitis",
+                                    "cholestatic liver", "antimitochondrial"],
+    "iga_nephropathy": ["IgA nephropathy", "Berger disease", "mesangial IgA",
+                        "IgA glomerulonephritis", "IgAN"],
     # --- Existing cardiovascular (unchanged) ---
     "pulmonary_arterial_hypertension": ["PAH"],
     "myocardial_infarction": ["AMI", "STEMI", "NSTEMI"],
