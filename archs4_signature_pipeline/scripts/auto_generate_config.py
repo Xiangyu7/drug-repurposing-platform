@@ -102,6 +102,54 @@ EXTRA_KEYWORDS = {
     "deep_vein_thrombosis": ["DVT"],
     "abdominal_aortic_aneurysm": ["AAA"],
     "heart_failure": ["HFrEF", "HFpEF"],
+    # --- Commercial Batch 3 ---
+    # Autoimmune orphan
+    "sjogrens_syndrome": ["Sjogren", "Sjogrens", "sicca syndrome", "dry eye autoimmune",
+                          "salivary gland inflammation", "primary Sjogren"],
+    "myasthenia_gravis": ["MG", "myasthenia", "acetylcholine receptor antibody",
+                          "neuromuscular junction", "anti-AChR"],
+    "dermatomyositis": ["DM", "inflammatory myopathy", "heliotrope rash",
+                        "Gottron papules", "anti-MDA5", "anti-Mi2"],
+    "anca_vasculitis": ["ANCA vasculitis", "AAV", "anti-neutrophil cytoplasmic",
+                        "pauci-immune", "ANCA-associated"],
+    # GI / Hepatobiliary
+    "autoimmune_hepatitis": ["AIH", "autoimmune liver disease", "lupoid hepatitis",
+                             "autoimmune chronic hepatitis"],
+    "alcoholic_hepatitis": ["alcohol hepatitis", "alcoholic liver disease", "ALD",
+                            "alcohol-associated hepatitis", "ethanol hepatitis"],
+    "celiac_disease": ["celiac", "coeliac", "gluten enteropathy", "celiac sprue",
+                       "gluten-sensitive", "tissue transglutaminase"],
+    # Hematologic
+    "chronic_lymphocytic_leukemia": ["CLL", "B-cell chronic lymphocytic",
+                                     "chronic lymphoid leukemia", "B-CLL", "SLL"],
+    "mantle_cell_lymphoma": ["MCL", "mantle cell", "mantle zone lymphoma",
+                             "cyclin D1 lymphoma"],
+    "myelodysplastic_syndrome": ["MDS", "myelodysplasia", "refractory anemia",
+                                 "refractory cytopenia", "preleukemia"],
+    # Dermatology / Immune
+    "hidradenitis_suppurativa": ["HS", "acne inversa", "hidradenitis",
+                                 "suppurative hidradenitis", "apocrine gland"],
+    "pemphigus": ["pemphigus vulgaris", "pemphigus foliaceus", "PV",
+                  "desmoglein", "acantholysis", "autoimmune blistering"],
+    "mycosis_fungoides": ["MF", "cutaneous T-cell lymphoma", "CTCL",
+                          "Sezary syndrome", "mycosis fungoid"],
+    # Blood / Immune
+    "immune_thrombocytopenia": ["ITP", "immune thrombocytopenic purpura",
+                                "autoimmune thrombocytopenia", "idiopathic thrombocytopenic"],
+    "dlbcl": ["DLBCL", "diffuse large B-cell", "aggressive lymphoma",
+              "non-Hodgkin lymphoma", "large B cell lymphoma"],
+    "sjia": ["sJIA", "systemic JIA", "Still disease", "Stills disease",
+             "juvenile idiopathic arthritis", "macrophage activation"],
+    # Transplant / Muscle
+    "graft_vs_host_disease": ["GVHD", "graft-versus-host", "graft versus host",
+                              "allogeneic transplant rejection", "chronic GVHD", "acute GVHD"],
+    "polymyositis": ["PM", "inflammatory myopathy", "polymyositis",
+                     "anti-Jo1", "antisynthetase", "muscle inflammation"],
+    # Emerging
+    "sarcoidosis": ["sarcoid", "granulomatous disease", "Lofgren syndrome",
+                    "noncaseating granuloma", "pulmonary sarcoidosis"],
+    "chronic_rhinosinusitis_np": ["CRSwNP", "nasal polyps", "nasal polyposis",
+                                  "chronic sinusitis", "eosinophilic sinusitis"],
 }
 
 

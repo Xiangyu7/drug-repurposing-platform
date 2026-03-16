@@ -1,0 +1,73 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 3 — 7 therapeutic areas, 20 diseases
+# All IDs verified against OpenTargets API (2026-03-16)
+# Principles: (1) tissue biopsy expression data available (2) immune/inflammatory
+#   or oncogenic signature clear (3) market size or orphan premium (4) platform fit
+#
+# ============================================================
+# Batch 12: Autoimmune Orphan (NO approved drug = first-mover advantage)
+# Sjogren's: zero systemic drug approved, $5B+ projected, salivary gland biopsy GEO
+# Myasthenia gravis: Vyvgart=$3B+, complement/AChR immune signature, thymus biopsy
+# Dermatomyositis: orphan, muscle biopsy, IFN-I signature (analogous to lupus)
+# ANCA vasculitis: avacopan $300K/yr pricing, rituximab market, immune biopsy
+# ============================================================
+sjogrens_syndrome|Sjogren syndrome|EFO_0000699|
+myasthenia_gravis|myasthenia gravis|EFO_0004991|
+dermatomyositis|dermatomyositis|EFO_0000398|
+anca_vasculitis|ANCA-associated vasculitis|MONDO_0015492|
+#
+# ============================================================
+# Batch 13: GI / Hepatobiliary (complement NASH + PBC + fibrosis narrative)
+# Autoimmune hepatitis: liver biopsy rich, no biologic approved, HEPG2 cell line match
+# Alcoholic hepatitis: liver biopsy + HEPG2, zero approved drug, huge unmet need
+# Celiac: zero drugs approved, 1% global prevalence (~70M), TG2/immune signature
+# ============================================================
+autoimmune_hepatitis|autoimmune hepatitis|EFO_0005676|
+alcoholic_hepatitis|alcoholic hepatitis|EFO_1001345|
+celiac_disease|celiac disease|EFO_0001060|
+#
+# ============================================================
+# Batch 14: Hematologic (orphan pricing, strong transcriptomic signature)
+# CLL: BTK/BCL2 pathway, ibrutinib/venetoclax $10B+ market, blood=diseased tissue
+# MCL: BTK inhibitor responsive, orphan, aggressive lymphoma
+# MDS: bone marrow + HL60 cell line match, orphan, luspatercept $2B+
+# ============================================================
+chronic_lymphocytic_leukemia|chronic lymphocytic leukemia|EFO_0000095|
+mantle_cell_lymphoma|mantle cell lymphoma|EFO_1001469|
+myelodysplastic_syndrome|myelodysplastic syndrome|EFO_0000198|
+#
+# ============================================================
+# Batch 15: Dermatology / Immune (skin biopsy = excellent transcriptomics)
+# HS: TNF/IL-17 signature, adalimumab + secukinumab, skin biopsy GEO rich
+# Pemphigus: skin biopsy GEO rich, autoantibody+inflammation, orphan, rituximab
+# CTCL/MF: skin biopsy GEO available, T-cell lymphoma, orphan drug pricing
+# ============================================================
+hidradenitis_suppurativa|hidradenitis suppurativa|EFO_1000710|
+pemphigus|pemphigus|EFO_1000749|
+mycosis_fungoides|mycosis fungoides|EFO_1001051|
+#
+# ============================================================
+# Batch 16: High-value Blood / Immune (replace kidney batch — no LINCS kidney cell line)
+# ITP: blood=diseased tissue, autoimmune, romiplostim/eltrombopag $3B+ market
+# DLBCL: most common NHL, GEO extremely rich, R-CHOP + CAR-T + bispecific market
+# sJIA: blood + synovial, IL-1/IL-6 signature, anakinra/canakinumab, autoimmune weights
+# ============================================================
+immune_thrombocytopenia|autoimmune thrombocytopenic purpura|EFO_0007160|
+dlbcl|diffuse large B-cell lymphoma|EFO_0000403|
+sjia|systemic juvenile idiopathic arthritis|EFO_1001999|
+#
+# ============================================================
+# Batch 17: Transplant / Immune + Muscle (strong T-cell signature)
+# GVHD: ruxolitinib/belumosudil, post-transplant, clear immune signature
+# Polymyositis: muscle biopsy, T-cell infiltration, synergy with dermatomyositis
+# ============================================================
+graft_vs_host_disease|graft versus host disease|MONDO_0013730|
+polymyositis|polymyositis|EFO_0003063|
+#
+# ============================================================
+# Batch 18: Emerging high-value (strong tissue transcriptomics)
+# Sarcoidosis: lung/skin/lymph node GEO rich, granulomatous immune, A549 cell line, no drug
+# CRSwNP: nasal biopsy, Th2/eosinophilic, dupilumab/omalizumab/mepolizumab market
+# ============================================================
+sarcoidosis|sarcoidosis|MONDO_0019338|
+chronic_rhinosinusitis_np|chronic rhinosinusitis with nasal polyps|EFO_1002029|
