@@ -1,0 +1,6 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Batch2 rerun — 4 diseases that failed due to signature_meta name mismatch (fixed in runner.sh)
+systemic_sclerosis|systemic scleroderma|EFO_0000717|
+giant_cell_arteritis|temporal arteritis|EFO_1001209|
+primary_biliary_cholangitis|primary biliary cirrhosis|EFO_1001486|
+iga_nephropathy|IGA glomerulonephritis|EFO_0004194|

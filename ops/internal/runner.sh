@@ -977,19 +977,21 @@ copy_kg_manifest() {
 }
 
 # Validate gene-list JSON (used for both signature meta and sigreverse input)
-# Usage: validate_gene_json <json_path> <disease_key> <up_key> <down_key> <label>
+# Usage: validate_gene_json <json_path> <disease_key> <up_key> <down_key> <label> [<disease_query>]
 validate_gene_json() {
   local json_path="$1"
   local disease_key="$2"
   local up_key="${3:-up_genes}"
   local down_key="${4:-down_genes}"
   local label="${5:-gene json}"
-  python3 - "${json_path}" "${disease_key}" "${up_key}" "${down_key}" "${label}" <<'PY'
+  local disease_query="${6:-}"
+  python3 - "${json_path}" "${disease_key}" "${up_key}" "${down_key}" "${label}" "${disease_query}" <<'PY'
 import json, re, sys
 from pathlib import Path
 
 p = Path(sys.argv[1])
 disease_key, up_key, down_key, label = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+disease_query = sys.argv[6] if len(sys.argv) > 6 else ""
 if not p.exists():
     print(f"missing file: {p}", file=sys.stderr); raise SystemExit(2)
 obj = json.loads(p.read_text(encoding="utf-8"))
@@ -1001,21 +1003,28 @@ if not isinstance(obj.get(up_key), list) or not isinstance(obj.get(down_key), li
 if len(obj[up_key]) == 0 and len(obj[down_key]) == 0:
     print(f"{label} has empty gene lists", file=sys.stderr); raise SystemExit(6)
 norm = lambda s: "".join(w.rstrip("s") for w in re.split(r"[^a-z0-9]+", s.lower()) if w)
-kn = norm(disease_key)
 nn = norm(str(obj.get("name", "")))
+# Check disease_key and disease_query (the query name from disease list may differ from key)
+accepted = [norm(disease_key)]
+if disease_query:
+    accepted.append(norm(disease_query))
 # Short keys (<=5 chars) are abbreviations (ipf, nash, nafld) — skip substring check
-if kn and len(kn) > 5 and kn not in nn and nn not in kn:
-    print(f"{label} name mismatch: disease_key={disease_key}, name={obj.get('name')}", file=sys.stderr)
+matched = any(
+    (not kn or len(kn) <= 5 or kn in nn or nn in kn)
+    for kn in accepted
+)
+if not matched:
+    print(f"{label} name mismatch: disease_key={disease_key}, query={disease_query}, name={obj.get('name')}", file=sys.stderr)
     raise SystemExit(5)
 PY
 }
 
 validate_signature_meta_json() {
-  validate_gene_json "$1" "$2" "up_genes" "down_genes" "signature meta"
+  validate_gene_json "$1" "$2" "up_genes" "down_genes" "signature meta" "${3:-}"
 }
 
 validate_sigreverse_input_json() {
-  validate_gene_json "$1" "$2" "up" "down" "sigreverse input"
+  validate_gene_json "$1" "$2" "up" "down" "sigreverse input" "${3:-}"
 }
 
 resolve_cross_inputs() {
@@ -2015,12 +2024,12 @@ if len(obj.get('up',[])) == 0 and len(obj.get('down',[])) == 0:
   record_step_timing "signature_build"
   mark_step_done "signature_build"
 
-  if ! run_cmd "Cross: validate signature_meta" validate_signature_meta_json "${CROSS_SIGNATURE_META}" "${disease_key}"; then
+  if ! run_cmd "Cross: validate signature_meta" validate_signature_meta_json "${CROSS_SIGNATURE_META}" "${disease_key}" "${disease_query}"; then
     log "[ERROR] Cross: invalid signature meta json"
     return 1
   fi
 
-  if ! run_cmd "Cross: validate sigreverse_input" validate_sigreverse_input_json "${CROSS_SIGREVERSE_INPUT}" "${disease_key}"; then
+  if ! run_cmd "Cross: validate sigreverse_input" validate_sigreverse_input_json "${CROSS_SIGREVERSE_INPUT}" "${disease_key}" "${disease_query}"; then
     log "[ERROR] Cross: invalid sigreverse input json"
     return 1
   fi

@@ -1,0 +1,43 @@
+project:
+  name: igg4_related_disease_archs4_signature
+  outdir: outputs/igg4_related_disease
+  workdir: work/igg4_related_disease
+  seed: 42
+disease:
+  name: IgG4-related disease
+  efo_id: MONDO_0017287
+archs4:
+  h5_path: data/archs4/human_gene_v2.5.h5
+  min_samples_per_group: 3
+  max_samples_per_group: 50
+  max_series: 5
+  case_keywords:
+  - IgG4-related disease
+  - immunoglobulin G4-related sclerosing disease
+  - IgG4-related systemic disease
+  - IgG4-RD
+  - IgG4-related sclerosing disease
+  - multifocal fibrosclerosis
+  - systemic IgG4-related sclerosing syndrome
+  - IgG4-associated disease
+  - IgG4-related autoimmune disease
+  - IgG4-positive multiorgan lymphoproliferative syndrome
+  - IgG4-related systemic sclerosing disease
+  - multifocal idiopathic fibrosclerosis
+  control_keywords:
+  - normal
+  - healthy
+  - control
+opentargets:
+  min_association_score: 0.1
+de:
+  method: deseq2
+  min_count: 10
+  min_samples: 3
+meta:
+  model: DL
+  min_sign_concordance: 0.8
+  flag_i2_above: 0.75
+signature:
+  top_n: 300
+  weight_formula: meta_z_times_ot_score_times_1minusFDR

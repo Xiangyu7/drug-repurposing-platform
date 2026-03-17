@@ -1,0 +1,77 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 4 — 7 therapeutic areas, 18 diseases
+# IDs verified against OpenTargets GraphQL API (2026-03-17)
+# Principles: (1) tissue biopsy expression data available (2) immune/inflammatory
+#   signature clear (3) market size or orphan premium (4) platform methodology fit
+#
+# ============================================================
+# Batch 19: Autoimmune Renal (kidney biopsy transcriptomics, voclosporin/rituximab boom)
+# Lupus nephritis: voclosporin+belimumab $5B+ projected, subset of lupus with kidney focus
+# Membranous nephropathy: PLA2R autoantibody, rituximab, kidney biopsy GEO available
+# Minimal change disease: 免疫介导肾病, 肾活检, 补充肾病叙事
+# ============================================================
+lupus_nephritis|lupus nephritis|EFO_0005761|
+membranous_nephropathy|membranous glomerulonephritis|EFO_0004254|
+minimal_change_disease|minimal change disease|EFO_1001020|
+#
+# ============================================================
+# Batch 20: Neuroinflammatory (clear B/T-cell immune signature, NOT neurotransmitter-driven)
+# NMOSD: satralizumab/eculizumab/inebilizumab, orphan, AQP4 autoantibody + complement
+# Autoimmune encephalitis: NMDA-R抗体, CSF/脑活检, 零获批药, 免疫信号强
+# ============================================================
+nmosd|neuromyelitis optica|EFO_0004256|
+autoimmune_encephalitis|autoimmune encephalitis|MONDO_0020640|
+#
+# ============================================================
+# Batch 21: Hematologic Non-Solid (lymph node/bone marrow, orphan premium)
+# Follicular lymphoma: rituximab+lenalidomide, lymph node biopsy GEO rich, indolent NHL
+# Waldenstrom: BTK inhibitor (zanubrutinib), orphan, IgM paraprotein, bone marrow biopsy
+# ============================================================
+follicular_lymphoma|follicular lymphoma|MONDO_0018906|
+waldenstroms|Waldenstrom macroglobulinemia|EFO_0009441|
+#
+# ============================================================
+# Batch 22: Immune Rare High-Value (orphan premium, emerging indications)
+# IgG4-RD: zero approved drug, tissue biopsy (salivary/pancreas), first-mover advantage
+# CSU: omalizumab/ligelizumab $3B+, mast cell/IgE signature, skin biopsy
+# EGPA: mepolizumab approved, eosinophilic + vasculitis, lung/tissue biopsy
+# ============================================================
+igg4_related_disease|IgG4-related disease|MONDO_0017287|
+chronic_spontaneous_urticaria|chronic spontaneous urticaria|MONDO_0044212|
+egpa|eosinophilic granulomatosis with polyangiitis|EFO_0007208|
+#
+# ============================================================
+# Batch 23: GI Immune + Systemic (组织活检丰富, 免疫介导)
+# Microscopic colitis: 结肠活检GEO有, 布地奈德依赖, 免疫介导, 未满足需求
+# Endometriosis: 子宫内膜活检GEO极丰富, elagolix市场, 巨大未满足需求
+# Adult Still's: systemic IL-1/IL-6 inflammation, canakinumab/anakinra, blood transcriptomics
+# ============================================================
+microscopic_colitis|microscopic colitis|EFO_1001295|
+endometriosis|endometriosis|EFO_0001065|
+adult_onset_stills_disease|adult-onset Still disease|EFO_0007135|
+#
+# ============================================================
+# Batch 24: Hepatobiliary + Blood Rare (complement existing liver/blood narrative)
+# PSC: zero approved drug, liver biopsy, complements PBC+NASH, ursodiol-refractory
+# Behcet: mucosal/skin biopsy, immune-mediated vasculitis, apremilast approved
+# Aplastic anemia: immune-mediated, bone marrow biopsy, eltrombopag+ATG, orphan
+# ============================================================
+primary_sclerosing_cholangitis|primary sclerosing cholangitis|EFO_0004268|
+behcets_disease|Behcet disease|EFO_0003780|
+aplastic_anemia|aplastic anemia|MONDO_0015909|
+#
+# ============================================================
+# Batch 25: Skin/Immune + Vasculitis (皮肤/口腔活检GEO丰富, T细胞/免疫复合物)
+# Lichen planus: 皮肤/口腔活检GEO丰富, T细胞介导, 零系统性获批药
+# IgA vasculitis (HSP): 皮肤/肾活检, 免疫复合物, 儿童+成人, 无获批药
+# ============================================================
+lichen_planus|lichen planus|EFO_1000726|
+iga_vasculitis|IgA vasculitis|EFO_1000965|
+#
+# ============================================================
+# Batch 26: Oncology (大癌种, KG路径多需大内存, 从batch2 OOM重跑)
+# Hepatocellular carcinoma: sorafenib/lenvatinib, liver biopsy GEO丰富
+# Ovarian cancer: PARP抑制剂/贝伐珠单抗, 术后组织GEO丰富
+# ============================================================
+hepatocellular_carcinoma|hepatocellular carcinoma|EFO_0000182|
+ovarian_cancer|ovarian cancer|EFO_0001071|

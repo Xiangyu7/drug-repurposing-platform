@@ -150,6 +150,56 @@ EXTRA_KEYWORDS = {
                     "noncaseating granuloma", "pulmonary sarcoidosis"],
     "chronic_rhinosinusitis_np": ["CRSwNP", "nasal polyps", "nasal polyposis",
                                   "chronic sinusitis", "eosinophilic sinusitis"],
+    # --- Commercial Batch 4 ---
+    # Autoimmune renal
+    "lupus_nephritis": ["lupus nephritis", "lupus kidney", "lupus glomerulonephritis",
+                        "class IV nephritis", "proliferative nephritis", "LN"],
+    "membranous_nephropathy": ["membranous nephropathy", "membranous glomerulonephritis",
+                               "PLA2R", "podocyte", "nephrotic syndrome"],
+    "minimal_change_disease": ["minimal change disease", "MCD", "lipoid nephrosis",
+                               "nephrotic syndrome", "podocyte effacement"],
+    # Neuroinflammatory
+    "nmosd": ["NMOSD", "neuromyelitis optica", "Devic disease", "aquaporin-4",
+              "AQP4 antibody", "optic neuritis"],
+    "autoimmune_encephalitis": ["autoimmune encephalitis", "anti-NMDAR encephalitis",
+                                "NMDA receptor", "limbic encephalitis", "anti-LGI1",
+                                "anti-NMDA receptor", "encephalitis autoimmune",
+                                "paraneoplastic encephalitis", "anti-CASPR2", "brain inflammation"],
+    # Hematologic non-solid
+    "follicular_lymphoma": ["follicular lymphoma", "FL", "indolent lymphoma",
+                            "follicle center lymphoma", "germinal center B-cell"],
+    "waldenstroms": ["Waldenstrom", "WM", "lymphoplasmacytic lymphoma", "LPL",
+                     "IgM paraprotein", "MYD88"],
+    # Immune rare high-value
+    "igg4_related_disease": ["IgG4", "IgG4-related", "IgG4-RD", "sclerosing disease",
+                             "autoimmune pancreatitis", "Mikulicz disease"],
+    "chronic_spontaneous_urticaria": ["CSU", "chronic urticaria", "chronic idiopathic urticaria",
+                                      "spontaneous urticaria", "mast cell", "antihistamine-refractory"],
+    "egpa": ["EGPA", "Churg-Strauss", "eosinophilic granulomatosis", "eosinophilic vasculitis",
+             "hypereosinophilic", "allergic granulomatosis"],
+    # GI + systemic
+    "microscopic_colitis": ["microscopic colitis", "collagenous colitis", "lymphocytic colitis",
+                            "watery diarrhea", "subepithelial collagen",
+                            "MC colitis", "incomplete microscopic colitis",
+                            "chronic watery diarrhea", "colonic inflammation"],
+    "endometriosis": ["endometriosis", "endometrioma", "ectopic endometrium",
+                      "endometrial lesion", "adenomyosis", "pelvic pain"],
+    "adult_onset_stills_disease": ["AOSD", "adult Still", "Stills disease", "adult-onset Still",
+                                   "quotidian fever", "ferritin", "macrophage activation"],
+    # Hepatobiliary + blood rare
+    "primary_sclerosing_cholangitis": ["PSC", "sclerosing cholangitis", "biliary stricture",
+                                       "cholestatic", "bile duct inflammation"],
+    "behcets_disease": ["Behcet", "Behcets", "Behcet syndrome", "oral ulcer vasculitis",
+                        "mucocutaneous", "silk road disease"],
+    "aplastic_anemia": ["aplastic anemia", "bone marrow failure", "pancytopenia",
+                        "hypoplastic anemia", "immune-mediated aplastic",
+                        "acquired aplastic anemia", "severe aplastic anemia",
+                        "hematopoietic failure", "marrow aplasia", "SAA"],
+    # Skin/immune + vasculitis
+    "lichen_planus": ["lichen planus", "oral lichen planus", "lichenoid",
+                      "cutaneous lichen planus", "mucosal lichen planus"],
+    "iga_vasculitis": ["IgA vasculitis", "Henoch-Schonlein", "HSP", "Henoch Schonlein purpura",
+                       "IgA immune complex", "leukocytoclastic vasculitis"],
 }
 
 
