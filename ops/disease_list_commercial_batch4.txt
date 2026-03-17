@@ -69,7 +69,21 @@ lichen_planus|lichen planus|EFO_1000726|
 iga_vasculitis|IgA vasculitis|EFO_1000965|
 #
 # ============================================================
-# Batch 26: Oncology (大癌种, KG路径多需大内存, 从batch2 OOM重跑)
+# Batch 26: Batch3 漏跑 (SigReverse autoimmune routing已覆盖, 从batch3补跑)
+# Dermatomyositis: orphan, muscle biopsy, IFN-I signature, 零系统性获批药 → S级
+# Polymyositis: muscle biopsy, T-cell infiltration, 零获批药 → S级
+# Hidradenitis suppurativa: adalimumab/secukinumab, skin biopsy, 大市场 → B级
+# GvHD: ruxolitinib/ibrutinib, 骨髓/皮肤活检, 孤儿药 → A级
+# CRSwNP: dupilumab/omalizumab/mepolizumab, nasal biopsy, Th2信号强 → B级
+# ============================================================
+dermatomyositis|dermatomyositis|EFO_0000398|
+polymyositis|polymyositis|EFO_0003063|
+hidradenitis_suppurativa|hidradenitis suppurativa|EFO_1000710|
+graft_vs_host_disease|graft versus host disease|MONDO_0013730|
+chronic_rhinosinusitis_np|chronic rhinosinusitis with nasal polyps|EFO_1002029|
+#
+# ============================================================
+# Batch 27: Oncology (大癌种, KG路径多需大内存, 从batch2 OOM重跑)
 # Hepatocellular carcinoma: sorafenib/lenvatinib, liver biopsy GEO丰富
 # Ovarian cancer: PARP抑制剂/贝伐珠单抗, 术后组织GEO丰富
 # ============================================================
