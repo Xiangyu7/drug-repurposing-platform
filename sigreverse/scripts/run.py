@@ -72,6 +72,7 @@ AUTOIMMUNE_KEYWORDS = [
     "uveitis", "alopecia_areata", "vitiligo", "sarcoidosis",
     "graft_versus_host", "gvhd",
     "arteritis", "cholangitis", "eosinophilic",
+    "myositis", "hidradenitis", "graft versus host", "sinusitis",
 ]
 
 ATHEROSCLEROSIS_KEYWORDS = [
