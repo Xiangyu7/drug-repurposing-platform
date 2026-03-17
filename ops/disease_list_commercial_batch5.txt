@@ -1,0 +1,54 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 5 — S-tier only (零获批药 + first-mover advantage)
+# IDs verified against OpenTargets GraphQL API (2026-03-17)
+# Selection criteria: (1) zero FDA-approved systemic drug (2) tissue biopsy GEO available
+#   (3) clear immune/inflammatory signature (4) meaningful patient population
+#
+# ============================================================
+# Batch 28: Skin/Mucosal Autoimmune S-tier (皮肤活检GEO极丰富, T细胞/纤维化)
+# Lichen sclerosus: 零系统性获批药, 外阴/皮肤活检, T细胞+纤维化, 1-3%女性, 巨大未满足需求
+# Morphea: 零系统性获批药, 皮肤活检, 免疫纤维化, 与SSc互补叙事
+# Cutaneous lupus: 零系统性获批药(仅外用), 皮肤活检, IFN signature, 与lupus互补
+# Pyoderma gangrenosum: 零获批药, 皮肤活检, 中性粒/免疫介导, 常伴IBD
+# ============================================================
+lichen_sclerosus|lichen sclerosus et atrophicus|MONDO_0007899|
+morphea|localised scleroderma|EFO_1001361|
+cutaneous_lupus|cutaneous lupus erythematosus|EFO_0003834|
+pyoderma_gangrenosum|pyoderma gangrenosum|EFO_0006835|
+#
+# ============================================================
+# Batch 29: Inflammatory Myopathy S-tier (肌肉活检GEO有, 与DM/PM互补)
+# Inclusion body myositis: 零获批药, 肌肉活检, 炎症+退行性, orphan, 与DM/PM协同
+# ============================================================
+inclusion_body_myositis|inclusion body myositis|EFO_0007323|
+#
+# ============================================================
+# Batch 30: GI Immune S-tier (GI活检GEO可用, 嗜酸/自免介导)
+# Eosinophilic gastroenteritis: 零获批药(dupilumab仅EoE), GI活检, 嗜酸信号, 与EoE互补
+# Autoimmune gastritis: 零获批药, 胃活检, 壁细胞自免破坏, 2-5%患病率
+# Pouchitis: 零获批药(仅off-label), 回肠储袋活检, UC术后炎症, 患者群持续增长
+# ============================================================
+eosinophilic_gastroenteritis|eosinophilic gastroenteritis|MONDO_0016129|
+autoimmune_gastritis|autoimmune gastritis|MONDO_0031014|
+pouchitis|pouchitis|EFO_0003921|
+#
+# ============================================================
+# Batch 31: Urological S-tier (膀胱活检, 肥大细胞/免疫介导)
+# Interstitial cystitis: pentosan polysulfate名义获批但视网膜毒性+差疗效, 功能性零治疗
+#   3-8M美国患者, 膀胱活检, 肥大细胞/免疫浸润, 巨大未满足需求
+# ============================================================
+interstitial_cystitis|interstitial cystitis|EFO_0008507|
+#
+# ============================================================
+# Batch 32: Autoimmune Bullous/Mucosal S-tier (黏膜活检, 与pemphigus互补)
+# Mucous membrane pemphigoid: 零获批药, 黏膜活检, 自免水疱病, 与pemphigus协同
+# ============================================================
+mucous_membrane_pemphigoid|mucous membrane pemphigoid|EFO_1000680|
+#
+# ============================================================
+# Batch 33: Autoimmune Rare S-tier (IgG4/软骨自免, orphan premium)
+# Autoimmune pancreatitis: 零获批药, 胰腺活检, IgG4重叠, 与IgG4-RD互补叙事
+# Relapsing polychondritis: 零获批药, 软骨/耳活检, 罕见自免, orphan
+# ============================================================
+autoimmune_pancreatitis|autoimmune pancreatitis|MONDO_0015175|
+relapsing_polychondritis|relapsing polychondritis|EFO_1001148|

@@ -200,6 +200,39 @@ EXTRA_KEYWORDS = {
                       "cutaneous lichen planus", "mucosal lichen planus"],
     "iga_vasculitis": ["IgA vasculitis", "Henoch-Schonlein", "HSP", "Henoch Schonlein purpura",
                        "IgA immune complex", "leukocytoclastic vasculitis"],
+    # --- Commercial Batch 5 (S-tier, zero approved drug) ---
+    # Skin/mucosal autoimmune
+    "lichen_sclerosus": ["lichen sclerosus", "vulvar lichen sclerosus", "BXO",
+                         "balanitis xerotica obliterans", "genital lichen sclerosus",
+                         "vulvar sclerosis", "vulvar dermatosis"],
+    "morphea": ["morphea", "localized scleroderma", "localised scleroderma",
+                "linear scleroderma", "circumscribed scleroderma", "skin fibrosis"],
+    "cutaneous_lupus": ["CLE", "cutaneous lupus", "discoid lupus", "discoid lupus erythematosus",
+                        "subacute cutaneous lupus", "SCLE", "DLE", "lupus skin"],
+    "pyoderma_gangrenosum": ["pyoderma gangrenosum", "neutrophilic dermatosis",
+                             "ulcerative dermatosis", "PG skin"],
+    # Inflammatory myopathy
+    "inclusion_body_myositis": ["IBM", "inclusion body myositis", "sporadic inclusion body myositis",
+                                "inflammatory myopathy", "rimmed vacuole myopathy"],
+    # GI immune
+    "eosinophilic_gastroenteritis": ["EGE", "eosinophilic gastritis", "eosinophilic enteritis",
+                                     "gastrointestinal eosinophilia", "eosinophilic GI disorder"],
+    "autoimmune_gastritis": ["autoimmune gastritis", "autoimmune atrophic gastritis",
+                             "type A gastritis", "pernicious anemia", "parietal cell antibody",
+                             "atrophic gastritis autoimmune"],
+    "pouchitis": ["pouchitis", "ileal pouch inflammation", "IPAA inflammation",
+                  "ileoanal pouch", "j-pouch inflammation", "pouch colitis"],
+    # Urological
+    "interstitial_cystitis": ["interstitial cystitis", "bladder pain syndrome", "IC/BPS",
+                              "painful bladder syndrome", "Hunner lesion", "Hunner ulcer"],
+    # Autoimmune bullous
+    "mucous_membrane_pemphigoid": ["MMP", "cicatricial pemphigoid", "mucous membrane pemphigoid",
+                                   "ocular cicatricial pemphigoid", "benign mucous membrane pemphigoid"],
+    # Autoimmune rare
+    "autoimmune_pancreatitis": ["AIP", "autoimmune pancreatitis", "IgG4 pancreatitis",
+                                "lymphoplasmacytic sclerosing pancreatitis", "type 1 AIP"],
+    "relapsing_polychondritis": ["relapsing polychondritis", "chondritis", "auricular chondritis",
+                                 "cartilage inflammation", "nasal chondritis"],
 }
 
 

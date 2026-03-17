@@ -73,6 +73,8 @@ AUTOIMMUNE_KEYWORDS = [
     "graft_versus_host", "gvhd",
     "arteritis", "cholangitis", "eosinophilic",
     "myositis", "hidradenitis", "graft versus host", "sinusitis",
+    "lichen_sclerosus", "lichen sclerosus", "pyoderma", "pouchitis",
+    "cystitis", "pemphigoid", "polychondritis", "morphea",
 ]
 
 ATHEROSCLEROSIS_KEYWORDS = [
