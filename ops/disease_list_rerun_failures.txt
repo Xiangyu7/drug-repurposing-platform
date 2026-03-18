@@ -1,0 +1,14 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Rerun: failed diseases from batch2_rerun + batch3 + batch4 (2026-03-16 ~ 2026-03-18)
+#
+# --- batch2_rerun failure: LINCS API ChunkedEncodingError (网络问题, 重跑应OK) ---
+systemic_sclerosis|systemic scleroderma|EFO_0000717|
+#
+# --- batch3 failures: ARCHS4 无样本 ---
+myasthenia_gravis|myasthenia gravis|EFO_0004991|
+pemphigus|pemphigus|EFO_1000749|
+#
+# --- batch4 failures: ARCHS4 无样本 ---
+autoimmune_encephalitis|autoimmune encephalitis|MONDO_0020640|
+waldenstroms|Waldenstrom macroglobulinemia|EFO_0009441|
+polymyositis|polymyositis|EFO_0003063|
