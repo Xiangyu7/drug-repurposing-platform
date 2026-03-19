@@ -1,0 +1,90 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 7 — 10 therapeutic areas, 25 diseases
+# All IDs verified against OpenTargets GraphQL API (2026-03-19)
+# S级基本扫完, 本batch以A级orphan + B级大市场 + 肿瘤扩展为主
+# Principles: (1) tissue biopsy expression data available (2) immune/inflammatory
+#   signature clear (3) market size or orphan premium (4) platform methodology fit
+#
+# ============================================================
+# Connective Tissue / Overlap Autoimmune S/A-tier
+# Antisynthetase syndrome: 零获批药, 肌肉+肺活检, anti-Jo-1/IFN信号, 与DM/PM协同
+# MCTD: overlap lupus/SSc/PM, 皮肤/肌肉活检, 免疫信号丰富, A级
+# ============================================================
+antisynthetase_syndrome|antisynthetase syndrome|EFO_1001982|
+mixed_connective_tissue_disease|mixed connective tissue disease|EFO_0007374|
+#
+# ============================================================
+# Fibrotic/Scarring Immune S-tier (零系统性获批药, 纤维化+免疫)
+# Keloid: 零系统性获批药, 皮肤活检GEO极丰富, 纤维化+免疫, 大患者群(尤其深肤色人群)
+# Oral submucous fibrosis: 零获批药, 口腔活检, 纤维化+免疫, 亚洲5M+患者
+# Uterine fibroids: elagolix/relugolix仅控制症状, 子宫肌层GEO可用, 26M美国女性, B级
+# ============================================================
+keloid|keloid|EFO_0004212|
+oral_submucous_fibrosis|oral submucous fibrosis|EFO_1001818|
+uterine_fibroids|uterine fibroid|EFO_0000731|
+#
+# ============================================================
+# Hematologic Autoimmune S/A-tier (血液=靶组织, 自抗体介导)
+# Antiphospholipid syndrome: 血栓+自抗体, 血液转录组, Hughes syndrome, A级
+# Evans syndrome: 零获批药, AIHA+ITP联合, 血液=组织, orphan, S级
+# Cryoglobulinemic vasculitis: 补体+免疫复合物血管炎, 补充vasculitis谱系
+# ============================================================
+antiphospholipid_syndrome|antiphospholipid syndrome|EFO_0002689|
+evans_syndrome|Evans syndrome|MONDO_0016030|
+cryoglobulinemic_vasculitis|cryoglobulinemia|EFO_0005846|
+#
+# ============================================================
+# Endocrine Autoimmune B-tier (甲状腺/胰岛活检GEO丰富, 大患者群)
+# Hashimoto: 甲状腺活检GEO极丰富, 5-10%患病率, 自免甲状腺炎, 大市场
+# Type 1 diabetes: 胰岛自免破坏, teplizumab先例, 免疫调节方向
+# ============================================================
+hashimoto_thyroiditis|Hashimoto thyroiditis|EFO_0003779|
+type_1_diabetes|type 1 diabetes mellitus|MONDO_0005147|
+#
+# ============================================================
+# Ophthalmologic / 多系统Immune A/B-tier
+# Autoimmune uveitis: adalimumab获批, 葡萄膜/视网膜免疫浸润, B级
+# VKH: 自免黑素细胞攻击, 葡萄膜炎+皮肤+CNS, T细胞介导, orphan, A级
+# Dry eye disease: 16M+美国患者, 眼表免疫, 与Sjögren's互补, lifitegrast/cyclosporine不够
+# ============================================================
+autoimmune_uveitis|autoimmune uveitis|MONDO_0031012|
+vogt_koyanagi_harada|Vogt-Koyanagi-Harada disease|MONDO_0018092|
+dry_eye_disease|dry eye syndrome|EFO_1000906|
+#
+# ============================================================
+# Dermatologic Immune S/A/B-tier (皮肤活检GEO丰富)
+# Granuloma annulare: 零获批药, 皮肤活检, 肉芽肿免疫, S级
+# Prurigo nodularis: dupilumab/nemolizumab, 皮肤活检, 神经-免疫, B级
+# Rosacea: 16M美国患者, 皮肤活检GEO丰富, 先天免疫(cathelicidin/TLR2), 现有药差, B级
+# Dermatitis herpetiformis: IgA+中性粒浸润, 皮肤活检, celiac皮肤表现, 与celiac互补, A级
+# ============================================================
+granuloma_annulare|granuloma annulare|EFO_1000704|
+prurigo_nodularis|prurigo nodularis|MONDO_0026045|
+rosacea|rosacea|EFO_1000760|
+dermatitis_herpetiformis|dermatitis herpetiformis|EFO_1000684|
+#
+# ============================================================
+# Neuro-Immune Rare A-tier (自抗体介导, orphan)
+# Stiff person syndrome: GAD自抗体, 零获批药, 罕见自免, 高关注度, A级
+# Lambert-Eaton: VGCC自抗体, amifampridine orphan, 神经肌肉接头, A级
+# ============================================================
+stiff_person_syndrome|stiff-person syndrome|EFO_0007498|
+lambert_eaton|Lambert-Eaton myasthenic syndrome|EFO_0020094|
+#
+# ============================================================
+# GI / Obstetric Immune B-tier (组织活检GEO丰富, 大未满足需求)
+# Chronic pancreatitis: 胰腺活检, 纤维化+炎症, 补充AIP叙事, B级
+# Preeclampsia: 胎盘活检GEO极丰富, 免疫/血管介导, 巨大未满足需求
+# ============================================================
+chronic_pancreatitis|chronic pancreatitis|EFO_0000342|
+preeclampsia|preeclampsia|EFO_0000668|
+#
+# ============================================================
+# Oncology扩展 (肿瘤微环境signature, 免疫治疗时代高价值)
+# Mesothelioma: 胸膜活检GEO可用, 石棉相关, orphan, 免疫检查点时代新靶点
+# Bladder cancer: 免疫治疗一线, 肿瘤活检GEO极丰富, PD-L1/免疫浸润
+# Endometrial cancer: 免疫治疗+PARP抑制剂市场, 肿瘤GEO丰富, MSI-H
+# ============================================================
+mesothelioma|mesothelioma|EFO_0000588|
+bladder_cancer|urothelial carcinoma|EFO_0008528|
+endometrial_cancer|endometrial carcinoma|EFO_1001512|

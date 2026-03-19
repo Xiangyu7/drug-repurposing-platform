@@ -233,6 +233,127 @@ EXTRA_KEYWORDS = {
                                 "lymphoplasmacytic sclerosing pancreatitis", "type 1 AIP"],
     "relapsing_polychondritis": ["relapsing polychondritis", "chondritis", "auricular chondritis",
                                  "cartilage inflammation", "nasal chondritis"],
+    # --- Commercial Batch 6 (S/A/B-tier, 7 therapeutic areas) ---
+    # Autoimmune renal
+    "fsgs": ["FSGS", "focal segmental glomerulosclerosis", "focal glomerulosclerosis",
+             "podocyte injury", "nephrotic syndrome FSGS", "focal sclerosis glomerular"],
+    "c3_glomerulopathy": ["C3 glomerulopathy", "C3GN", "C3 glomerulonephritis",
+                          "dense deposit disease", "DDD", "complement glomerulonephritis",
+                          "membranoproliferative glomerulonephritis complement"],
+    # Autoimmune bullous
+    "bullous_pemphigoid": ["bullous pemphigoid", "BP180", "BP230", "pemphigoid",
+                           "subepidermal blistering", "autoimmune blistering skin"],
+    "linear_iga_disease": ["linear IgA disease", "linear IgA dermatosis", "LAD",
+                           "linear IgA bullous dermatosis", "chronic bullous disease childhood"],
+    "epidermolysis_bullosa_acquisita": ["EBA", "epidermolysis bullosa acquisita",
+                                        "acquired epidermolysis bullosa", "type VII collagen autoimmune",
+                                        "mechanobullous disease"],
+    # Vasculitis
+    "granulomatosis_with_polyangiitis": ["GPA", "granulomatosis with polyangiitis",
+                                         "Wegener granulomatosis", "Wegener's granulomatosis",
+                                         "ANCA vasculitis granulomatous", "PR3 vasculitis"],
+    "polyarteritis_nodosa": ["PAN", "polyarteritis nodosa", "panarteritis nodosa",
+                              "periarteritis nodosa", "necrotizing arteritis medium vessel"],
+    "takayasu_arteritis": ["Takayasu arteritis", "Takayasu's arteritis", "TAK",
+                           "aortic arch syndrome", "pulseless disease", "aortitis"],
+    # Neuro-immune
+    "cidp": ["CIDP", "chronic inflammatory demyelinating polyneuropathy",
+             "chronic inflammatory demyelinating polyradiculoneuropathy",
+             "demyelinating neuropathy", "inflammatory neuropathy"],
+    "autoimmune_hemolytic_anemia": ["AIHA", "autoimmune hemolytic anemia",
+                                    "warm autoimmune hemolytic anemia", "cold agglutinin disease",
+                                    "autoimmune hemolysis", "Coombs positive anemia"],
+    # Endocrine/orbital immune
+    "thyroid_eye_disease": ["TED", "thyroid eye disease", "Graves ophthalmopathy",
+                            "Graves orbitopathy", "thyroid-associated orbitopathy", "TAO",
+                            "thyroid associated ophthalmopathy"],
+    "graves_disease": ["Graves disease", "Graves' disease", "Basedow disease",
+                       "toxic diffuse goiter", "autoimmune hyperthyroidism",
+                       "thyroid stimulating immunoglobulin"],
+    # Rare hematologic/immune
+    "systemic_mastocytosis": ["systemic mastocytosis", "SM", "mast cell disease",
+                               "mastocytosis systemic", "KIT D816V", "mast cell neoplasm"],
+    "castleman_disease": ["Castleman disease", "Castleman's disease", "MCD",
+                          "multicentric Castleman", "angiofollicular lymph node hyperplasia",
+                          "hyaline vascular Castleman"],
+    # Large market
+    "diabetic_nephropathy": ["diabetic nephropathy", "diabetic kidney disease", "DKD",
+                              "diabetic glomerulosclerosis", "Kimmelstiel-Wilson",
+                              "diabetes renal", "diabetic renal disease"],
+    # --- Commercial Batch 7 (S/A/B-tier, 8 therapeutic areas) ---
+    # Connective tissue / overlap
+    "antisynthetase_syndrome": ["antisynthetase syndrome", "anti-Jo-1 syndrome", "anti-Jo1",
+                                 "ASyS", "anti-synthetase", "inflammatory myopathy anti-Jo"],
+    "mixed_connective_tissue_disease": ["MCTD", "mixed connective tissue disease",
+                                         "Sharp syndrome", "overlap syndrome",
+                                         "undifferentiated connective tissue disease"],
+    # Fibrotic/scarring
+    "keloid": ["keloid", "keloid scar", "hypertrophic scar", "keloid fibroblast",
+               "pathological scarring", "keloid formation"],
+    "oral_submucous_fibrosis": ["OSMF", "oral submucous fibrosis", "oral submucosal fibrosis",
+                                 "submucous fibrosis", "betel nut fibrosis", "areca nut fibrosis"],
+    # Hematologic autoimmune
+    "antiphospholipid_syndrome": ["APS", "antiphospholipid syndrome", "lupus anticoagulant",
+                                   "anticardiolipin", "anti-beta2 glycoprotein",
+                                   "Hughes syndrome", "aPL antibody"],
+    "evans_syndrome": ["Evans syndrome", "AIHA ITP", "autoimmune pancytopenia",
+                       "immune bicytopenia", "Evans syndrome autoimmune"],
+    "cryoglobulinemic_vasculitis": ["cryoglobulinemia", "cryoglobulinemic vasculitis",
+                                    "mixed cryoglobulinemia", "cryoglobulin",
+                                    "essential cryoglobulinemia", "HCV vasculitis"],
+    # Endocrine autoimmune
+    "hashimoto_thyroiditis": ["Hashimoto thyroiditis", "Hashimoto's thyroiditis",
+                               "lymphocytic thyroiditis", "autoimmune thyroiditis",
+                               "chronic lymphocytic thyroiditis", "Hashimoto disease"],
+    "type_1_diabetes": ["T1D", "type 1 diabetes", "IDDM", "insulin dependent diabetes",
+                        "autoimmune diabetes", "juvenile diabetes", "islet autoimmunity",
+                        "beta cell autoimmune"],
+    # Ophthalmologic
+    "autoimmune_uveitis": ["autoimmune uveitis", "non-infectious uveitis", "uveitis",
+                            "anterior uveitis", "panuveitis", "uveal inflammation",
+                            "intraocular inflammation"],
+    # Dermatologic
+    "granuloma_annulare": ["granuloma annulare", "GA skin", "granulomatous dermatosis",
+                           "palisading granuloma", "annular granuloma"],
+    "prurigo_nodularis": ["prurigo nodularis", "PN", "nodular prurigo",
+                          "chronic prurigo", "prurigo nodularis Hyde"],
+    # GI / Obstetric
+    "chronic_pancreatitis": ["chronic pancreatitis", "recurrent pancreatitis",
+                              "calcific pancreatitis", "pancreatic fibrosis",
+                              "chronic relapsing pancreatitis"],
+    "preeclampsia": ["preeclampsia", "pre-eclampsia", "toxemia of pregnancy",
+                     "gestational hypertension", "HELLP", "eclampsia",
+                     "hypertensive disorder of pregnancy"],
+    # --- Commercial Batch 7 expansion ---
+    # Ophthalmologic / multi-system
+    "vogt_koyanagi_harada": ["VKH", "Vogt-Koyanagi-Harada", "VKH disease",
+                              "panuveitis melanocyte", "sympathetic ophthalmia",
+                              "autoimmune melanocyte"],
+    "dry_eye_disease": ["dry eye", "dry eye disease", "DED", "keratoconjunctivitis sicca",
+                        "tear film dysfunction", "meibomian gland dysfunction",
+                        "ocular surface disease"],
+    # Fibrotic expansion
+    "uterine_fibroids": ["uterine fibroid", "leiomyoma", "myoma uteri", "uterine myoma",
+                          "fibroid uterus", "uterine leiomyoma"],
+    # Dermatologic expansion
+    "rosacea": ["rosacea", "acne rosacea", "erythematotelangiectatic rosacea",
+                "papulopustular rosacea", "rhinophyma", "ocular rosacea"],
+    "dermatitis_herpetiformis": ["dermatitis herpetiformis", "Duhring disease",
+                                  "DH celiac skin", "IgA dermatitis",
+                                  "gluten-sensitive enteropathy skin"],
+    # Neuro-immune rare
+    "stiff_person_syndrome": ["SPS", "stiff person syndrome", "stiff-man syndrome",
+                               "GAD antibody syndrome", "anti-GAD65",
+                               "autoimmune stiffness"],
+    "lambert_eaton": ["LEMS", "Lambert-Eaton", "Lambert-Eaton myasthenic syndrome",
+                      "VGCC antibody", "presynaptic neuromuscular junction"],
+    # Oncology expansion
+    "mesothelioma": ["mesothelioma", "malignant mesothelioma", "pleural mesothelioma",
+                     "peritoneal mesothelioma", "MPM", "asbestos cancer"],
+    "bladder_cancer": ["urothelial carcinoma", "bladder cancer", "transitional cell carcinoma",
+                       "TCC bladder", "urothelial bladder cancer", "muscle-invasive bladder"],
+    "endometrial_cancer": ["endometrial cancer", "endometrial carcinoma", "uterine cancer",
+                           "endometrial adenocarcinoma", "uterine corpus cancer"],
 }
 
 

@@ -1,0 +1,43 @@
+project:
+  name: castleman_disease_archs4_signature
+  outdir: outputs/castleman_disease
+  workdir: work/castleman_disease
+  seed: 42
+disease:
+  name: Castleman disease
+  efo_id: MONDO_0015564
+archs4:
+  h5_path: data/archs4/human_gene_v2.5.h5
+  min_samples_per_group: 3
+  max_samples_per_group: 50
+  max_series: 5
+  case_keywords:
+  - Castleman disease
+  - angiofollicular lymphoid hyperplasia
+  - angiofollicular lymph node hyperplasia
+  - AFLH
+  - Castleman's tumour
+  - Castleman's disease
+  - Castleman's tumor
+  - GLNH
+  - angiofollicular ganglionic hyperplasia
+  - angiofollicular lymph hyperplasia
+  - giant lymph node hyperplasia
+  - lymphoid hamartoma
+  control_keywords:
+  - normal
+  - healthy
+  - control
+opentargets:
+  min_association_score: 0.1
+de:
+  method: deseq2
+  min_count: 10
+  min_samples: 3
+meta:
+  model: DL
+  min_sign_concordance: 0.8
+  flag_i2_above: 0.75
+signature:
+  top_n: 300
+  weight_formula: meta_z_times_ot_score_times_1minusFDR

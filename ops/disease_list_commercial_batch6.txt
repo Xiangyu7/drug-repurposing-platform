@@ -1,0 +1,64 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 6 — 7 therapeutic areas, 16 diseases
+# All IDs verified against OpenTargets GraphQL API (2026-03-19)
+# Principles: (1) tissue biopsy expression data available (2) immune/inflammatory
+#   signature clear (3) market size or orphan premium (4) platform methodology fit
+#
+# ============================================================
+# Autoimmune Renal S-tier (零获批药, 补充batch4 LN/MN/MCD肾病叙事)
+# FSGS: 零获批药(sparsentan仅IgAN), 肾活检GEO可用, 足细胞+免疫损伤, 美国~40K患者
+# C3 glomerulopathy: 零获批药, 补体介导, 肾活检, orphan, 补体抑制剂市场兴起
+# ============================================================
+fsgs|focal segmental glomerulosclerosis|EFO_0004236|
+c3_glomerulopathy|C3 glomerulonephritis|MONDO_0013892|
+#
+# ============================================================
+# Autoimmune Bullous扩展 (皮肤活检GEO丰富, 补充pemphigus/MMP叙事)
+# Bullous pemphigoid: 皮肤活检GEO极丰富, 补体+嗜酸+IgG自免, 老年大患者群
+# Linear IgA disease: 零获批药, 皮肤活检, IgA介导水疱, orphan
+# Epidermolysis bullosa acquisita: 零获批药, VII型胶原自抗体, 皮肤活检, orphan
+# ============================================================
+bullous_pemphigoid|bullous pemphigoid|EFO_0007187|
+linear_iga_disease|linear IgA dermatosis|EFO_0009313|
+epidermolysis_bullosa_acquisita|epidermolysis bullosa acquisita|EFO_1000691|
+#
+# ============================================================
+# Vasculitis扩展 (补充ANCA/GCA/EGPA/IgA-V叙事, 全覆盖血管炎谱系)
+# GPA (Wegener's): rituximab+avacopan $600M+, ANCA阳性, 肺/肾活检, 与ANCA vasculitis互补
+# Polyarteritis nodosa: 零获批药, 中血管炎, 皮肤/肾/神经活检, orphan
+# Takayasu arteritis: 零获批药, 大血管炎, 动脉壁免疫浸润, tocilizumab off-label
+# ============================================================
+granulomatosis_with_polyangiitis|granulomatosis with polyangiitis|EFO_0005297|
+polyarteritis_nodosa|polyarteritis nodosa|MONDO_0019170|
+takayasu_arteritis|Takayasu arteritis|EFO_1001857|
+#
+# ============================================================
+# Neuro-Immune S/A-tier (补充NMOSD/AIE叙事, 抗体介导)
+# CIDP: IVIG/血浆置换~$100K/yr, 功能性零获批药, 神经活检, 慢性免疫脱髓鞘
+# Autoimmune hemolytic anemia: 血液=靶组织, 自抗体+补体介导, orphan
+# ============================================================
+cidp|chronic inflammatory demyelinating polyneuropathy|EFO_0009538|
+autoimmune_hemolytic_anemia|autoimmune hemolytic anemia|EFO_1001264|
+#
+# ============================================================
+# 内分泌/眼眶免疫 A-tier (teprotumumab $2B+市场, 组织GEO可用)
+# Thyroid eye disease: teprotumumab $300K+/yr, 眼眶脂肪/肌肉GEO, IGF-1R+T细胞浸润
+# Graves disease: 甲状腺活检GEO丰富, TSH-R自抗体+淋巴细胞浸润, 大市场
+# ============================================================
+thyroid_eye_disease|Graves ophthalmopathy|EFO_1001466|
+graves_disease|Graves disease|EFO_0004237|
+#
+# ============================================================
+# 罕见血液/免疫 A-tier (orphan定价, 骨髓/淋巴结活检)
+# Systemic mastocytosis: avapritinib/midostaurin, 骨髓活检, KIT+肥大细胞, orphan
+# Castleman disease (MCD): siltuximab orphan, IL-6驱动, 淋巴结活检GEO可用
+# ============================================================
+systemic_mastocytosis|systemic mastocytosis|MONDO_0016586|
+castleman_disease|Castleman disease|MONDO_0015564|
+#
+# ============================================================
+# 大市场 B-tier (现有药不够好, 组织活检GEO丰富)
+# Diabetic nephropathy: ~15M美国患者, 肾活检GEO可用, 免疫+代谢+纤维化信号
+#   SGLT2i/finerenone仅延缓, 大量未满足需求, 补充CKD/fibrosis叙事
+# ============================================================
+diabetic_nephropathy|diabetic nephropathy|EFO_0000401|
