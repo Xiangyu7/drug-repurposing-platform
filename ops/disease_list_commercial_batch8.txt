@@ -1,0 +1,76 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 8 — 9 therapeutic areas, 19 diseases
+# All IDs verified against OpenTargets GraphQL API (2026-03-20)
+# S级基本耗尽, 本batch以B级大市场 + A级orphan + 肿瘤扩展 + 新治疗领域为主
+# Principles: (1) tissue biopsy expression data available (2) immune/inflammatory
+#   signature clear (3) market size or orphan premium (4) platform methodology fit
+#
+# ============================================================
+# Musculoskeletal Immune B-tier (滑膜/关节活检GEO丰富, 巨大市场)
+# Osteoarthritis: 32M美国患者, 滑膜活检GEO可用, 炎症成分, 现有药仅止痛, 巨大未满足
+# Psoriatic arthritis: TNF/IL-17/IL-23/JAK市场$13B+, 滑膜活检, 与psoriasis互补
+# Gout: IL-1/NLRP3炎症体, 大市场, 尿酸结晶→免疫激活, 急性发作未满足需求
+# Polymyalgia rheumatica: 仅糖皮质激素, 老年大患者群, 滑膜/血管炎, GCA互补
+# ============================================================
+osteoarthritis|osteoarthritis|MONDO_0005178|
+psoriatic_arthritis|psoriatic arthritis|EFO_0003778|
+gout|gout|EFO_0004274|
+polymyalgia_rheumatica|polymyalgia rheumatica|EFO_0008518|
+#
+# ============================================================
+# Pulmonary Immune A-tier (肺活检/BAL GEO可用, orphan)
+# Hypersensitivity pneumonitis: 慢性型零获批药, 肺活检+BAL GEO丰富, T细胞/肉芽肿
+# LAM: sirolimus orphan, mTOR通路, 肺活检GEO可用, 育龄女性
+# ============================================================
+hypersensitivity_pneumonitis|hypersensitivity pneumonitis|MONDO_0017853|
+lymphangioleiomyomatosis|lymphangioleiomyomatosis|MONDO_0011705|
+#
+# ============================================================
+# Neuro-Immune A-tier (自免抗体介导, 神经免疫)
+# Narcolepsy: 自免破坏下丘脑hypocretin神经元, HLA-DQB1关联, 血液转录组
+# Guillain-Barré: 急性自免脱髓鞘, IVIG/血浆置换$100K+, 神经/血液GEO, 与CIDP互补
+# ============================================================
+narcolepsy|narcolepsy-cataplexy syndrome|MONDO_0016158|
+guillain_barre|Guillain-Barre syndrome|EFO_0007292|
+#
+# ============================================================
+# Dermatologic B/S-tier (皮肤活检GEO丰富)
+# Acne vulgaris: 全球最常见皮肤病, 皮肤活检GEO丰富, P.acnes免疫/炎症, 大市场
+# Sweet syndrome: 零获批药, 中性粒细胞性皮病, 皮肤活检, S级(niche)
+# ============================================================
+acne_vulgaris|acne|EFO_0003894|
+sweet_syndrome|sweet syndrome|MONDO_0011959|
+#
+# ============================================================
+# Renal/Pulmonary Autoimmune A-tier (自抗体+补体, 双器官靶向)
+# Anti-GBM (Goodpasture): 抗IV型胶原自抗体, 肾+肺活检, orphan, 零获批药
+# ============================================================
+anti_gbm_disease|Goodpasture syndrome|EFO_0007290|
+#
+# ============================================================
+# 内分泌/生殖 A/B-tier (自免/激素+免疫)
+# Addison's disease: 自免肾上腺皮质破坏, 肾上腺活检少但血液转录组可用, orphan
+# PCOS: 10%育龄女性, 卵巢组织GEO可用, 慢性炎症+代谢+激素, 巨大未满足需求
+# ============================================================
+addisons_disease|chronic primary adrenal insufficiency|MONDO_0015129|
+pcos|polycystic ovary syndrome|EFO_0000660|
+#
+# ============================================================
+# 心血管炎症 B-tier (心包活检/血液, 补充cardiovascular叙事)
+# Pericarditis: 复发性心包炎 rilonacept获批但$200K+/yr, IL-1通路, 大量未满足
+# Kawasaki: 儿童血管炎, IVIG $30K+, 冠状动脉免疫浸润, 零获批药(仅IVIG off-label)
+# ============================================================
+pericarditis|pericarditis|EFO_0007427|
+kawasaki_disease|mucocutaneous lymph node syndrome|EFO_0004246|
+#
+# ============================================================
+# Oncology扩展 (补充batch2/7肿瘤覆盖)
+# SCLC: 神经内分泌, 免疫检查点+化疗, 与NSCLC互补, 高需求
+# Cervical cancer: HPV/免疫微环境, pembrolizumab获批, 肿瘤GEO丰富
+# Esophageal cancer: 免疫治疗一线, 肿瘤活检GEO可用, nivolumab/pembrolizumab
+# Thyroid cancer: 甲状腺活检GEO极丰富, 分化型/未分化型, lenvatinib市场
+# ============================================================
+sclc|small cell lung carcinoma|EFO_0000702|
+cervical_cancer|cervical squamous cell carcinoma|EFO_1000172|
+esophageal_cancer|esophageal carcinoma|EFO_0002916|
+thyroid_cancer|thyroid carcinoma|EFO_0002892|

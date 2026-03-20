@@ -354,6 +354,67 @@ EXTRA_KEYWORDS = {
                        "TCC bladder", "urothelial bladder cancer", "muscle-invasive bladder"],
     "endometrial_cancer": ["endometrial cancer", "endometrial carcinoma", "uterine cancer",
                            "endometrial adenocarcinoma", "uterine corpus cancer"],
+    # --- Commercial Batch 8 ---
+    # Musculoskeletal
+    "osteoarthritis": ["osteoarthritis", "OA", "degenerative joint disease",
+                       "osteoarthrosis", "knee osteoarthritis", "hip osteoarthritis",
+                       "cartilage degeneration"],
+    "psoriatic_arthritis": ["PsA", "psoriatic arthritis", "psoriatic arthropathy",
+                             "arthritis psoriatic", "psoriasis arthritis"],
+    "gout": ["gout", "gouty arthritis", "crystal arthropathy", "urate crystal",
+             "tophaceous gout", "acute gout", "monosodium urate"],
+    "polymyalgia_rheumatica": ["PMR", "polymyalgia rheumatica", "polymyalgia",
+                                "rheumatic polymyalgia", "polymyalgia arteritic"],
+    # Pulmonary immune
+    "hypersensitivity_pneumonitis": ["HP", "hypersensitivity pneumonitis",
+                                     "extrinsic allergic alveolitis", "EAA",
+                                     "bird fancier lung", "farmer lung"],
+    "lymphangioleiomyomatosis": ["LAM", "lymphangioleiomyomatosis",
+                                  "lymphangiomyomatosis", "pulmonary LAM",
+                                  "TSC LAM", "sporadic LAM"],
+    # Neuro-immune
+    "narcolepsy": ["narcolepsy", "narcolepsy type 1", "narcolepsy cataplexy",
+                   "hypocretin deficiency", "orexin deficiency", "NT1"],
+    "guillain_barre": ["GBS", "Guillain-Barre", "Guillain-Barré syndrome",
+                       "acute inflammatory demyelinating polyneuropathy", "AIDP",
+                       "ascending paralysis"],
+    # Dermatologic
+    "acne_vulgaris": ["acne", "acne vulgaris", "cystic acne", "inflammatory acne",
+                      "Propionibacterium acnes", "Cutibacterium acnes", "comedone"],
+    "sweet_syndrome": ["Sweet syndrome", "acute febrile neutrophilic dermatosis",
+                       "Sweet's syndrome", "neutrophilic dermatosis acute"],
+    # Renal autoimmune
+    "anti_gbm_disease": ["anti-GBM", "Goodpasture syndrome", "Goodpasture disease",
+                          "anti-glomerular basement membrane", "anti-GBM antibody",
+                          "pulmonary-renal syndrome"],
+    # Endocrine/reproductive
+    "addisons_disease": ["Addison disease", "Addison's disease", "autoimmune adrenalitis",
+                          "primary adrenal insufficiency", "adrenocortical insufficiency",
+                          "autoimmune adrenal failure"],
+    "pcos": ["PCOS", "polycystic ovary syndrome", "polycystic ovarian syndrome",
+             "Stein-Leventhal syndrome", "ovarian hyperandrogenism",
+             "polycystic ovaries"],
+    # Cardiac inflammatory
+    "pericarditis": ["pericarditis", "recurrent pericarditis", "acute pericarditis",
+                     "constrictive pericarditis", "pericardial inflammation",
+                     "idiopathic pericarditis"],
+    "kawasaki_disease": ["Kawasaki disease", "Kawasaki syndrome",
+                          "mucocutaneous lymph node syndrome", "MLNS",
+                          "infantile polyarteritis", "Kawasaki vasculitis"],
+    # Oncology expansion
+    "sclc": ["SCLC", "small cell lung cancer", "small cell lung carcinoma",
+             "small cell carcinoma lung", "neuroendocrine lung cancer",
+             "oat cell carcinoma"],
+    "cervical_cancer": ["cervical cancer", "cervical carcinoma",
+                        "cervical squamous cell carcinoma", "HPV cervical",
+                        "cervical intraepithelial neoplasia", "uterine cervix cancer"],
+    "esophageal_cancer": ["esophageal cancer", "esophageal carcinoma",
+                          "oesophageal cancer", "esophageal squamous cell carcinoma",
+                          "esophageal adenocarcinoma", "Barrett esophagus cancer"],
+    "thyroid_cancer": ["thyroid cancer", "thyroid carcinoma",
+                       "papillary thyroid carcinoma", "PTC",
+                       "follicular thyroid carcinoma", "anaplastic thyroid cancer",
+                       "differentiated thyroid cancer"],
 }
 
 
