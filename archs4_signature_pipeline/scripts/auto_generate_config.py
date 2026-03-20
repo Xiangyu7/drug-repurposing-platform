@@ -415,6 +415,50 @@ EXTRA_KEYWORDS = {
                        "papillary thyroid carcinoma", "PTC",
                        "follicular thyroid carcinoma", "anaplastic thyroid cancer",
                        "differentiated thyroid cancer"],
+    # --- Commercial Batch 9 (S-tier sweep) ---
+    # Pulmonary
+    "chronic_eosinophilic_pneumonia": ["chronic eosinophilic pneumonia", "CEP",
+                                       "eosinophilic pneumonia chronic",
+                                       "Carrington disease", "pulmonary eosinophilia"],
+    "pulmonary_alveolar_proteinosis": ["PAP", "pulmonary alveolar proteinosis",
+                                        "alveolar proteinosis", "GM-CSF autoantibody",
+                                        "autoimmune PAP", "whole lung lavage"],
+    "cryptogenic_organizing_pneumonia": ["COP", "cryptogenic organizing pneumonia",
+                                          "organizing pneumonia", "BOOP",
+                                          "bronchiolitis obliterans organizing pneumonia"],
+    "bronchiolitis_obliterans": ["bronchiolitis obliterans", "obliterative bronchiolitis",
+                                  "constrictive bronchiolitis", "BOS",
+                                  "small airway fibrosis", "popcorn lung"],
+    # Fibrotic
+    "retroperitoneal_fibrosis": ["retroperitoneal fibrosis", "RPF", "Ormond disease",
+                                  "periaortitis", "IgG4 retroperitoneal",
+                                  "idiopathic retroperitoneal fibrosis"],
+    # Auto-inflammatory
+    "schnitzler_syndrome": ["Schnitzler syndrome", "Schnitzler's syndrome",
+                             "chronic urticaria monoclonal IgM",
+                             "urticarial vasculitis IgM", "Schnitzler"],
+    "sapho_syndrome": ["SAPHO", "SAPHO syndrome", "synovitis acne pustulosis",
+                       "hyperostosis osteitis", "sterile osteomyelitis",
+                       "chronic recurrent multifocal osteomyelitis"],
+    # Dermatologic
+    "necrobiosis_lipoidica": ["necrobiosis lipoidica", "necrobiosis lipoidica diabeticorum",
+                               "NLD", "granulomatous dermatitis necrobiosis"],
+    "panniculitis": ["panniculitis", "lobular panniculitis", "erythema nodosum",
+                     "Weber-Christian disease", "subcutaneous inflammation",
+                     "fat necrosis panniculitis"],
+    # Sensory autoimmune
+    "autoimmune_inner_ear_disease": ["AIED", "autoimmune inner ear disease",
+                                      "autoimmune sensorineural hearing loss",
+                                      "immune-mediated hearing loss",
+                                      "autoimmune labyrinthitis"],
+    # Hematologic rare
+    "hypereosinophilic_syndrome": ["HES", "hypereosinophilic syndrome",
+                                    "idiopathic hypereosinophilia",
+                                    "eosinophilic disorder", "hypereosinophilia",
+                                    "FIP1L1-PDGFRA negative HES"],
+    "poems_syndrome": ["POEMS", "POEMS syndrome", "osteosclerotic myeloma",
+                       "Crow-Fukase syndrome", "polyneuropathy organomegaly",
+                       "Takatsuki syndrome"],
 }
 
 

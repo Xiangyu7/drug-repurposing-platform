@@ -1,0 +1,53 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 9 — S-tier 扫尾, 12 diseases
+# All IDs verified against OpenTargets GraphQL API (2026-03-20)
+# 剩余 S 级候选: 零获批系统性药物, 患者群较小但 orphan 定价潜力
+# 注意: 这批疾病比 batch5/6 的 S 级更 niche, GEO 数据可能偏少
+#
+# ============================================================
+# Pulmonary Immune S-tier (零获批药, 肺活检/BAL GEO可用)
+# Chronic eosinophilic pneumonia: 零获批药(仅糖皮质激素), BAL嗜酸, 与EoE/EoGE互补
+# Autoimmune PAP: 零获批药, GM-CSF自抗体, BAL GEO可用, whole-lung lavage仅姑息
+# COP: 零获批药(仅激素), 肺活检, 肉芽组织+免疫浸润, 常复发
+# Bronchiolitis obliterans: 零获批药, 肺活检, 纤维化性小气道闭塞, 移植后/自身免疫
+# ============================================================
+chronic_eosinophilic_pneumonia|chronic eosinophilic pneumonia|MONDO_0004806|
+pulmonary_alveolar_proteinosis|autoimmune pulmonary alveolar proteinosis|MONDO_0012579|
+cryptogenic_organizing_pneumonia|cryptogenic organizing pneumonia|EFO_1001300|
+bronchiolitis_obliterans|bronchiolitis obliterans|EFO_0007183|
+#
+# ============================================================
+# Fibrotic/IgG4 S-tier (零获批药, 纤维化+免疫)
+# Retroperitoneal fibrosis: 零获批药, IgG4重叠, 腹膜后纤维化, 与IgG4-RD互补
+# ============================================================
+retroperitoneal_fibrosis|IgG4-related retroperitoneal fibrosis|MONDO_0018848|
+#
+# ============================================================
+# Auto-inflammatory S-tier (零获批药, IL-1/骨+皮肤)
+# Schnitzler: 零获批药, 慢性荨麻疹+单克隆IgM+全身炎症, IL-1驱动, orphan
+# SAPHO: 零获批药, 骨+皮肤, 无菌性骨髓炎+痤疮/脓疱, 自身炎症
+# ============================================================
+schnitzler_syndrome|Schnitzler syndrome|EFO_1001165|
+sapho_syndrome|SAPHO syndrome|EFO_1001164|
+#
+# ============================================================
+# Dermatologic S-tier (零获批药, 皮肤活检GEO可用)
+# Necrobiosis lipoidica: 零获批药, 皮肤活检, 肉芽肿+胶原变性, 常伴糖尿病
+# Panniculitis: 零获批药, 皮下脂肪活检, 脂膜炎+免疫浸润
+# ============================================================
+necrobiosis_lipoidica|necrobiosis lipoidica|EFO_1000738|
+panniculitis|panniculitis|EFO_1000746|
+#
+# ============================================================
+# Sensory/Neural Autoimmune S-tier (零获批药, 自抗体)
+# AIED: 零获批药, 内耳自免, 突发听力丧失+前庭症状, 仅激素off-label
+# ============================================================
+autoimmune_inner_ear_disease|autoimmune inner ear disease|MONDO_0022518|
+#
+# ============================================================
+# Hematologic Rare S/A-tier (零获批药或orphan, 骨髓/血液)
+# HES: mepolizumab获批但仅FIP1L1-PDGFRA阴性亚型, 多数亚型零获批, 嗜酸性浸润
+# POEMS: 零获批药(仅off-label移植/来那度胺), 骨髓+神经+多器官, orphan
+# ============================================================
+hypereosinophilic_syndrome|hypereosinophilic syndrome|EFO_1001467|
+poems_syndrome|POEMS syndrome|EFO_1001115|
