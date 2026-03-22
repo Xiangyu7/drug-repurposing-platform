@@ -1,0 +1,42 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 10 — 全新疾病, A级优先
+# 选择标准: (1) 不在现有168个疾病中 (2) 炎症/免疫机制明确
+#   (3) GEO转录组数据充足 (4) 与已验证A级疾病生物学相似
+#
+# ============================================================
+# A级 — 大患者群 + 丰富GEO数据 + 炎症通路明确
+# ============================================================
+# Periodontitis: 全球最常见慢性炎症病(>50%成人), 牙龈活检GEO极丰富
+#   TNF/IL-17/RANKL通路, 与RA(A级)通路高度重叠, 零disease-modifying药物
+periodontitis|periodontitis|MONDO_0004352|
+# Chronic hepatitis B: 2.5亿全球感染者, 肝活检GEO极丰富
+#   慢性肝炎→纤维化, 与liver fibrosis(B+)相同通路, 免疫+抗纤维化双靶
+chronic_hepatitis_b|chronic hepatitis B|EFO_0004197|
+# Age-related macular degeneration: 1.96亿全球患者, 视网膜GEO丰富
+#   补体/炎症通路(C3/CFH), 干性AMD零获批药, 巨大未满足需求
+age_related_macular_degeneration|age-related macular degeneration|MONDO_0008178|
+# Long COVID / Post-COVID: 6500万+全球患者, 2020-2025海量血液转录组GEO
+#   持续免疫激活/自免疫/微血栓, 零获批药, 巨大社会需求
+post_covid_syndrome|post-acute COVID-19 syndrome|MONDO_0100233|
+# Allergic contact dermatitis: T细胞介导皮肤炎症, 贴片试验活检GEO丰富
+#   与AD(A级)类似的皮肤免疫通路, 但T细胞驱动(Th1/Th17)而非Th2
+allergic_contact_dermatitis|allergic contact dermatitis|EFO_0007326|
+#
+# ============================================================
+# A/B+级 — 免疫/炎症/纤维化, 数据充足
+# ============================================================
+# Diabetic retinopathy: 1亿+全球患者, 视网膜炎症+微血管GEO
+#   VEGF/炎症双通路, anti-VEGF获批但炎症路径未开发
+diabetic_retinopathy|diabetic retinopathy|EFO_0004264|
+# Chronic prostatitis/CPPS: 8%男性患病, 前列腺组织GEO可用
+#   炎症/免疫, 现有治疗不佳, 与interstitial_cystitis互补
+chronic_prostatitis|chronic prostatitis|MONDO_0006043|
+# Acute kidney injury: 常见ICU并发症, 大量肾脏转录组GEO
+#   炎症→纤维化转化, 与CKD(A级)/renal fibrosis(A-)互补, 零获批药
+acute_kidney_injury|acute kidney injury|MONDO_0002492|
+# Cholestatic pruritus / intrahepatic cholestasis: 肝内胆汁淤积
+#   与PBC/PSC相关但不同, 胆汁酸/免疫, linerixibat/odevixibat新兴市场
+intrahepatic_cholestasis|intrahepatic cholestasis|MONDO_0001038|
+# Chronic wound healing: 糖尿病足溃疡/压疮, 皮肤活检GEO
+#   炎症失调→愈合障碍, 6.5M美国患者, 巨大医疗负担
+chronic_wound|chronic wound|EFO_0009609|
