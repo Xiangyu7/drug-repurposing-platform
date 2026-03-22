@@ -11,7 +11,7 @@ SigReverse ``drug``.  Drugs without a SigReverse match keep NaN.
 Usage:
     python ops/merge_sig_to_bridge.py \
         --bridge kg_explain/output/atherosclerosis/bridge_repurpose_cross.csv \
-        --sig-rank runtime/work/atherosclerosis/sigreverse_output/drug_reversal_rank.csv
+        --sig-rank runtime/runs/atherosclerosis/<run_id>/work/sigreverse_output/drug_reversal_rank.csv
 """
 from __future__ import annotations
 

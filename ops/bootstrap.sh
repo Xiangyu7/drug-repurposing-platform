@@ -567,7 +567,7 @@ step "5. Directories & Permissions"
 
 for dir in \
     "${ROOT_DIR}/runtime/state" \
-    "${ROOT_DIR}/runtime/results" \
+    "${ROOT_DIR}/runtime/runs" \
     "${ROOT_DIR}/logs/pipeline" \
     "${ROOT_DIR}/data"; do
     if [[ ! -d "${dir}" ]]; then

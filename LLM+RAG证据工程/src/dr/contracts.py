@@ -21,8 +21,6 @@ STEP7_CARDS_VERSION = "1.0.0"
 STEP8_SHORTLIST_SCHEMA = "step8_shortlist_csv"
 STEP8_SHORTLIST_VERSION = "1.1.0"
 
-STEP9_PLAN_SCHEMA = "step9_validation_plan_csv"
-STEP9_PLAN_VERSION = "1.0.0"
 
 STEP6_DOSSIER_REQUIRED_TOP_LEVEL = {
     "drug_id",
@@ -93,25 +91,6 @@ STEP8_SHORTLIST_REQUIRED_COLUMNS = {
     "mechanism_score",
     "reversal_score",
     "drug_class",
-}
-
-STEP9_PLAN_REQUIRED_COLUMNS = {
-    "rank",
-    "drug_id",
-    "canonical_name",
-    "gate",
-    "priority_tier",
-    "recommended_stage",
-    "timeline_weeks",
-    "target_disease",
-    "endpoint_type",
-    "total_score_0_100",
-    "primary_readouts",
-    "stop_go_criteria",
-    "evidence_gap",
-    "owner",
-    "shortlist_source",
-    "contract_version",
 }
 
 
@@ -242,12 +221,6 @@ def validate_step8_shortlist_columns(
         issues.append("missing column: contract_version")
     return issues
 
-
-def validate_step9_plan_columns(columns: Iterable[str]) -> List[str]:
-    """Validate Step9 validation-plan CSV columns."""
-    col_set = set(columns)
-    missing = sorted(STEP9_PLAN_REQUIRED_COLUMNS - col_set)
-    return [f"missing column: {c}" for c in missing]
 
 
 def validate_contract_version_values(

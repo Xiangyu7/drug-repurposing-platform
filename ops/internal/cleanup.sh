@@ -43,7 +43,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Actions:"
             echo "  (no action)       Show disk usage summary"
-            echo "  --work <days>     Remove runtime/work dirs older than N days (default: 7)"
+            echo "  --work <days>     Remove runtime/runs dirs older than N days (default: 7)"
             echo "  --quarantine <d>  Remove quarantine dirs older than N days (default: 3)"
             echo "  --kg-cache        Remove kg_explain HTTP cache"
             echo "  --dsmeta-work     Remove all dsmeta work directories"
@@ -186,8 +186,8 @@ if [[ -z "${ACTION}" ]]; then
     printf "  %-35s %s\n" "Directory" "Size"
     printf "  %-35s %s\n" "---" "---"
     for dir_label in \
-        "runtime/work:runtime/work" \
-        "runtime/results:runtime/results" \
+        "runtime/runs:runtime/runs" \
+        "runtime/collect:runtime/collect" \
         "runtime/quarantine:runtime/quarantine" \
         "kg_explain/cache:kg_explain/cache" \
         "kg_explain/data:kg_explain/data" \
@@ -218,7 +218,7 @@ echo ""
 
 case "${ACTION}" in
     work)
-        clean_old_dirs "runtime/work" "${ROOT_DIR}/runtime/work" "${DAYS}"
+        clean_old_dirs "runtime/runs" "${ROOT_DIR}/runtime/runs" "${DAYS}"
         ;;
     quarantine)
         clean_old_dirs "runtime/quarantine" "${ROOT_DIR}/runtime/quarantine" "${DAYS}"
@@ -233,7 +233,7 @@ case "${ACTION}" in
         clean_old_logs "logs" "${DAYS}"
         ;;
     all)
-        clean_old_dirs "runtime/work" "${ROOT_DIR}/runtime/work" "${DAYS}"
+        clean_old_dirs "runtime/runs" "${ROOT_DIR}/runtime/runs" "${DAYS}"
         clean_old_dirs "runtime/quarantine" "${ROOT_DIR}/runtime/quarantine" "${DAYS}"
         clean_dir "kg_explain/cache" "${ROOT_DIR}/kg_explain/cache/http_json"
         clean_dir "dsmeta/work" "${ROOT_DIR}/dsmeta_signature_pipeline/work"

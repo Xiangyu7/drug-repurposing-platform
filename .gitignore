@@ -71,6 +71,10 @@ dashboard/console.html
 runtime/
 data/
 
+# === GEO Agent (deprecated, local-only) ===
+ops/agents/
+geo_agent_results/
+
 # === Misc ===
 *.bak
 项目全览.html

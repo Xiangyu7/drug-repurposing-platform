@@ -100,11 +100,11 @@ echo ""
 
 # ── Clean up previous failed artifacts ──
 if [[ "${CLEAN_PREVIOUS}" == "1" ]]; then
-    # Clean stale work dirs
-    if [[ -d "${ROOT_DIR}/runtime/work/${DISEASE_KEY}" ]]; then
-        local_size="$(du -sh "${ROOT_DIR}/runtime/work/${DISEASE_KEY}" 2>/dev/null | cut -f1 || echo "?")"
-        rm -rf "${ROOT_DIR}/runtime/work/${DISEASE_KEY}"
-        ok "Cleaned stale work dir (${local_size})"
+    # Clean stale run dirs
+    if [[ -d "${ROOT_DIR}/runtime/runs/${DISEASE_KEY}" ]]; then
+        local_size="$(du -sh "${ROOT_DIR}/runtime/runs/${DISEASE_KEY}" 2>/dev/null | cut -f1 || echo "?")"
+        rm -rf "${ROOT_DIR}/runtime/runs/${DISEASE_KEY}"
+        ok "Cleaned stale run dir (${local_size})"
     fi
 
     # Clean stale kg_explain output (prevents manifest mismatch)

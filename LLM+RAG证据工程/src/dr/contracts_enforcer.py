@@ -23,7 +23,6 @@ from .contracts import (
     validate_step7_gating_columns,
     validate_step7_cards,
     validate_step8_shortlist_columns,
-    validate_step9_plan_columns,
     stamp_step6_dossier_contract,
 )
 
@@ -108,11 +107,6 @@ class ContractEnforcer:
         """Validate Step8 shortlist CSV columns."""
         issues = validate_step8_shortlist_columns(df.columns)
         self._handle_violations("step8_shortlist", issues)
-
-    def check_step9_plan(self, df: pd.DataFrame) -> None:
-        """Validate Step9 validation plan CSV columns."""
-        issues = validate_step9_plan_columns(df.columns)
-        self._handle_violations("step9_plan", issues)
 
     def clear_log(self) -> None:
         """Clear the violation log."""

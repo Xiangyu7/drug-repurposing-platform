@@ -13,7 +13,7 @@ set -Eeuo pipefail
 # ============================================================
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RESULTS_DIR="${ROOT_DIR}/runtime/results"
+RESULTS_DIR="${ROOT_DIR}/runtime/runs"
 
 BOLD='\033[1m'
 GREEN='\033[0;32m'
@@ -72,35 +72,21 @@ show_run_files() {
     local found=0
 
     # Cross route results
-    for f in "${run_dir}/cross/step8"/shortlist_top*.xlsx "${run_dir}/cross/step8"/shortlist_top*.csv; do
+    for f in "${run_dir}/output/cross/step8"/shortlist_top*.xlsx "${run_dir}/output/cross/step8"/shortlist_top*.csv; do
         if [[ -f "${f}" ]]; then
             printf "    ${GREEN}[A]${NC} %s\n" "$(basename "${f}")"
             found=1
         fi
     done
-    for f in "${run_dir}/cross/step9"/*.md "${run_dir}/cross/step9"/*.json; do
-        if [[ -f "${f}" ]]; then
-            printf "    ${GREEN}[A]${NC} %s\n" "$(basename "${f}")"
-            found=1
-        fi
-    done
-
     # Origin route results
-    for f in "${run_dir}/origin/step8"/shortlist_top*.xlsx "${run_dir}/origin/step8"/shortlist_top*.csv; do
+    for f in "${run_dir}/output/origin/step8"/shortlist_top*.xlsx "${run_dir}/output/origin/step8"/shortlist_top*.csv; do
         if [[ -f "${f}" ]]; then
             printf "    ${BLUE}[B]${NC} %s\n" "$(basename "${f}")"
             found=1
         fi
     done
-    for f in "${run_dir}/origin/step9"/*.md "${run_dir}/origin/step9"/*.json; do
-        if [[ -f "${f}" ]]; then
-            printf "    ${BLUE}[B]${NC} %s\n" "$(basename "${f}")"
-            found=1
-        fi
-    done
-
     # Bridge files
-    for f in "${run_dir}/kg"/bridge_*.csv; do
+    for f in "${run_dir}/output/cross"/bridge_*.csv "${run_dir}/output/origin"/bridge_*.csv "${run_dir}/output/kg"/bridge_*.csv; do
         if [[ -f "${f}" ]]; then
             printf "    ${YELLOW}[KG]${NC} %s\n" "$(basename "${f}")"
             found=1

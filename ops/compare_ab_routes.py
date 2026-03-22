@@ -10,7 +10,7 @@ Usage:
     python ops/compare_ab_routes.py \
         --bridge-a kg_explain/output/atherosclerosis/bridge_repurpose_cross.csv \
         --bridge-b kg_explain/output/atherosclerosis/bridge_origin_reassess.csv \
-        --out runtime/results/atherosclerosis/ab_comparison.csv
+        --out runtime/runs/atherosclerosis/<run_id>/output/ab_comparison.csv
 """
 import argparse
 import logging
