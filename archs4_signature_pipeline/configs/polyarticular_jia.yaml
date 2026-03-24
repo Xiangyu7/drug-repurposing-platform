@@ -1,0 +1,44 @@
+project:
+  name: polyarticular_jia_archs4_signature
+  outdir: outputs/polyarticular_jia
+  workdir: work/polyarticular_jia
+  seed: 42
+disease:
+  name: polyarticular_jia
+  efo_id: EFO_0008766
+archs4:
+  h5_path: data/archs4/human_gene_v2.5.h5
+  min_samples_per_group: 3
+  max_samples_per_group: 50
+  max_series: 5
+  case_keywords:
+  - polyarticular juvenile idiopathic arthritis
+  - juvenile idiopathic arthritis
+  - juvenile rheumatoid arthritis
+  - JIA polyarticular
+  - pediatric arthritis
+  - RF-positive JIA
+  - RF-negative JIA
+  - JIA synovial
+  - JIA PBMC
+  - juvenile arthritis
+  - oligoarticular JIA
+  - JIA flare
+  - childhood arthritis
+  control_keywords:
+  - normal
+  - healthy
+  - control
+opentargets:
+  min_association_score: 0.1
+de:
+  method: deseq2
+  min_count: 10
+  min_samples: 3
+meta:
+  model: DL
+  min_sign_concordance: 0.8
+  flag_i2_above: 0.75
+signature:
+  top_n: 300
+  weight_formula: meta_z_times_ot_score_times_1minusFDR

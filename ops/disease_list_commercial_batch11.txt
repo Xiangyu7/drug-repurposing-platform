@@ -1,0 +1,102 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 11 — 纯A级: 炎症=原发病因, 平台强适配
+# 选择标准: (1) 不在现有疾病中 (2) 免疫/炎症是原发病因(非继发)
+#   (3) 组织活检GEO丰富 (4) 签名逆转=治疗获益 (5) 商业价值明确
+# 主题: 过敏超敏 / 移植免疫 / 急性免疫 / 感染免疫HDT / 风湿自炎 / 神经免疫 / 生殖免疫
+#
+# ============================================================
+# 过敏/超敏 — Th2/IgE原发免疫, 巨大市场
+# ============================================================
+# Allergic rhinitis: 4亿+全球患者, 鼻黏膜活检GEO丰富
+#   Th2/IgE/肥大细胞=原发病因, 免疫治疗$5B+市场, 口服disease-modifying缺口大
+allergic_rhinitis|allergic rhinitis|EFO_0003785|
+# Food allergy: 增长最快的免疫病(儿童8%), 血液/肠黏膜GEO增长中
+#   Th2/IgE原发, 口服免疫治疗(OIT)外无获批系统药, Palforzia仅花生
+food_allergy|food allergy|MONDO_0005271|
+# ABPA: Th2/IgE对曲霉超敏反应, BAL/血液GEO可用
+#   免疫反应=肺损伤原因(非曲霉本身), 零disease-modifying药(仅激素+抗真菌)
+abpa|allergic bronchopulmonary aspergillosis|MONDO_0008586|
+#
+# ============================================================
+# 移植免疫 — 免疫排斥=原发病因, 组织活检GEO极丰富
+# ============================================================
+# Kidney transplant rejection: 肾活检GEO最丰富(Banff协议活检), $10B+免疫抑制市场
+#   T细胞/抗体介导排斥=原发免疫, 钙调磷酸酶抑制剂肾毒性=核心未满足需求
+kidney_transplant_rejection|kidney allograft rejection|EFO_0004298|
+# Liver transplant rejection: 肝活检GEO丰富, 移植后免疫排斥
+#   与kidney互补, 肝脏特异性免疫耐受机制, tacrolimus肾毒性=未满足需求
+liver_transplant_rejection|liver allograft rejection|EFO_0004298|
+# Heart transplant rejection: 心内膜活检(EMB)是移植监测金标准, GEO可用
+#   急性细胞性排斥+抗体介导排斥, 免疫抑制毒性(肾衰/感染)=未满足需求
+heart_transplant_rejection|heart allograft rejection|EFO_0004298|
+# Lung transplant rejection: 支气管肺泡灌洗/活检GEO可用
+#   慢性排斥(CLAD)5年发生率50%+, 是肺移植长期存活最大障碍
+lung_transplant_rejection|lung allograft rejection|EFO_0004298|
+#
+# ============================================================
+# 急性免疫失调 — 免疫反应=致死原因, GEO极丰富
+# ============================================================
+# Sepsis: 血液转录组GEO最丰富(>5000样本), 免疫瘫痪/细胞因子风暴=致死原因
+#   4900万例/年全球, 1100万死亡, 零disease-modifying药
+#   逆转免疫签名 → 找到调节免疫瘫痪的老药
+sepsis|sepsis|EFO_0009560|
+# ARDS: BAL/血液GEO丰富, 免疫介导肺损伤=原发病因
+#   中性粒细胞/巨噬细胞浸润→肺泡损伤, 零disease-modifying药(仅支持治疗)
+ards|acute respiratory distress syndrome|MONDO_0006502|
+# Secondary HLH/MAS: 细胞因子风暴=原发病因, 血液/骨髓GEO可用
+#   继发性HLH零获批药(emapalumab仅primary HLH), 死亡率50%+, S级!
+secondary_hlh|hemophagocytic lymphohistiocytosis|MONDO_0015540|
+#
+# ============================================================
+# 感染免疫/宿主导向治疗(HDT) — 宿主免疫反应=组织损伤原因
+# ============================================================
+# Tuberculosis: 肺/血GEO全球最丰富之一, 肉芽肿免疫反应=空洞/纤维化原因
+#   WHO优先HDT领域, 宿主免疫调节可缩短疗程/改善预后, 1040万新发/年
+tuberculosis|pulmonary tuberculosis|EFO_0007444|
+# Chronic hepatitis C (post-SVR): 肝活检GEO极丰富(DAA前时代)
+#   SVR后25-30%持续肝炎/纤维化, 此阶段免疫炎症=原发病因(病毒已清除)
+chronic_hepatitis_c|chronic hepatitis C|EFO_0004239|
+#
+# ============================================================
+# 风湿/自炎/晶体 — 免疫=原发, 组织GEO可用
+# ============================================================
+# Polyarticular JIA: 与sJIA(已覆盖)完全不同的免疫亚型, 滑膜GEO可用
+#   多关节型JIA, TNF/IL-6通路, 儿科风湿$4B+市场, 与RA通路互补
+polyarticular_jia|polyarticular juvenile idiopathic arthritis|EFO_0008766|
+# Reactive arthritis: 感染后自免疫关节炎, HLA-B27关联, 滑膜GEO可用
+#   感染触发→自免疫持续(分子模拟), 与AS互补, 零获批系统药
+reactive_arthritis|reactive arthritis|MONDO_0005556|
+# CPPD (pseudogout): 焦磷酸钙晶体→NLRP3/IL-1炎症体激活, 滑膜GEO可用
+#   与gout(已覆盖)平行的晶体关节病, 零获批特异性药物(S级!), 仅off-label colchicine
+cppd_disease|calcium pyrophosphate deposition disease|MONDO_0006239|
+# FMF: MEFV突变→inflammasome持续激活→IL-1释放, 血液GEO可用
+#   自身炎症原型病, 5-10%秋水仙碱耐药无替代, 地中海/中东高发
+fmf|familial Mediterranean fever|MONDO_0010171|
+#
+# ============================================================
+# 神经免疫 — 自抗体/免疫介导, 新认定独立实体
+# ============================================================
+# MOGAD: 抗MOG抗体介导, 2023年正式从MS/NMOSD独立出来
+#   脑/脊髓/视神经脱髓鞘, 血液/CSF GEO增长中, 零获批药(仅off-label)
+mogad|MOG antibody-associated disease|MONDO_0100485|
+#
+# ============================================================
+# ENT免疫 — 与已覆盖CRSwNP完全不同的免疫表型
+# ============================================================
+# CRSsNP: Th1/中性粒细胞驱动(vs CRSwNP=Th2/嗜酸), 鼻窦黏膜GEO可用
+#   占慢性鼻窦炎60-80%, dupilumab等Th2靶向药无效, 治疗缺口巨大
+chronic_sinusitis_snp|chronic rhinosinusitis without nasal polyps|EFO_0009609|
+#
+# ============================================================
+# 生殖免疫 — 免疫失调=不孕原因, 子宫内膜活检GEO可用
+# ============================================================
+# Chronic endometritis: CD138+浆细胞浸润子宫内膜=原发免疫
+#   与endometriosis(已覆盖)不同, 导致反复种植失败/流产, 零获批免疫调节药
+chronic_endometritis|chronic endometritis|MONDO_0002647|
+#
+# ============================================================
+# 血液免疫 — 自抗体介导, 生命威胁
+# ============================================================
+# TTP (acquired): 抗ADAMTS13自抗体=原发免疫病因, 血液GEO可用
+#   自免疫性TTP, caplacizumab获批但仅急性期, 复发预防=未满足需求
+ttp|thrombotic thrombocytopenic purpura|MONDO_0017900|
