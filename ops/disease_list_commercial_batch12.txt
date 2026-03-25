@@ -1,0 +1,101 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 12 — A级+: 全部≥A级, 严格按SAB框架筛选
+# 选择标准: (1) 不在现有~200个疾病中 (2) 免疫/炎症是核心病理
+#   (3) 组织/血液GEO转录组丰富 (4) 签名逆转=治疗获益
+#   (5) 孤儿药高定价 OR 零获批药+大患者群
+#
+# ============================================================
+# 骨髓增殖/血液肿瘤 — JAK/免疫驱动, 孤儿药定价, 骨髓/血GEO丰富
+# ============================================================
+# Polycythemia vera: JAK2-V617F驱动骨髓增殖, 血液/骨髓GEO极丰富
+#   ruxolitinib获批但仅2线, 1线仍hydroxyurea=巨大未满足需求, 孤儿药定价
+polycythemia_vera|polycythemia vera|EFO_0002429|
+# Essential thrombocythemia: JAK2/CALR/MPL驱动, 骨髓/血液GEO丰富
+#   零靶向药获批(仅anagrelide+hydroxyurea), 孤儿药, 血栓/出血并发症
+essential_thrombocythemia|essential thrombocythemia|MONDO_0015227|
+# CMML: 骨髓增殖+骨髓异常增生重叠, 骨髓GEO可用
+#   零特异性获批药(azacitidine仅MDS), 孤儿药, 30%→AML转化
+cmml|chronic myelomonocytic leukemia|MONDO_0012207|
+# AL amyloidosis: 浆细胞分泌错误折叠轻链→多器官沉积损伤, 骨髓GEO可用
+#   中位生存<5年(心脏受累), daratumumab刚获批但需更多选择, 孤儿药
+al_amyloidosis|AL amyloidosis|MONDO_0015910|
+# Peripheral T-cell lymphoma: 侵袭性T细胞肿瘤, 淋巴结/血液GEO丰富
+#   5年OS仅~30%, romidepsin/belinostat获批但疗效差, 孤儿药, 巨大未满足需求
+peripheral_tcell_lymphoma|peripheral T-cell lymphoma|EFO_0000585|
+# Marginal zone lymphoma: 惰性B细胞淋巴瘤, 脾/淋巴结/MALT GEO可用
+#   第3常见NHL亚型, 孤儿药, zanubrutinib获批但耐药需求
+marginal_zone_lymphoma|marginal zone lymphoma|EFO_0000558|
+#
+# ============================================================
+# 补体/血红蛋白病 — 免疫介导溶血/血管闭塞, 孤儿药$100-500K+
+# ============================================================
+# PNH: 补体介导红细胞溶血, 血液GEO丰富, GPI锚定蛋白缺失→补体攻击
+#   eculizumab/ravulizumab获批但$500K+/yr, 口服补体抑制剂=巨大需求
+pnh|paroxysmal nocturnal hemoglobinuria|MONDO_0017639|
+# Sickle cell disease: HbS→血管闭塞→炎症级联(中性粒细胞/内皮激活)
+#   血液GEO极丰富(>200数据集), crizanlizumab退市, voxelotor退市, 仍仅hydroxyurea可靠
+sickle_cell_disease|sickle cell disease|MONDO_0011382|
+#
+# ============================================================
+# 呼吸/肺免疫 — 中性粒细胞/免疫驱动肺损伤, GEO丰富
+# ============================================================
+# Cystic fibrosis: CFTR突变→黏液潴留→中性粒细胞性炎症→肺破坏
+#   BAL/痰GEO数百个数据集, 抗炎角度严重underexplored(均聚焦CFTR), 孤儿药$300K+/yr
+cystic_fibrosis|cystic fibrosis|MONDO_0009061|
+# Non-CF bronchiectasis: 慢性气道中性粒细胞炎症→气道扩张→反复感染循环
+#   BAL/痰GEO丰富, 30万+美国患者, 零获批disease-modifying药(S级!)
+bronchiectasis|bronchiectasis|MONDO_0004822|
+# CTD-ILD: 结缔组织病相关间质性肺病, 免疫驱动肺纤维化
+#   肺活检/BAL GEO可用, nintedanib仅获批SSc-ILD, 其他CTD-ILD(DM/RA/SjS)零获批药
+ctd_ild|connective tissue disease-associated interstitial lung disease|EFO_0009441|
+#
+# ============================================================
+# 神经免疫/自主神经 — 免疫功能障碍, 零获批药, 巨大未满足需求
+# ============================================================
+# ME/CFS: 免疫功能障碍+线粒体异常+自主神经紊乱, 血液转录组GEO快速增长
+#   1700-2400万全球患者, 零获批药(S级!), COVID后发病率激增
+mecfs|myalgic encephalomyelitis|MONDO_0005404|
+# POTS: 自身抗体(抗adrenergic/muscarinic受体)亚型占40-50%, 血液GEO增长
+#   零获批药(仅off-label fludrocortisone/midodrine), COVID后发病率暴增3-5倍
+pots|postural orthostatic tachycardia syndrome|MONDO_0012163|
+#
+# ============================================================
+# 皮肤免疫 — 与已覆盖皮肤病完全不同的免疫表型, 零特异性药
+# ============================================================
+# Palmoplantar pustulosis: IL-36/中性粒细胞驱动, 与银屑病是独立疾病(不同遗传背景)
+#   皮肤活检GEO可用, 零特异性获批药(spesolimab仅GPP), S级候选
+palmoplantar_pustulosis|palmoplantar pustulosis|MONDO_0019658|
+#
+# ============================================================
+# 眼免疫 — 自免疫, 致盲风险, 零获批药
+# ============================================================
+# Scleritis: 自免疫性巩膜炎, 50%合并系统性自免疫病, 可致穿孔失明
+#   零获批药(仅off-label NSAIDs/激素/免疫抑制), S级候选
+scleritis|scleritis|MONDO_0001127|
+#
+# ============================================================
+# 消化免疫 — 嗜酸性黏膜免疫, 组织活检GEO可用
+# ============================================================
+# Eosinophilic colitis: 嗜酸性粒细胞浸润结肠, 与EoE/EGE互补的嗜酸GI谱系
+#   结肠活检GEO可用, dupilumab仅获批EoE, 结肠型零获批药(S级!)
+eosinophilic_colitis|eosinophilic colitis|MONDO_0015794|
+#
+# ============================================================
+# 罕见免疫/组织细胞增生 — 孤儿药定价, 免疫/炎症通路
+# ============================================================
+# Langerhans cell histiocytosis: BRAF-V600E/MAPK驱动+免疫失调, 骨/皮/肺GEO可用
+#   零获批靶向药(vemurafenib仅off-label), 孤儿药
+langerhans_cell_histiocytosis|Langerhans cell histiocytosis|EFO_0000561|
+# Cold agglutinin disease: 抗红细胞IgM自抗体→补体介导溶血, 血液GEO可用
+#   sutimlimab 2022获批(首个补体抑制剂), 但仅急性期, 长期治疗缺口, 孤儿药
+cold_agglutinin_disease|cold agglutinin disease|MONDO_0019623|
+# VEXAS syndrome: UBA1体细胞突变→泛素化缺陷→自身炎症, 2020年新认定
+#   血液/骨髓GEO快速增长, 零获批药, 中位生存~5年, 孤儿药
+vexas_syndrome|VEXAS syndrome|MONDO_0100348|
+#
+# ============================================================
+# 自炎/周期性发热 — inflammasome驱动, 孤儿药
+# ============================================================
+# TRAPS: TNFRSF1A突变→NF-κB持续激活→周期性发热/浆膜炎, 血液GEO可用
+#   与FMF(已覆盖)互补的周期性发热综合征, canakinumab获批但极贵($200K+/yr)
+traps|TNF receptor-associated periodic syndrome|MONDO_0012560|
