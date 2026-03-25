@@ -1,0 +1,98 @@
+# disease_key|disease_query|origin_disease_ids(optional)|inject_yaml(optional)
+# Commercial Pipeline Batch 13 — A级+: 感染HDT / ICI毒性 / 罕见血液 / 罕见自免疫
+# 选择标准: (1) 不在现有~220个疾病中 (2) 免疫/炎症是核心病理
+#   (3) GEO转录组可用 (4) 签名逆转=治疗获益
+#   (5) 孤儿药高定价 OR 零获批药+显著患者群
+#
+# ============================================================
+# 感染免疫/宿主导向治疗(HDT) — 宿主免疫=组织损伤原因, GEO丰富
+# ============================================================
+# Leprosy: 免疫spectrum经典模型(tuberculoid↔lepromatous), 皮肤/神经/血GEO极丰富
+#   麻风反应(ENL/T1R)=致残原因, 仅thalidomide/激素, WHO HDT优先领域
+leprosy|leprosy|MONDO_0005388|
+# Cerebral malaria: 免疫介导脑微血管损伤, 血液转录组GEO丰富(非洲大量数据集)
+#   零抗炎特异性药(仅抗疟药), 60万+死亡/年, 免疫调节=生存获益
+cerebral_malaria|cerebral malaria|MONDO_0001302|
+# Chagas cardiomyopathy: T.cruzi→慢性心脏T细胞浸润/纤维化, 心/血GEO可用
+#   慢性期零获批DMD(benznidazole仅急性期), 6-7M感染, 美洲最大心脏病负担
+chagas_cardiomyopathy|Chagas cardiomyopathy|MONDO_0004989|
+# Schistosomiasis hepatic fibrosis: 虫卵→肉芽肿免疫→门脉纤维化, 肝GEO可用
+#   宿主Th2/纤维化免疫=肝损伤原因(非虫体本身), 2亿+感染, HDT抗纤维化角度
+schistosomiasis_liver|hepatic schistosomiasis|MONDO_0006795|
+# Chronic hepatitis D: HDV超感染→最重肝炎→快速进展肝硬化, 肝活检GEO可用
+#   bulevirtide仅EU获批(US未批), 1200-1500万感染, 孤儿药
+chronic_hepatitis_d|chronic hepatitis D|EFO_0004198|
+#
+# ============================================================
+# 免疫检查点抑制剂(ICI)毒性 — 最快增长的自免疫谱系, 零特异性药
+# ============================================================
+# ICI colitis: 检查点抑制剂→结肠黏膜T细胞浸润, 结肠活检GEO快速增长
+#   发生率10-20%(联合ICI), 仅激素+infliximab off-label, 零特异性获批药
+ici_colitis|immune checkpoint inhibitor colitis|EFO_0003872|
+# ICI myocarditis: 检查点抑制剂→心肌T细胞浸润, 心/血GEO增长中
+#   死亡率>50%(最致命irAE), 零特异性药(仅高剂量激素), 发生率随ICI普及上升
+ici_myocarditis|immune checkpoint inhibitor myocarditis|MONDO_0004481|
+#
+# ============================================================
+# 罕见血液/免疫 — 孤儿药定价, 零或不足获批药
+# ============================================================
+# Hairy cell leukemia: 罕见B细胞白血病, BRAF-V600E驱动, 血/骨髓GEO丰富
+#   cladribine一线有效但30-40%复发, 复发后选择有限, 孤儿药
+hairy_cell_leukemia|hairy cell leukemia|EFO_0000556|
+# T-LGL leukemia: T大颗粒淋巴细胞慢性增殖, 血液GEO可用, 自免疫机制
+#   零获批药(S级!), 仅off-label MTX/cyclophosphamide, 孤儿药
+t_lgl_leukemia|T-cell large granular lymphocytic leukemia|MONDO_0018893|
+# Pure red cell aplasia: 自抗体/T细胞→红系祖细胞选择性破坏, 血/骨髓GEO可用
+#   零获批药(S级!), 仅off-label免疫抑制, 继发于胸腺瘤/CLL/自免疫, 孤儿药
+pure_red_cell_aplasia|pure red cell aplasia|MONDO_0015613|
+# ALPS: FAS/FASL突变→淋巴细胞凋亡缺陷→慢性增殖, 血液GEO可用
+#   零获批药(S级!), 仅off-label sirolimus, 儿童/青少年, 孤儿药
+alps|autoimmune lymphoproliferative syndrome|MONDO_0015159|
+# PTLD: 移植后EBV驱动B细胞增殖, 免疫抑制背景, 淋巴结/组织GEO可用
+#   rituximab off-label, 免疫抑制减量=唯一标准策略, 孤儿药
+ptld|post-transplant lymphoproliferative disorder|EFO_0004212|
+#
+# ============================================================
+# 罕见自免疫/炎症肌病 — 与DM/PM独立的实体, 零获批药
+# ============================================================
+# Necrotizing autoimmune myopathy: anti-SRP/anti-HMGCR自抗体→肌坏死, 肌肉GEO可用
+#   与DM/PM完全不同(无炎症浸润, 纯坏死), 零获批药(S级!), 急进性肌无力
+necrotizing_autoimmune_myopathy|necrotizing autoimmune myopathy|MONDO_0019192|
+# Eosinophilic fasciitis: 深筋膜嗜酸性粒细胞+淋巴细胞浸润→纤维化, 筋膜GEO可用
+#   与SSc表面相似但病理完全不同, 零获批药(S级!), Shulman综合征
+eosinophilic_fasciitis|eosinophilic fasciitis|MONDO_0007096|
+#
+# ============================================================
+# 遗传性炎症 — 基因缺陷→炎症失控, 孤儿药$100K+
+# ============================================================
+# Alpha-1 antitrypsin deficiency: AAT缺乏→中性粒细胞弹性蛋白酶失控→肝肺炎症
+#   BAL/肝GEO极丰富, 增强疗法$100K+/yr但不改变肝病→抗炎重定位角度大
+alpha1_antitrypsin_deficiency|alpha-1 antitrypsin deficiency|MONDO_0009079|
+#
+# ============================================================
+# 移植/血管 — 内皮/免疫损伤, 孤儿药
+# ============================================================
+# Hepatic VOD/SOS: 移植预处理→肝窦内皮损伤→免疫级联→门脉高压, 肝GEO可用
+#   defibrotide获批但疗效有限(重症死亡率仍>50%), 孤儿药
+hepatic_vod|hepatic veno-occlusive disease|MONDO_0015206|
+#
+# ============================================================
+# 免疫缺陷悖论 — 免疫缺陷却有炎症并发症
+# ============================================================
+# CVID granulomatous: CVID肉芽肿/GLILD/自免疫并发症, 血/肺GEO可用
+#   免疫缺陷悖论: IgG低下却有肉芽肿性炎症, 零获批抗炎药, 孤儿药
+cvid_granulomatous|common variable immunodeficiency granulomatous|MONDO_0015218|
+#
+# ============================================================
+# 消化功能免疫 — 感染后免疫持续激活
+# ============================================================
+# Post-infectious IBS: 感染后肠道免疫持续激活→IBS, 肠黏膜GEO增长
+#   10-15% IBS患者, 肥大细胞/T细胞浸润=核心, 零靶向免疫治疗
+post_infectious_ibs|post-infectious irritable bowel syndrome|MONDO_0005052|
+#
+# ============================================================
+# 神经免疫 — 抗体介导脱髓鞘, 零获批药
+# ============================================================
+# Anti-MAG neuropathy: IgM抗MAG自抗体→周围神经脱髓鞘, 神经/血GEO可用
+#   与CIDP(已覆盖)不同机制, 零获批药(S级!), rituximab仅off-label, 孤儿药
+anti_mag_neuropathy|anti-MAG neuropathy|MONDO_0010771|
